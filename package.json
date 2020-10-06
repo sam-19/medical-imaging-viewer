@@ -1,0 +1,22 @@
+{
+  "name": "dicom-viewer",
+  "version": "0.0.1",
+  "description": "DICOM file viewer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.lohi.net.co/medigi/dicom-viewer.git"
+  },
+  "keywords": [
+    "vue",
+    "medigi",
+    "dicom",
+    "typescript",
+    "medical"
+  ],
+  "author": "Sampsa Lohi",
+  "license": "MIT"
+}
