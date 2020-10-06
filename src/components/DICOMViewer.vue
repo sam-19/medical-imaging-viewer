@@ -8,13 +8,13 @@
 <script lang="ts">
 
     import Vue from "vue"
-    import fullscreen from 'vue-fullscreen'
+    import Fullscreen from 'vue-fullscreen/src/component.vue'
     import ViewerSidebar from './ViewerSidebar.vue'
     import ViewerToolbar from './ViewerToolbar.vue'
 
     export default Vue.extend({
         components: {
-            fullscreen, ViewerSidebar, ViewerToolbar
+            Fullscreen, ViewerSidebar, ViewerToolbar
         }
     })
 
