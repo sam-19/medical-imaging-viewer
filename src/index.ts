@@ -8,15 +8,35 @@ import Vue from 'vue'
 import fullscreen from 'vue-fullscreen'
 import i18n from './i18n'
 
-import DICOMViewer from './components/DICOMViewer.vue'
+import { viewerResource } from './types/viewer'
+
+import Viewer from './components/Viewer.vue'
 
 Vue.use(fullscreen)
 
-function init (containerId: string, fileUrl: string) {
-    const DViewer = Vue.extend(DICOMViewer)
-    let viewer = new DViewer({
-        i18n,
-    }).$mount('#'+containerId)
+class DICOMViewer {
+
+    containerId: string
+
+    constructor (containerId: string | undefined) {
+        this.containerId = containerId === undefined ? '' : '-' + containerId
+    }
+
+    loadResource (resource: viewerResource | viewerResource[]): void {
+        if (Array.isArray(resource)) {
+            // Load a list of resources
+        } else {
+            // Load a single resource
+        }
+    }
+
+    show (): void {
+        const DViewer = Vue.extend(Viewer)
+        let viewer = new DViewer({
+            i18n,
+        }).$mount('#dicom-viewer'+this.containerId)
+    }
+
 }
 
-export { init }
+export { DICOMViewer }

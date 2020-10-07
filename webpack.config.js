@@ -8,7 +8,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'script.js',
-        libraryTarget: 'commonjs'
+        libraryTarget: 'umd'
     },
     module: {
         rules: [
