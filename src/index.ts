@@ -8,21 +8,39 @@ import Vue from 'vue'
 import fullscreen from 'vue-fullscreen'
 import i18n from './i18n'
 
-import { viewerResource } from './types/viewer'
+import { DICOMResource } from './types/viewer'
 
 import Viewer from './components/Viewer.vue'
 
 Vue.use(fullscreen)
 
+/**
+ * This will mount a Vue-based DICOM file viewer to an element with the ID 'dicom-viewer'.
+ * You may provide an optional suffix for the container ID, e.g. 'xray' will mount the viewer
+ * to the element with the ID 'dicom-viewer-xray' (a separating hyphen is required).
+ */
 class DICOMViewer {
 
-    containerId: string
+    containerId: string = '#dicom-viewer'
+    viewer: Vue | undefined = undefined
 
-    constructor (containerId: string | undefined) {
-        this.containerId = containerId === undefined ? '' : '-' + containerId
+    /**
+     * DICOMVCiewer constructor
+     * @param containerId optional suffix to add to the default container ID (with a separating hyphen)
+     */
+    constructor (idSuffix: string | undefined) {
+        this.containerId += idSuffix === undefined ? '' : '-' + idSuffix
     }
 
-    loadResource (resource: viewerResource | viewerResource[]): void {
+    /**
+     * Load a DICOM objects defined by the type DICOMResource
+     * @param resource a single resource or an array of resources
+     */
+    loadResource (resource: DICOMResource | DICOMResource[]): void {
+        if (this.viewer === undefined) {
+            // Viewer must be initialized first
+            return
+        }
         if (Array.isArray(resource)) {
             // Load a list of resources
         } else {
@@ -30,11 +48,30 @@ class DICOMViewer {
         }
     }
 
+    /**
+     * Load DICOM objects from given URLs
+     * @param url a single url string or an array of url strings
+     */
+    loadUrl (url: string | string[]): void {
+        if (this.viewer === undefined) {
+            // Viewer must be initialized first
+            return
+        }
+        if (Array.isArray(url)) {
+            // Load a list of URLs
+        } else {
+            // Load a single URL
+        }
+    }
+
+    /**
+     * Load the Vue component and display the viewer
+     */
     show (): void {
         const DViewer = Vue.extend(Viewer)
-        let viewer = new DViewer({
+        this.viewer = new DViewer({
             i18n,
-        }).$mount('#dicom-viewer'+this.containerId)
+        }).$mount(this.containerId)
     }
 
 }

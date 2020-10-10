@@ -4,10 +4,10 @@
  * @license    MIT
  */
 
- interface viewerResource {
+ interface DICOMResource {
      url: string        // Download URL for the resource
      size: number       // Either byte size or item count
      name: string       // Display name for the resource list
  }
 
- export { viewerResource }
+ export { DICOMResource }
