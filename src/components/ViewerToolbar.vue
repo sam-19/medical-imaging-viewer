@@ -1,7 +1,6 @@
 <template>
 
-    <div data-dicomviewer-toolbar>
-    </div>
+    <div data-dicomviewer-toolbar></div>
 
 </template>
 
