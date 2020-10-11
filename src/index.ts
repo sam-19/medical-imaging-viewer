@@ -6,7 +6,7 @@
 
 import Vue from 'vue'
 import fullscreen from 'vue-fullscreen'
-import i18n from './i18n'
+import { i18n, validLocale } from './i18n'
 
 import { DICOMResource } from './types/viewer'
 
@@ -62,6 +62,14 @@ class DICOMViewer {
         } else {
             // Load a single URL
         }
+    }
+
+    /**
+     * Set the viewer locale
+     * @param newLocale a valid locale code
+     */
+    setLocale (newLocale: validLocale): void {
+        i18n.locale = newLocale
     }
 
     /**
