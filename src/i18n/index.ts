@@ -1,4 +1,4 @@
-/** DICOM VIEWER
+/** DICOM VIEWER I18N MODULE
  * @package    dicom-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT

@@ -1,4 +1,4 @@
-/** DICOM VIEWER
+/** DICOM VIEWER CUSTOM TYPES
  * @package    dicom-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT

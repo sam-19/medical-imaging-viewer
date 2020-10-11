@@ -1,4 +1,4 @@
-/** DICOM VIEWER
+/** DICOM VIEWER ENGLISH LOCALE
  * @package    dicom-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT

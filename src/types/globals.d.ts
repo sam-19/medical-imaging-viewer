@@ -1,4 +1,4 @@
-/** DICOM VIEWER
+/** DICOM VIEWER GLOBAL TYPES
  * @package    dicom-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT

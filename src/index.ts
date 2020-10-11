@@ -1,4 +1,4 @@
-/** DICOM VIEWER
+/** DICOM VIEWER ENTRY SCRIPT
  * @package    dicom-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
@@ -33,7 +33,7 @@ class DICOMViewer {
     }
 
     /**
-     * Load a DICOM objects defined by the type DICOMResource
+     * Load DICOM objects defined by the type DICOMResource
      * @param resource a single resource or an array of resources
      */
     loadResource (resource: DICOMResource | DICOMResource[]): void {
