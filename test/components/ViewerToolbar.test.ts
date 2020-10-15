@@ -5,12 +5,13 @@
  */
 
 import { shallowMount } from '@vue/test-utils'
-import ViewerToolbar from '../ViewerToolbar.vue'
+// @ts-ignore: this name mapping is defined in jest config
+import ViewerToolbar from '@/components/ViewerToolbar.vue'
 
 describe('ViewerToolbar.vue', () => {
     const toolbar = shallowMount(ViewerToolbar)
     // Check that component is mounted
-    test('component is mounted', () => {
-        expect(toolbar.text()).toMatch('')
+    it('should mount the component', () => {
+        expect(toolbar).toBeDefined()
     })
 })
