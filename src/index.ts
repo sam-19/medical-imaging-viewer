@@ -4,15 +4,9 @@
  * @license    MIT
  */
 
-import Vue from 'vue'
-import fullscreen from 'vue-fullscreen'
 import { i18n, validLocale } from './i18n'
-
 import { DICOMResource } from './types/viewer'
 
-import Viewer from './components/Viewer.vue'
-
-Vue.use(fullscreen)
 
 /**
  * This will mount a Vue-based DICOM file viewer to an element with the ID 'dicom-viewer'.
@@ -76,10 +70,20 @@ class DICOMViewer {
      * Load the Vue component and display the viewer
      */
     show (): void {
-        const DViewer = Vue.extend(Viewer)
-        this.viewer = new DViewer({
-            i18n,
-        }).$mount(this.containerId)
+        Promise.all([
+            import(/* webpackChunkName: "vue" */'vue'),
+            import(/* webpackChunkName: "fullscreen" */'vue-fullscreen'),
+            import(/* webpackChunkName: "viewer" */'./components/Viewer.vue'),
+        ]).then((imports) => {
+            const Vue = imports[0].default
+            const Fullscreen = imports[1].default
+            const Viewer = imports[2].default
+            Vue.use(Fullscreen)
+            const DViewer = Vue.extend(Viewer)
+            this.viewer = new DViewer({
+                i18n,
+            }).$mount(this.containerId)
+        })
     }
 
 }

@@ -4,9 +4,10 @@
   "description": "DICOM file viewer",
   "main": "index.js",
   "scripts": {
+    "build": "node node_modules/webpack/bin/webpack.js --progress --hide-modules --config webpack.build.js",
     "dev": "node node_modules/webpack/bin/webpack.js --progress --watch --config webpack.dev.js",
     "test": "npm run test:unit",
-    "test:unit": "jest --config test/jest.config.js --coverage"
+    "test:unit": "jest --config test/jest.config.js --coverage --verbose"
   },
   "repository": {
     "type": "git",

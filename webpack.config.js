@@ -4,10 +4,13 @@ const { VueLoaderPlugin } = require('vue-loader')
 const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = {
-    entry: path.join(__dirname, 'src/index.ts'),
+    entry: {
+        main: path.join(__dirname, 'src', 'index.ts'),
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'script.js',
+        filename: '[name].js',
+        chunkFilename: '[name].js?v=[contenthash]',
         libraryTarget: 'umd'
     },
     module: {
