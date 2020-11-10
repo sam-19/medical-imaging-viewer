@@ -34,7 +34,7 @@ module.exports = {
                 test: /\.vue$/,
                 loader: 'vue-loader',
                 options: {
-                  // other vue-loader options go here
+                    // other vue-loader options go here
                 }
             },
             {
@@ -42,7 +42,7 @@ module.exports = {
                 loader: "ts-loader",
                 exclude: /node_modules/,
                 options: {
-                  appendTsSuffixTo: [/\.vue$/]
+                    appendTsSuffixTo: [/\.vue$/]
                 }
             },
             {
@@ -79,11 +79,11 @@ module.exports = {
         ]
     },
     devServer: {
-      historyApiFallback: true,
-      noInfo: true
+        historyApiFallback: true,
+        noInfo: true
     },
     performance: {
-      hints: false
+        hints: false
     },
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.json'],

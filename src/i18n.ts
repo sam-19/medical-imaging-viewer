@@ -7,9 +7,9 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 
-import { messagesEN, datetimeUS } from './EN'
-import { messagesFI, datetimeFI } from './FI'
-import { messagesSE, datetimeSE } from './SE'
+import { messagesEN, datetimeUS } from './locales/en'
+import { messagesFI, datetimeFI } from './locales/fi'
+import { messagesSE, datetimeSE } from './locales/se'
 
 Vue.use(VueI18n)
 

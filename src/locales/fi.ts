@@ -10,11 +10,11 @@ const messagesFI = {
 
 const datetimeFI = {
     short: {
-        year: 'numeric', month: 'numeric', day: 'numeric'
+        year: 'numeric', month: 'numeric', day: 'numeric',
     },
     long: {
         year: 'numeric', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: 'numeric'
+        hour: 'numeric', minute: 'numeric',
     },
 }
 
