@@ -13,7 +13,7 @@ You can contribute to this project in several ways.
 
 ### Reporting issues
 
-The easiest way to contribute is to __[report bugs and other issues](./issues/)__ that you have encountered when using the end-product. When reporting an issue:
+The easiest way to contribute is to __report bugs and other issues__ that you have encountered when using the end-product. When reporting an issue:
 1. Make sure that someone has not already reported the same issue by checking through the preciously reported issues.
 2. Give detailed information about the environment and circumstances in which you encountered the issue. This includes at least:
     - Operating system
@@ -25,7 +25,7 @@ The easiest way to contribute is to __[report bugs and other issues](./issues/)_
 
 ### Suggesting features
 
-Suggestions for new features are welcome. Please note however, that it is impossible to implement all suggested features, and you should not take it personally if your suggestion is rejected. In case of conflicting ideas the need of the many usually outweigh the need of the few. You can submit suggestions using the _[issue system](./issues/)_, but please make it clear you are not reporting an actual issue (by writing _Suggestion:_ in front of the title, for example).
+Suggestions for new features are welcome. Please note however, that it is impossible to implement all suggested features, and you should not take it personally if your suggestion is rejected. In case of conflicting ideas the need of the many usually outweigh the need of the few. You can submit suggestions using the _issue system_, but please make it clear you are not reporting an actual issue (by writing _Suggestion:_ in front of the title, for example).
 
 ### Pull requests
 
