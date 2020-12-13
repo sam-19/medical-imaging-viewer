@@ -24,6 +24,9 @@ module.exports = {
         "<rootDir>/src/",
         "<rootDir>/test/"
     ],
+    setupFiles: [
+        "<rootDir>/test/jest.init.js"
+    ],
     snapshotSerializers: [
         "jest-serializer-vue"
     ],

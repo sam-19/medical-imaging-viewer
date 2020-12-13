@@ -9,7 +9,7 @@ import { shallowMount } from '@vue/test-utils'
 import ViewerSidebar from '@/components/ViewerSidebar.vue'
 
 describe('ViewerSidebar.vue', () => {
-    const sidebar = shallowMount(ViewerSidebar)
+    const sidebar = shallowMount(ViewerSidebar, { stubs: ['font-awesome-icon'] })
     // Check that component is mounted
     it('should mount the component', () => {
         expect(sidebar).toBeDefined()

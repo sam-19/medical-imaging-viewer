@@ -30,6 +30,7 @@ const i18n = new VueI18n({
     fallbackLocale: 'en',
     messages: messages,
     dateTimeFormats: dateTimeFormats,
+    silentTranslationWarn: true,
 })
 
 type validLocale = 'en' | 'fi' | 'se'

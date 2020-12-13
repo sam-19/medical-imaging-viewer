@@ -9,7 +9,7 @@ import { shallowMount } from '@vue/test-utils'
 import ViewerToolbar from '@/components/ViewerToolbar.vue'
 
 describe('ViewerToolbar.vue', () => {
-    const toolbar = shallowMount(ViewerToolbar)
+    const toolbar = shallowMount(ViewerToolbar, { stubs: ['font-awesome-icon'] })
     // Check that component is mounted
     it('should mount the component', () => {
         expect(toolbar).toBeDefined()
