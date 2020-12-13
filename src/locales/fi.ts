@@ -1,5 +1,5 @@
-/** DICOM VIEWER FINNISH LOCALE
- * @package    dicom-viewer
+/** MEDIGI VIEWER FINNISH LOCALE
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

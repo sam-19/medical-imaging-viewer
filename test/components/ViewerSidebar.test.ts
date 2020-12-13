@@ -1,5 +1,5 @@
-/** DICOM VIEWER SIDEBAR COMPONENT TESTS
- * @package    dicom-viewer
+/** MEDIGI VIEWER SIDEBAR COMPONENT TESTS
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

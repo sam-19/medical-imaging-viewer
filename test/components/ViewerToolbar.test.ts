@@ -1,5 +1,5 @@
-/** DICOM VIEWER TOOLBAR COMPONENT TESTS
- * @package    dicom-viewer
+/** MEDIGI VIEWER TOOLBAR COMPONENT TESTS
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

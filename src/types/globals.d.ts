@@ -1,5 +1,5 @@
-/** DICOM VIEWER GLOBAL TYPES
- * @package    dicom-viewer
+/** MEDIGI VIEWER GLOBAL TYPES
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

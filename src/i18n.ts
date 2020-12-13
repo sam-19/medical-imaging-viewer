@@ -1,5 +1,5 @@
-/** DICOM VIEWER I18N MODULE
- * @package    dicom-viewer
+/** MEDIGI VIEWER I18N MODULE
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

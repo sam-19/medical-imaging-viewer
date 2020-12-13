@@ -1,5 +1,5 @@
-/** DICOM VIEWER SWEDISH LOCALE
- * @package    dicom-viewer
+/** MEDIGI VIEWER SWEDISH LOCALE
+ * @package    medigi-viewer
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */

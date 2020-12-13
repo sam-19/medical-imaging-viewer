@@ -16,6 +16,13 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.vue$/,
+                loader: 'vue-loader',
+                options: {
+                    // other vue-loader options go here
+                }
+            },
+            {
                 test: /\.css$/,
                 use: ['vue-style-loader', 'css-loader']
             },
@@ -29,13 +36,6 @@ module.exports = {
             {
                 test: /\.html$/,
                 loader: 'vue-template-loader'
-            },
-            {
-                test: /\.vue$/,
-                loader: 'vue-loader',
-                options: {
-                    // other vue-loader options go here
-                }
             },
             {
                 test: /\.tsx?$/,
@@ -54,7 +54,7 @@ module.exports = {
             },
             {
                 test: /\.(eot|woff|woff2|ttf|svg)$/,
-                loaders: 'file-loader',
+                loader: 'file-loader',
                 options: {
                     name: '[path][name].[ext]?[hash]'
                 }
@@ -69,9 +69,7 @@ module.exports = {
     optimization: {
         minimizer: [
             new TerserPlugin({
-                cache: true,
                 parallel: true,
-                sourceMap: true,
                 terserOptions: {
                     // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
                 }
