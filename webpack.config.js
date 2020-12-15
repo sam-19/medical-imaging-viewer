@@ -1,7 +1,7 @@
 const path = require('path')
-var webpack = require('webpack')
 const { VueLoaderPlugin } = require('vue-loader')
-const TerserPlugin = require('terser-webpack-plugin')
+
+const ASSET_PATH = process.env.ASSET_PATH || '/dist/'
 
 module.exports = {
     entry: {
@@ -9,6 +9,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
+        publicPath: ASSET_PATH,
         filename: '[name].js',
         chunkFilename: '[name].js?v=[contenthash]',
         libraryTarget: 'umd'
@@ -18,14 +19,11 @@ module.exports = {
             {
                 test: /\.vue$/,
                 loader: 'vue-loader',
-                options: {
-                    // other vue-loader options go here
-                }
             },
             {
                 test: /\.css$/,
                 oneOf: [
-                    // this matches `<style module>`
+                    // Matches `<style module>`
                     {
                         resourceQuery: /module/,
                         use: [
@@ -39,7 +37,7 @@ module.exports = {
                             }
                         ]
                     },
-                    // this matches plain `<style>` or `<style scoped>`
+                    // Matches `<style>` and `<style scoped>`
                     {
                         use: [
                             'vue-style-loader',
@@ -78,7 +76,7 @@ module.exports = {
                 options: {
                     name: '[path][name].[ext]?[hash]'
                 }
-              },
+            },
         ]
     },
     externals: {
@@ -86,16 +84,6 @@ module.exports = {
     plugins: [
         new VueLoaderPlugin(),
     ],
-    optimization: {
-        minimizer: [
-            new TerserPlugin({
-                parallel: true,
-                terserOptions: {
-                    // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
-                }
-            }),
-        ]
-    },
     devServer: {
         historyApiFallback: true,
         noInfo: true
@@ -106,8 +94,7 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.json'],
         alias: {
-          'vue$': 'vue/dist/vue.esm.js'
+        'vue$': 'vue/dist/vue.esm.js'
         }
     }
-
-};
+}
