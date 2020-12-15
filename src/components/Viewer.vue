@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="appName+'-dicom-viewer'" class="dicom-viewer dicom-viewer-dark-mode">
+    <div :id="`${appName}-dicom-viewer`" class="dicom-viewer dicom-viewer-dark-mode">
         <div class="dicom-viewer-toolbar">
             <ViewerToolbar></ViewerToolbar>
         </div>
@@ -8,7 +8,7 @@
             <ViewerSidebar></ViewerSidebar>
         </div>
         <div class="dicom-viewer-media">
-            <DICOMElement v-for="(element, idx) in dcElements" :key="appName+'-dicom-viewer-element-'+idx"
+            <DICOMElement v-for="(element, idx) in dcElements" :key="`${appName}-dicom-viewer-element-${idx}`"
                 :dataUrl="element.dataUrl"
             >
             </DICOMElement>

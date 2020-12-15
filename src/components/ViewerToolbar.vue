@@ -1,7 +1,7 @@
 <template>
 
-    <div :id="$root.appName+'-dicom-viewer-toolbar'">
-        <ToolbarButton v-for="(button, idx) in buttonRow" :key="'toolbar-button-'+idx"
+    <div :id="`${$root.appName}-dicom-viewer-toolbar`">
+        <ToolbarButton v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :enabled="button.enabled"
             :icon="button.icon"
@@ -123,16 +123,16 @@ export default Vue.extend({
             ],
             // Button states
             buttonStates: {
-                adjust: { active: false, visible: true, enabled: true } as ButtonState,
-                area: { active: false, visible: true, enabled: true } as ButtonState,
+                adjust:   { active: false, visible: true, enabled: true } as ButtonState,
+                area:     { active: false, visible: true, enabled: true } as ButtonState,
                 distance: { active: false, visible: true, enabled: true } as ButtonState,
-                invert: { active: false, visible: true, enabled: true } as ButtonState,
-                link: { active: false, visible: true, enabled: true } as ButtonState,
-                pan: { active: false, visible: true, enabled: true } as ButtonState,
-                reset: { active: false, visible: true, enabled: true } as ButtonState,
-                scroll: { active: false, visible: true, enabled: true } as ButtonState,
-                undo: { active: false, visible: true, enabled: true } as ButtonState,
-                zoom: { active: false, visible: true, enabled: true } as ButtonState,
+                invert:   { active: false, visible: true, enabled: true } as ButtonState,
+                link:     { active: false, visible: true, enabled: true } as ButtonState,
+                pan:      { active: false, visible: true, enabled: true } as ButtonState,
+                reset:    { active: false, visible: true, enabled: true } as ButtonState,
+                scroll:   { active: false, visible: true, enabled: true } as ButtonState,
+                undo:     { active: false, visible: true, enabled: true } as ButtonState,
+                zoom:     { active: false, visible: true, enabled: true } as ButtonState,
             } as ButtonRow,
             imageLink: null as number[] | null,
             // This is needed to keep the button row up to date
@@ -192,11 +192,13 @@ export default Vue.extend({
             } else if (buttonId === 'zoom') {
                 this.toggleZoom()
             }
-            // Disactivate other button that share a group with this button
+            // Deactivate other buttons that share a group with this button
             let button = this.buttons.find((btn) => { return btn.id === buttonId })
             if (button !== undefined && button.groups.length) {
                 this.buttons.forEach((btn) => {
-                    if (btn.id !== button?.id && btn.groups.length && btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length) {
+                    if (btn.id !== button?.id && btn.groups.length &&
+                        btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length
+                    ) {
                         this.buttonStates[btn.id as keyof ButtonRow].active = false
                     }
                 })
@@ -214,7 +216,10 @@ export default Vue.extend({
                 button = this.buttons.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
-                return button.icon[button.icon.length === 1 || !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1]
+                return button.icon[
+                    button.icon.length === 1 ||
+                    !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1
+                ]
             }
             return []
         },
@@ -228,7 +233,10 @@ export default Vue.extend({
                 button = this.buttons.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
-                return button.tooltip[button.tooltip.length === 1 || !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1].toString()
+                return button.tooltip[
+                    button.tooltip.length === 1 ||
+                    !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1
+                ].toString()
             }
             return ''
         },

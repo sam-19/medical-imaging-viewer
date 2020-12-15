@@ -7,9 +7,14 @@
 declare var __webpack_public_path__: string
 
 type MEDigiI18n = {
-    setup: () => any,
+    setup (): any,
     messages: object,
     dateTimeFormats: object,
+}
+type Cornerstone = {
+    enable (el: HTMLElement): void,
+    loadImage (img: any): Promise<any>,
+    displayImage (el: HTMLElement, img: any): void,
 }
 
 declare module "*.vue" {
@@ -21,9 +26,4 @@ declare module 'vue-fullscreen' {
     import { PluginObject } from 'vue'
     const fullscreen: PluginObject<{}>
     export default fullscreen
-}
-
-declare module 'cornerstone-core' {
-    const cornerstone: any
-    export default cornerstone
 }

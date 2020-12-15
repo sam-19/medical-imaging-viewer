@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="$root.appName+'-dicom-viewer-sidebar'">
+    <div :id="`${$root.appName}-dicom-viewer-sidebar`">
         <div class="dicom-viewer-sidebar-dropdown">
             <span>SELECT RESOURCE</span>
             <ul>
@@ -10,7 +10,7 @@
                 <li>OPTION 4</li>
             </ul>
         </div>
-        <SidebarItem v-for="(item, idx) in mediaItems" :key="'sidebaritem'+idx"
+        <SidebarItem v-for="(item, idx) in mediaItems" :key="`sidebaritem${idx}`"
             :count="item.count"
             :label="item.modality"
             :title="item.title"

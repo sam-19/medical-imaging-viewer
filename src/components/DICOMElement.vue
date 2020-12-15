@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="$store.state.appName+'-dicom-element-'+elementId">
+    <div :id="`${$store.state.appName}-dicom-element-${elementId}`">
 
     </div>
 
@@ -17,7 +17,10 @@ export default Vue.extend({
         elementId: String,
     },
     mounted () {
-        const dicomEl = document.querySelector('#' + this.$store.state.appName + '-dicom-element-' + this.elementId)
+        const dicomEl = document.getElementById(`${this.$store.state.appName}-dicom-element-${this.elementId}`)
+        if (dicomEl !== null) {
+            cornerstone.enable(dicomEl)
+        }
     }
 })
 

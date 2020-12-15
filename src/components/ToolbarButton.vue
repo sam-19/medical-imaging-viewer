@@ -1,7 +1,7 @@
 <template>
 
     <div
-        :id="$root.appName+'-toolbar-button-'+id"
+        :id="`${$root.appName}-toolbar-button-${id}`"
         class="dicom-viewer-toolbar-button"
         @click="enabled ? $emit('button-clicked', id) : null"
     >
