@@ -4,7 +4,8 @@
  * @license    MIT
  */
 
-import { i18n, validLocale } from './i18n'
+import { MEDigiI18n, validLocale } from './i18n'
+import { MEDigiStore, MutationTypes } from './store'
 import { DICOMResource } from './types/viewer'
 
 // FontAwesome icons
@@ -30,6 +31,7 @@ import { faShareAll } from '@fortawesome/pro-light-svg-icons/faShareAll'
 import { faUnlink } from '@fortawesome/pro-light-svg-icons/faUnlink'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
+
 library.add(faAdjust)
 library.add(faArrowsL)
 library.add(faArrowsR)
@@ -52,25 +54,33 @@ library.add(faShareAll)
 library.add(faUnlink)
 
 /**
- * This will mount a Vue-based DICOM file viewer to an element with the ID 'dicom-viewer'.
+ * This will mount a Vue-based imaging file viewer to an element with the ID 'medigi-viewer'.
  * You may provide an optional suffix for the container ID, e.g. 'xray' will mount the viewer
- * to the element with the ID 'dicom-viewer-xray' (a separating hyphen is required).
+ * to the element with the ID 'medigi-viewer-xray' (a separating hyphen is required).
  */
-class DICOMViewer {
+class MEDigiViewer {
 
     __webpack_public_path__ = './'
 
-    containerId: string = '#dicom-viewer'
-    appName: string = 'app' // This value is affixed to all element ID's to ensure uniqueness
+    containerId: string = '#medigi-viewer'
+    appName: string = 'app'
+    locale: string
     viewer: Vue | undefined = undefined
 
     /**
-     * DICOMVCiewer constructor.
-     * @param containerId optional suffix to add to the default container ID (with a separating hyphen)
+     * MEDigi imaging viewer
+     * @param idSuffix string following component ID 'medigi-viewer'
+     * @param appName unique identifier used within the app to ensure uniqueness if several instances of MEDigiViewer are run on the same page
+     * @param locale app locale
      */
-    constructor (idSuffix: string | undefined, appName: string | undefined) {
+    constructor (
+        idSuffix: string | undefined,
+        appName: string | undefined,
+        locale: validLocale | undefined
+    ) {
         this.containerId += idSuffix === undefined ? '' : '-' + idSuffix
         this.appName = appName !== undefined ? appName : this.appName
+        this.locale = locale !== undefined ? locale : 'en'
     }
 
     /**
@@ -114,17 +124,9 @@ class DICOMViewer {
             this.appName = newName
         } else {
             throw new Error(
-                i18n.t('Cannot set a new app name after the viewer has been initialized!').toString()
+                'Cannot set a new app name after the viewer has been initialized!'
             )
         }
-    }
-
-    /**
-     * Set the viewer locale.
-     * @param newLocale a valid locale code
-     */
-    setLocale (newLocale: validLocale): void {
-        i18n.locale = newLocale
     }
 
     /**
@@ -140,9 +142,13 @@ class DICOMViewer {
             const Fullscreen = imports[1].default
             const Viewer = imports[2].default
             Vue.use(Fullscreen)
+            const i18n = new MEDigiI18n().setup(Vue)
+            const store = new MEDigiStore().setup(Vue)
+            store.commit(MutationTypes.SET_APP_NAME, this.appName)
             Vue.component('font-awesome-icon', FontAwesomeIcon)
             const VM = Vue.extend(Viewer)
             this.viewer = new VM({
+                store,
                 i18n,
                 propsData: { appName: this.appName },
             }).$mount(this.containerId)
@@ -151,4 +157,4 @@ class DICOMViewer {
 
 }
 
-export { DICOMViewer }
+export { MEDigiViewer }

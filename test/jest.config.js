@@ -5,39 +5,38 @@ module.exports = {
     coverageDirectory: "<rootDir>/test/coverage/",
     globals: {
         "vue-jest": {
-            "tsConfig": false
-        }
+            "tsConfig": false,
+        },
     },
     moduleFileExtensions: [
         "js",
         "ts",
         "json",
-        "vue"
+        "vue",
     ],
     moduleNameMapper: {
-        "^@/(.*)$": "<rootDir>/src/$1"
+        "^@/(.*)$": "<rootDir>/src/$1",
     },
     modulePaths: [
-        "<rootDir>/src/"
+        "<rootDir>/src/",
     ],
     roots: [
-        "<rootDir>/src/",
-        "<rootDir>/test/"
+        "<rootDir>/test/",
     ],
     setupFiles: [
-        "<rootDir>/test/jest.init.js"
+        "<rootDir>/test/jest.init.js",
     ],
     snapshotSerializers: [
-        "jest-serializer-vue"
+        "jest-serializer-vue",
     ],
     transform: {
         "^.+\\.js$": "babel-jest",
         "^.+\\.ts$": "ts-jest",
-        "^.+\\.vue$": "vue-jest"
+        "^.+\\.vue$": "vue-jest",
     },
     transformIgnorePatterns: [
-        "node_modules/(?!(@babel)/)"
+        "node_modules/(?!(@babel)/)",
     ],
     testRegex: "(test/.*|(\\.|/)(test|spec))\\.(tsx?)$",
-    testURL: "http://localhost/"
+    testURL: "http://localhost/",
 }

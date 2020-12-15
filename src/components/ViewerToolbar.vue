@@ -18,7 +18,8 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { i18n } from '../i18n'
+import { MEDigiI18n } from '../i18n'
+const i18n = new MEDigiI18n().setup(Vue)
 import { ToolbarButton } from '../types/viewer'
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
@@ -37,91 +38,90 @@ interface ButtonRow {
     undo: ButtonState
     zoom: ButtonState
 }
-// This object is used to build the button row
-const BUTTONS = [
-    {
-        // A unique identifier for the button. Must match a key in the ButtonRow interface.
-        id: 'scroll',
-        // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
-        set: 0,
-        // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
-        groups: ['interact'],
-        // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-        icon: [ ['fal', 'layer-group'], ['far', 'layer-group'] ],
-        // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-        tooltip:[ i18n.t('Scroll image stack') ]
-    },
-    {
-        id: 'pan',
-        set: 0,
-        groups: ['interact'],
-        icon: [ ['fal', 'arrows'], ['far', 'arrows'] ],
-        tooltip: [ i18n.t('Pan image') ]
-    },
-    {
-        id: 'zoom',
-        set: 0,
-        groups: ['interact'],
-        icon: [ ['fal', 'search'], ['fas', 'search'] ],
-        tooltip: [ i18n.t('Zoom') ],
-    },
-    {
-        id: 'invert',
-        set: 1,
-        groups: [],
-        icon: [ ['fad', 'clone'] ],
-        tooltip: [ i18n.t('Invert image') ],
-    },
-    {
-        id: 'adjust',
-        set: 1,
-        groups: ['interact'],
-        icon: [ ['fad', 'adjust'] ],
-        tooltip: [ i18n.t('Adjust levels') ],
-    },
-    {
-        id: 'distance',
-        set: 2,
-        groups: ['interact'],
-        icon: [ ['fal', 'ruler'], ['far', 'ruler'] ],
-        tooltip: [ i18n.t('Measure distance') ],
-    },
-    {
-        id: 'area',
-        set: 2,
-        groups: ['interact'],
-        icon: [ ['fal', 'draw-circle'], ['far', 'draw-circle'] ],
-        tooltip: [ i18n.t('Measure area') ],
-    },
-    {
-        id: 'link',
-        set: 3,
-        groups: [],
-        icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
-        tooltip: [ i18n.t('Link image stacks'), i18n.t('Unlink image stacks') ],
-    },
-    {
-        id: 'undo',
-        set: 4,
-        groups: ['undo'],
-        icon: [ ['fal', 'reply'], ['fal', 'share'] ],
-        tooltip: [ i18n.t('Undo last adjustment'), i18n.t('Redo last adjustment') ],
-    },
-    {
-        id: 'reset',
-        set: 4,
-        groups: ['undo'],
-        icon: [ ['fal', 'reply-all'], ['fal', 'share-all'] ],
-        tooltip: [ i18n.t('Reset all adjustments'), i18n.t('Reapply all adjustment') ],
-    },
-]
-
 export default Vue.extend({
     components: {
         ToolbarButton: () => import('./ToolbarButton.vue'),
     },
     data () {
         return {
+            // This array is used to build the button row
+            buttons: [
+                {
+                    // A unique identifier for the button. Must match a key in the ButtonRow interface.
+                    id: 'scroll',
+                    // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
+                    set: 0,
+                    // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
+                    groups: ['interact'],
+                    // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
+                    icon: [ ['fal', 'layer-group'], ['far', 'layer-group'] ],
+                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
+                    tooltip:[ this.$t('Scroll image stack') ]
+                },
+                {
+                    id: 'pan',
+                    set: 0,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'arrows'], ['far', 'arrows'] ],
+                    tooltip: [ this.$t('Pan image') ]
+                },
+                {
+                    id: 'zoom',
+                    set: 0,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'search'], ['fas', 'search'] ],
+                    tooltip: [ this.$t('Zoom') ],
+                },
+                {
+                    id: 'invert',
+                    set: 1,
+                    groups: [],
+                    icon: [ ['fad', 'clone'] ],
+                    tooltip: [ this.$t('Invert image') ],
+                },
+                {
+                    id: 'adjust',
+                    set: 1,
+                    groups: ['interact'],
+                    icon: [ ['fad', 'adjust'] ],
+                    tooltip: [ this.$t('Adjust levels') ],
+                },
+                {
+                    id: 'distance',
+                    set: 2,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'ruler'], ['far', 'ruler'] ],
+                    tooltip: [ this.$t('Measure distance') ],
+                },
+                {
+                    id: 'area',
+                    set: 2,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'draw-circle'], ['far', 'draw-circle'] ],
+                    tooltip: [ this.$t('Measure area') ],
+                },
+                {
+                    id: 'link',
+                    set: 3,
+                    groups: [],
+                    icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
+                    tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
+                },
+                {
+                    id: 'undo',
+                    set: 4,
+                    groups: ['undo'],
+                    icon: [ ['fal', 'reply'], ['fal', 'share'] ],
+                    tooltip: [ this.$t('Undo last adjustment'), this.$t('Redo last adjustment') ],
+                },
+                {
+                    id: 'reset',
+                    set: 4,
+                    groups: ['undo'],
+                    icon: [ ['fal', 'reply-all'], ['fal', 'share-all'] ],
+                    tooltip: [ this.$t('Reset all adjustments'), this.$t('Reapply all adjustment') ],
+                },
+            ],
             // Button states
             buttonStates: {
                 adjust: { active: false, visible: true, enabled: true } as ButtonState,
@@ -135,7 +135,6 @@ export default Vue.extend({
                 undo: { active: false, visible: true, enabled: true } as ButtonState,
                 zoom: { active: false, visible: true, enabled: true } as ButtonState,
             } as ButtonRow,
-
             imageLink: null as number[] | null,
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
@@ -146,7 +145,7 @@ export default Vue.extend({
             this.buttonsUpdated // Trigger refresh when this value changes
             let buttons = [] as ToolbarButton[]
             let buttonSet = null as number | null
-            BUTTONS.forEach((button) => {
+            this.buttons.forEach((button) => {
                 // Add visible buttons
                 if (this.buttonStates[button.id as keyof ButtonRow].visible) {
                     let newSet = false
@@ -195,9 +194,9 @@ export default Vue.extend({
                 this.toggleZoom()
             }
             // Disactivate other button that share a group with this button
-            let button = BUTTONS.find((btn) => { return btn.id === buttonId })
+            let button = this.buttons.find((btn) => { return btn.id === buttonId })
             if (button !== undefined && button.groups.length) {
-                BUTTONS.forEach((btn) => {
+                this.buttons.forEach((btn) => {
                     if (btn.id !== button?.id && btn.groups.length && btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length) {
                         this.buttonStates[btn.id as keyof ButtonRow].active = false
                     }
@@ -208,12 +207,12 @@ export default Vue.extend({
         },
         /**
          * Get the button icon appropriate for button state.
-         * @param button BUTTONS array member or button ID string
+         * @param button this.buttons array member or button ID string
          * @return [] | undefined
          */
         getButtonIcon: function (button: any): string[] {
             if (typeof button === 'string') {
-                button = BUTTONS.find((btn) => { return btn.id === button })
+                button = this.buttons.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
                 return button.icon[button.icon.length === 1 || !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1]
@@ -222,12 +221,12 @@ export default Vue.extend({
         },
         /**
          * Get the button tooltip appropriate for button state.
-         * @param button BUTTONS array member or button ID string
+         * @param button this.buttons array member or button ID string
          * @return [] | undefined
          */
         getButtonTooltip: function (button: any): string {
             if (typeof button === 'string') {
-                button = BUTTONS.find((btn) => { return btn.id === button })
+                button = this.buttons.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
                 return button.tooltip[button.tooltip.length === 1 || !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1].toString()
@@ -249,7 +248,7 @@ export default Vue.extend({
                 this.buttonStates[key as keyof ButtonRow].enabled = true
             })
             buttonIds.forEach((button) => {
-                let match = BUTTONS.find((btn) => { return btn.id === button })
+                let match = this.buttons.find((btn) => { return btn.id === button })
                 if (match !== undefined) {
                     this.buttonStates[match.id as keyof ButtonRow].enabled = false
                 }
@@ -267,7 +266,7 @@ export default Vue.extend({
                 this.buttonStates[key as keyof ButtonRow].visible = true
             })
             buttonIds.forEach((button) => {
-                let match = BUTTONS.find((btn) => { return btn.id === button })
+                let match = this.buttons.find((btn) => { return btn.id === button })
                 if (match !== undefined) {
                     this.buttonStates[match.id as keyof ButtonRow].active = false // Can't leave an invisible button active
                     this.buttonStates[match.id as keyof ButtonRow].visible = false
