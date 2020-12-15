@@ -19,7 +19,6 @@
 
 import Vue from 'vue'
 import { MEDigiI18n } from '../i18n'
-const i18n = new MEDigiI18n().setup(Vue)
 import { ToolbarButton } from '../types/viewer'
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
