@@ -62,43 +62,84 @@ export default Vue.extend({
             }
         },
 
-        handleFileDrop: function (event: DragEvent) {
-            console.log(event)
+        handleFileDrop: async function (event: DragEvent) {
+            // Helper functions to recover the files asynchronously
+            // This method recurses only one level of directories!
+            let readAllItems = async (items: DataTransferItemList) => {
+                let fileTree = [] as DataTransferItem[] | Object[]
+                // Chrome may not return the entire list at once (max 100 entires)
+                // so we need to cache returned items in a separate list
+                let cache = []
+                // Initial cache
+                for (let i=0; i<items.length; i++) {
+                    cache.push(items[i].webkitGetAsEntry())
+                }
+                console.log(cache.length)
+                // Go through the queue until it is empty
+                while (cache.length > 0) {
+                    let item = cache.shift()
+                    if (item.isFile) {
+                        // Add files to root directory
+                        fileTree.push(await new Promise((resolve, reject) => item.file(resolve, reject)))
+                    } else if (item.isDirectory) {
+                        // New directory encountered
+                        let dirReader = item.createReader()
+                        cache.push(await readDirectoryItems(item.name, dirReader))
+                    } else {
+                        fileTree.push(item)
+                    }
+                }
+                return fileTree
+            }
+            let readDirectoryItems = async (name: string, reader: any) => {
+                let dir = { name: name, items: [] as any[] }
+                let items = await readItems(reader) // Get first batch of items
+                if (Array.isArray(items)) {
+                    while (items.length > 0) {
+                        let file = await new Promise((resolve, reject) => items.shift().file(resolve, reject))
+                        dir.items.push(file)
+                        items = items.concat(await readItems(reader))
+                    }
+                }
+                return dir
+            }
+            let readItems = async (reader: any): Promise<any> => {
+                try {
+                    return await new Promise((resolve, reject) => {
+                        reader.readEntries(resolve, reject)
+                    })
+                } catch (error) {
+                    console.error(error)
+                }
+            }
             event.stopPropagation()
             event.preventDefault()
             // Get FileList from the droppped object
-            let selectedFile
             if (event.dataTransfer && event.dataTransfer.items) {
-                for (let i=0; i<event.dataTransfer.items.length; i++) {
-                    if (event.dataTransfer.items[i].kind === 'file') {
-                        let file = event.dataTransfer.items[i].getAsFile()
-                        if (file && file.size) {
-                            selectedFile = file
-                            break // TODO: Handle multiple files and folders
+                let items = await readAllItems(event.dataTransfer.items)
+                if (items.length === 1 && !items[0].hasOwnProperty('items')) {
+                    let file = items[0] as File
+                    if (file) {
+                        const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
+                        if (imageId) {
+                            let dcmEl = { url: imageId, size: file.size, name: file.name } as DICOMResource
+                            this.dcmElements.push(dcmEl)
                         }
                     }
+                } else {
+                    console.log('ITEMS', items)
                 }
             } else if (event.dataTransfer && event.dataTransfer.files) {
                 for (let i=0; i<event.dataTransfer.files.length; i++) {
                     if (event.dataTransfer.files[i].size) {
-                        selectedFile = event.dataTransfer.files[i]
-                        break // TODO: Handle multiple files and folders
+                        break // TODO: Handle multiple files and folders?
                     }
-                }
-            }
-            console.log(selectedFile)
-            if (selectedFile) {
-                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(selectedFile)
-                if (imageId) {
-                    let dcmEl = { url: imageId, size: selectedFile.size, name: selectedFile.name } as DICOMResource
-                    this.dcmElements.push(dcmEl)
-                    console.log(this.dcmElements)
                 }
             }
         },
         mediaResized: function () {
             this.mediaContainerSize = [(this.$refs['media'] as HTMLElement).offsetWidth, (this.$refs['media'] as HTMLElement).offsetHeight]
-        }
+        },
     },
     mounted () {
         // Set up WADO Image Loader

@@ -42,7 +42,7 @@ export default Vue.extend({
                     this.$root.cornerstone.displayImage(dicomEl, image, viewport)
                 }
             }, (error: Error) => {
-                alert(error)
+                console.error(error)
             })
         }
     }
