@@ -9,10 +9,6 @@ type ImageModality = 'US' | 'XR' | 'CT' | 'MRI' | 'PET' | 'SPECT'
 type BiosignalModality = 'ECG' | 'EEG' | 'EOG'
 type AnyModality = BiosignalModality | ImageModality
 
-interface DICOMElement {
-    dataUrl: string
-}
-
 interface DICOMResource {
     url: string        // Download URL for the resource
     size: number       // Either byte size or item count
@@ -35,4 +31,4 @@ interface DICOMResource {
     tooltip: string
 }
 
-export { AnyModality, DICOMElement, DICOMResource, ToolbarButton, MediaItem, MediaType, ImageModality, BiosignalModality }
+export { AnyModality, DICOMResource, ToolbarButton, MediaItem, MediaType, ImageModality, BiosignalModality }

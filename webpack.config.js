@@ -95,6 +95,11 @@ module.exports = {
         extensions: ['.ts', '.js', '.vue', '.json'],
         alias: {
         'vue$': 'vue/dist/vue.esm.js'
+        },
+        fallback: {
+            // Fixes can't resolve errors in cornerstone-wado-image-loader
+            fs: false,
+            path: false,
         }
     }
 }

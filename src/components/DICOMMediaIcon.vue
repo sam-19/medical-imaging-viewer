@@ -1,18 +1,18 @@
 <template>
-    <div class="dicom-viewer-media-icon">
+    <div class="medigi-viewer-media-icon">
         <!-- Single image -->
-        <div v-if="type==='image' && count===1" class="dicom-viewer-icon-image-single">
+        <div v-if="type==='image' && count===1" class="medigi-viewer-icon-image-single">
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
         <!-- Image stack -->
-        <div v-else-if="type==='image' && count>1" class="dicom-viewer-icon-image-stack">
+        <div v-else-if="type==='image' && count>1" class="medigi-viewer-icon-image-stack">
             <div></div>
             <div></div>
             <div></div>
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
         <!-- Single biosignal -->
-        <div v-if="type==='biosignal' && count===1" class="dicom-viewer-icon-biosignal-single">
+        <div v-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
     </div>
@@ -47,6 +47,50 @@ export default Vue.extend({
 
 </script>
 
-<style>
+<style scoped>
+.medigi-viewer-media-icon {
+    height: 100%;
+    width: 100%;
+    padding: 10% 20% 20% 10%;
+}
+    .medigi-viewer-icon-image-single {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        border: solid 1px var(--medigi-viewer-text-main);
+        border-radius: 5%;
+    }
+    .medigi-viewer-icon-image-stack {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    .medigi-viewer-icon-image-stack > div {
+        position: absolute;
+        height: 80%;
+        width: 80%;
+        border: solid 1px var(--medigi-viewer-text-main);
+        background-color: var(--medigi-viewer-background);
+        border-radius: 5%;
+    }
+    .medigi-viewer-icon-image-stack > div:nth-child(1) {
+        top: 0;
+        left: 0;
+    }
+    .medigi-viewer-icon-image-stack > div:nth-child(2) {
+        top: 10%;
+        left: 10%;
+    }
+    .medigi-viewer-icon-image-stack > div:nth-child(3) {
+        top: 20%;
+        left: 20%;
+    }
+    .medigi-viewer-media-icon span {
+        position: absolute;
+        bottom: -20%;
+        right: -10%;
+        padding: 3px;
+        background-color: var(--medigi-viewer-background);
+    }
 
 </style>

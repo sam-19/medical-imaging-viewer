@@ -1,13 +1,13 @@
 <template>
 
-    <div :id="`${$root.appName}-dicom-viewer-toolbar`">
+    <div :id="`${$root.appName}-medigi-viewer-toolbar`">
         <ToolbarButton v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :enabled="button.enabled"
             :icon="button.icon"
             :emit="button.emit"
             :tooltip="button.tooltip"
-            :class="{ 'dicom-viewer-disabled': !button.enabled, 'dicom-element-active': button.active, 'dicom-viewer-toolbar-setfirst': button.setFirst }"
+            :class="{ 'medigi-viewer-disabled': !button.enabled, 'element-active': button.active, 'medigi-viewer-toolbar-setfirst': button.setFirst }"
             @button-clicked="buttonClicked"
         >
         </ToolbarButton>
@@ -324,5 +324,8 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-
+.medigi-viewer-toolbar > div {
+    display: flex;
+    padding: 10px;
+}
 </style>

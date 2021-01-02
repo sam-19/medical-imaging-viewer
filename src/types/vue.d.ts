@@ -3,5 +3,10 @@
  * @copyright  2020 Sampsa Lohi
  * @license    MIT
  */
+import Vue from "vue"
 
-declare var __webpack_public_path__: string
+declare module "vue/types/vue" {
+    interface Vue {
+        cornerstone: any
+    }
+}

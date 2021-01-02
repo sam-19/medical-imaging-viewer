@@ -136,7 +136,7 @@ class MEDigiViewer {
         Promise.all([
             import(/* webpackChunkName: "vue" */'vue'),
             import(/* webpackChunkName: "fullscreen" */'vue-fullscreen'),
-            import(/* webpackChunkName: "viewer" */'./components/Viewer.vue'),
+            import(/* webpackChunkName: "viewer" */'./components/App.vue'),
         ]).then((imports) => {
             const Vue = imports[0].default
             const Fullscreen = imports[1].default

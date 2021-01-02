@@ -9,33 +9,33 @@ declare module 'cornerstone-core' {
     type Matrix = [number, number, number, number, number, number]
 
     interface LayerOptions {
-      viewport: Viewport
-      visible: boolean
-      opacity: number
+        viewport: Viewport
+        visible: boolean
+        opacity: number
     }
 
     /**
      * A two-dimensional vector
      */
     interface Vec2 {
-      x: number
-      y: number
+        x: number
+        y: number
     }
 
     interface CornerstoneEventData {
-      canvasContext?: CanvasRenderingContext2D
-      element?: HTMLElement
-      enabledElement?: EnabledElement
-      image?: Image
-      renderTimeInMs?: number
-      viewport?: Viewport
+        canvasContext?: CanvasRenderingContext2D
+        element?: HTMLElement
+        enabledElement?: EnabledElement
+        image?: Image
+        renderTimeInMs?: number
+        viewport?: Viewport
 
-      oldImage?: Image
-      frameRate?: number
+        oldImage?: Image
+        frameRate?: number
     }
 
     interface CornerstoneEvent extends Event {
-      detail?: CornerstoneEventData
+        detail?: CornerstoneEventData
     }
 
     /**
@@ -44,10 +44,10 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#lut
      */
     interface LUT {
-      id: string
-      firstValueMapped: number
-      numBitsPerEntry: number
-      lut: number[]
+        id: string
+        firstValueMapped: number
+        numBitsPerEntry: number
+        lut: number[]
     }
 
     /**
@@ -56,8 +56,8 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#voi
      */
     interface VOI {
-      windowWidth: number
-      windowCenter: number
+        windowWidth: number
+        windowCenter: number
     }
 
     /**
@@ -71,62 +71,62 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#viewport
      */
     interface Viewport {
-      /** The scale applied to the image. A scale of 1.0 will display no zoom (one image pixel takes up one screen pixel). A scale of 2.0 will be double zoom and a scale of .5 will be zoomed out by 2x */
-      scale: number
+        /** The scale applied to the image. A scale of 1.0 will display no zoom (one image pixel takes up one screen pixel). A scale of 2.0 will be double zoom and a scale of .5 will be zoomed out by 2x */
+        scale: number
 
-      /** an object with properties x and y which describe the translation to apply in the pixel coordinate system. Note that the image is initially displayed centered in the enabled element with a x and y translation of 0 and 0 respectively. */
-      translation: Vec2
+        /** an object with properties x and y which describe the translation to apply in the pixel coordinate system. Note that the image is initially displayed centered in the enabled element with a x and y translation of 0 and 0 respectively. */
+        translation: Vec2
 
-      /** an object with properties windowWidth and windowCenter. */
-      voi: VOI
+        /** an object with properties windowWidth and windowCenter. */
+        voi: VOI
 
-      /** Whether or not the image is inverted. */
-      invert: boolean
+        /** Whether or not the image is inverted. */
+        invert: boolean
 
-      /** true if the image smooth / interpolation should be used when zoomed in on the image or false if pixel replication should be used. */
-      pixelReplication: boolean
+        /** true if the image smooth / interpolation should be used when zoomed in on the image or false if pixel replication should be used. */
+        pixelReplication: boolean
 
-      /** the rotation of the image (90 degree increments). Default is 0 */
-      rotation: number
+        /** the rotation of the image (90 degree increments). Default is 0 */
+        rotation: number
 
-      /** true if the image is flipped horizontally. Default is false */
-      hflip: boolean
+        /** true if the image is flipped horizontally. Default is false */
+        hflip: boolean
 
-      /** true if the image is flipped vertically. Default is false */
-      vfilip: boolean
+        /** true if the image is flipped vertically. Default is false */
+        vfilip: boolean
 
-      /** the modality LUT to apply or undefined if none */
-      modalityLUT: LUT | undefined
+        /** the modality LUT to apply or undefined if none */
+        modalityLUT: LUT | undefined
 
-      /** the VOI LUT to apply or undefined if none */
-      voiLUT: LUT | undefined
+        /** the VOI LUT to apply or undefined if none */
+        voiLUT: LUT | undefined
 
-      /** an optional colormap ID or colormap object (from colors/colormap.js). This will be applied during rendering to convert the image to pseudocolor */
-      colormap: string | object | undefined
+        /** an optional colormap ID or colormap object (from colors/colormap.js). This will be applied during rendering to convert the image to pseudocolor */
+        colormap: string | object | undefined
 
-      /** whether or not to render this image as a label map (i.e. skip modality and VOI LUT pipelines and use only a color lookup table) */
-      labelmap: boolean | undefined
+        /** whether or not to render this image as a label map (i.e. skip modality and VOI LUT pipelines and use only a color lookup table) */
+        labelmap: boolean | undefined
 
-      /** ? */
-      displayedArea: {
-        // Displayed Area is 1-based
-        tlhc: {
-          x: number
-          y: number
+        /** ? */
+        displayedArea: {
+            // Displayed Area is 1-based
+            tlhc: {
+                x: number
+                y: number
+            }
+
+            // Bottom Right Hand Corner
+            brhc: {
+                x: number
+                y: number
+            }
+
+            rowPixelSpacing: number
+
+            columnPixelSpacing: number
+
+            presentationSizeMode: string
         }
-
-        // Bottom Right Hand Corner
-        brhc: {
-          x: number
-          y: number
-        }
-
-        rowPixelSpacing: number
-
-        columnPixelSpacing: number
-
-        presentationSizeMode: string
-      }
     }
 
     /**
@@ -135,11 +135,11 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#imageloadobject
      */
     interface ImageLoadObject {
-      /** The Promise tracking the loading of this image */
-      promise: Promise<Image>
+        /** The Promise tracking the loading of this image */
+        promise: Promise<Image>
 
-      /** A function to cancel the image load request */
-      cancelFn: () => void | undefined
+        /** A function to cancel the image load request */
+        cancelFn: () => void | undefined
     }
 
     /**
@@ -148,20 +148,20 @@ declare module 'cornerstone-core' {
      * https://docs.cornerstonejs.org/api.html#imagestats
      */
     interface ImageStats {
-      /** The time in ms taken to retrieve stored pixels required to draw the image */
-      lastGetPixelDataTime?: number
+        /** The time in ms taken to retrieve stored pixels required to draw the image */
+        lastGetPixelDataTime?: number
 
-      /** The time in ms taken to map from stored pixel array to canvas pixel array */
-      lastStoredPixelDataToCanvasImageDataTime?: number
+        /** The time in ms taken to map from stored pixel array to canvas pixel array */
+        lastStoredPixelDataToCanvasImageDataTime?: number
 
-      /** The time in ms taken for putImageData to put the canvas pixel data into the canvas context */
-      lastPutImageDataTime?: number
+        /** The time in ms taken for putImageData to put the canvas pixel data into the canvas context */
+        lastPutImageDataTime?: number
 
-      /** The total time in ms taken for the entire rendering function to run */
-      lastRenderTime?: number
+        /** The total time in ms taken for the entire rendering function to run */
+        lastRenderTime?: number
 
-      /** The time in ms taken to generate the lookup table for the image */
-      lastLutGenerateTime?: number
+        /** The time in ms taken to generate the lookup table for the image */
+        lastLutGenerateTime?: number
     }
 
     /**
@@ -170,92 +170,92 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#image
      */
     interface Image {
-      /** The imageId associated with this image object */
-      imageId: string
+        /** The imageId associated with this image object */
+        imageId: string
 
-      /** the minimum stored pixel value in the image */
-      minPixelValue: number
+        /** the minimum stored pixel value in the image */
+        minPixelValue: number
 
-      /** the maximum stored pixel value in the image */
-      maxPixelValue: number
+        /** the maximum stored pixel value in the image */
+        maxPixelValue: number
 
-      /** the rescale slope to convert stored pixel values to modality pixel values or 1 if not specified */
-      slope: number
+        /** the rescale slope to convert stored pixel values to modality pixel values or 1 if not specified */
+        slope: number
 
-      /** the rescale intercept used to convert stored pixel values to modality values or 0 if not specified */
-      intercept: number
+        /** the rescale intercept used to convert stored pixel values to modality values or 0 if not specified */
+        intercept: number
 
-      /** the default windowCenter to apply to the image */
-      windowCenter: number
+        /** the default windowCenter to apply to the image */
+        windowCenter: number
 
-      /** the default windowWidth to apply to the image */
-      windowWidth: number
+        /** the default windowWidth to apply to the image */
+        windowWidth: number
 
-      /** a function that returns the underlying pixel data. An array of integers for grayscale and an array of RGBA for color */
-      getPixelData: () => Uint8Array
+        /** a function that returns the underlying pixel data. An array of integers for grayscale and an array of RGBA for color */
+        getPixelData: () => Uint8Array
 
-      /** a function that returns a canvas imageData object for the image. This is only needed for color images */
-      getImageData: () => ImageData
+        /** a function that returns a canvas imageData object for the image. This is only needed for color images */
+        getImageData: () => ImageData
 
-      /** a function that returns a canvas element with the image loaded into it. This is only needed for color images. */
-      getCanvas: () => HTMLCanvasElement
+        /** a function that returns a canvas element with the image loaded into it. This is only needed for color images. */
+        getCanvas: () => HTMLCanvasElement
 
-      /** a function that returns a JavaScript Image object with the image data. This is optional and typically used for images encoded in standard web JPEG and PNG formats */
-      getImage: () => HTMLImageElement
+        /** a function that returns a JavaScript Image object with the image data. This is optional and typically used for images encoded in standard web JPEG and PNG formats */
+        getImage: () => HTMLImageElement
 
-      /** number of rows in the image. This is the same as height but duplicated for convenience */
-      rows: number
+        /** number of rows in the image. This is the same as height but duplicated for convenience */
+        rows: number
 
-      /** number of columns in the image. This is the same as width but duplicated for convenience */
-      columns: number
+        /** number of columns in the image. This is the same as width but duplicated for convenience */
+        columns: number
 
-      /** The Lookup Table */
-      lut: LUT
+        /** The Lookup Table */
+        lut: LUT
 
-      /** Is the color pixel data stored in RGBA? */
-      rgba: boolean
+        /** Is the color pixel data stored in RGBA? */
+        rgba: boolean
 
-      /** horizontal distance between the middle of each pixel (or width of each pixel) in mm or undefined if not known */
-      columnPixelSpacing: number
+        /** horizontal distance between the middle of each pixel (or width of each pixel) in mm or undefined if not known */
+        columnPixelSpacing: number
 
-      /** vertical distance between the middle of each pixel (or height of each pixel) in mm or undefined if not known */
-      rowPixelSpacing: number
+        /** vertical distance between the middle of each pixel (or height of each pixel) in mm or undefined if not known */
+        rowPixelSpacing: number
 
-      /** true if the the image should initially be displayed be inverted, false if not. This is here mainly to support DICOM images with a photometric interpretation of MONOCHROME1 */
-      invert: boolean
+        /** true if the the image should initially be displayed be inverted, false if not. This is here mainly to support DICOM images with a photometric interpretation of MONOCHROME1 */
+        invert: boolean
 
-      /** the number of bytes used to store the pixels for this image. */
-      sizeInBytes: number
+        /** the number of bytes used to store the pixels for this image. */
+        sizeInBytes: number
 
-      /** Whether or not the image has undergone false color mapping */
-      falseColor?: boolean
+        /** Whether or not the image has undergone false color mapping */
+        falseColor?: boolean
 
-      /** Original pixel data for an image after it has undergone false color mapping */
-      origPixelData?: number[]
+        /** Original pixel data for an image after it has undergone false color mapping */
+        origPixelData?: number[]
 
-      /** Statistics for the last redraw of the image */
-      stats?: ImageStats
+        /** Statistics for the last redraw of the image */
+        stats?: ImageStats
 
-      /** Cached Lookup Table for this image. */
-      cachedLut: LUT
+        /** Cached Lookup Table for this image. */
+        cachedLut: LUT
 
-      /** true if pixel data is RGB, false if grayscale */
-      color: boolean
+        /** true if pixel data is RGB, false if grayscale */
+        color: boolean
 
-      /** @deprecated Use viewport.colormap instead. an optional colormap ID or colormap object (from colors/colormap.js). This will be applied during rendering to convert the image to pseudocolor */
-      colormap?: string | object
+        /** @deprecated Use viewport.colormap instead. an optional colormap ID or colormap object (from colors/colormap.js). This will be applied during rendering to convert the image to pseudocolor */
+        colormap?: string | object
 
-      /** whether or not to render this image as a label map (i.e. skip modality and VOI LUT pipelines and use only a color lookup table) */
-      labelmap?: boolean
+        /** whether or not to render this image as a label map (i.e. skip modality and VOI LUT pipelines and use only a color lookup table) */
+        labelmap?: boolean
 
-      /** ? */
-      voiLUT?: LUT
+        /** ? */
+        voiLUT?: LUT
 
-      /** the width of the image. This is the same as columns but duplicated for convenience */
-      width: number
+        /** the width of the image. This is the same as columns but duplicated for convenience */
+        width: number
 
-      /** the height of the image. This is the same as rows but duplicated for convenience */
-      height: number
+        /** the height of the image. This is the same as rows but duplicated for convenience */
+        height: number
     }
 
     /**
@@ -264,26 +264,26 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#enabledelementlayer
      */
     interface EnabledElementLayer {
-      /** The DOM element which has been enabled for use by Cornerstone */
-      element: HTMLElement
+        /** The DOM element which has been enabled for use by Cornerstone */
+        element: HTMLElement
 
-      /** The image currently displayed in the enabledElement */
-      image?: Image
+        /** The image currently displayed in the enabledElement */
+        image?: Image
 
-      /** The current viewport settings of the enabledElement */
-      viewport?: Viewport
+        /** The current viewport settings of the enabledElement */
+        viewport?: Viewport
 
-      /** The current canvas for this enabledElement */
-      canvas?: HTMLCanvasElement
+        /** The current canvas for this enabledElement */
+        canvas?: HTMLCanvasElement
 
-      /** Whether or not the image pixel data underlying the enabledElement has been changed, necessitating a redraw */
-      invalid: boolean
+        /** Whether or not the image pixel data underlying the enabledElement has been changed, necessitating a redraw */
+        invalid: boolean
 
-      /** A flag for triggering a redraw of the canvas without re-retrieving the pixel data, since it remains valid */
-      needsRedraw: boolean
+        /** A flag for triggering a redraw of the canvas without re-retrieving the pixel data, since it remains valid */
+        needsRedraw: boolean
 
-      /** Layer drawing options */
-      options?: {renderer?: 'webgl'}
+        /** Layer drawing options */
+        options?: {renderer?: 'webgl'}
     }
 
     /**
@@ -292,418 +292,418 @@ declare module 'cornerstone-core' {
      * @link https://docs.cornerstonejs.org/api.html#enabledelement
      */
     interface EnabledElement {
-      /** The DOM element which has been enabled for use by Cornerstone */
-      element: HTMLElement
+        /** The DOM element which has been enabled for use by Cornerstone */
+        element: HTMLElement
 
-      /** The image currently displayed in the enabledElement */
-      image?: Image
+        /** The image currently displayed in the enabledElement */
+        image?: Image
 
-      /** The current viewport settings of the enabledElement */
-      viewport?: Viewport
+        /** The current viewport settings of the enabledElement */
+        viewport?: Viewport
 
-      /** The current canvas for this enabledElement */
-      canvas?: HTMLCanvasElement
+        /** The current canvas for this enabledElement */
+        canvas?: HTMLCanvasElement
 
-      /** Whether or not the image pixel data underlying the enabledElement has been changed, necessitating a redraw */
-      invalid: boolean
+        /** Whether or not the image pixel data underlying the enabledElement has been changed, necessitating a redraw */
+        invalid: boolean
 
-      /** A flag for triggering a redraw of the canvas without re-retrieving the pixel data, since it remains valid */
-      needsRedraw: boolean
+        /** A flag for triggering a redraw of the canvas without re-retrieving the pixel data, since it remains valid */
+        needsRedraw: boolean
 
-      /** The layers that have been added to the enabledElement */
-      layers?: EnabledElementLayer[]
+        /** The layers that have been added to the enabledElement */
+        layers?: EnabledElementLayer[]
 
-      /** Whether or not to synchronize the viewport parameters */
-      syncViewports?: boolean
+        /** Whether or not to synchronize the viewport parameters */
+        syncViewports?: boolean
 
-      // for each of the enabled element's layers
+        // for each of the enabled element's layers
 
-      /** The previous state for the sync viewport boolean */
-      lastSyncViewportsState?: boolean
+        /** The previous state for the sync viewport boolean */
+        lastSyncViewportsState?: boolean
     }
 
     namespace colors {
-      /**
-       * Return a colorMap object with the provided id and colormapData if the Id matches existent colorMap objects (check colormapsData) the colormapData is ignored. if the colormapData is not empty, the colorMap will be added to the colormapsData list. Otherwise, an empty colorMap object is returned.
-       *
-       * @param id The ID of the colormap
-       * @param colormapData An object that can contain a name, numColors, gama, segmentedData and/or colors
-       * @returns The Colormap Object
-       */
-      function getColormap(id: string, colormapData: unknown): Colormap
-
-      /**
-       * Return all available colormaps (id and name)
-       *
-       * @returns Array<{id, key}> An array of colormaps with an object containing the "id" and display "name"
-       */
-      function getColormapsList(): {id: string, key: string}[]
-
-      /**
-       * Maps scalar values into colors via a lookup table
-       * LookupTable is an object that is used by mapper objects to map scalar values
-       * into rgba (red-green-blue-alpha transparency) color specification, or rgba into scalar values.
-       * The color table can be created by direct insertion of color values,
-       * or by specifying hue, saturation, value, and alpha range and generating a table
-       */
-      export class LookupTable {
         /**
-         * Specify the number of values (i.e., colors) in the lookup table.
+         * Return a colorMap object with the provided id and colormapData if the Id matches existent colorMap objects (check colormapsData) the colormapData is ignored. if the colormapData is not empty, the colorMap will be added to the colormapsData list. Otherwise, an empty colorMap object is returned.
          *
-         * @param numColors The number of colors in he LookupTable
+         * @param id The ID of the colormap
+         * @param colormapData An object that can contain a name, numColors, gama, segmentedData and/or colors
+         * @returns The Colormap Object
          */
-        setNumberOfTableValues: (numColors: number) => void
+        function getColormap(id: string, colormapData: unknown): Colormap
 
         /**
-         * Set the shape of the table ramp to either 'linear', 'scurve' or 'sqrt'
+         * Return all available colormaps (id and name)
          *
-         * @param ramp A string value representing the shape of the table. Allowed values are 'linear', 'scurve' or 'sqrt'
+         * @returns Array<{id, key}> An array of colormaps with an object containing the "id" and display "name"
          */
-        setRamp: (ramp: 'linear' | 'scurve' | 'sqrt') => void
+        function getColormapsList(): {id: string, key: string}[]
 
         /**
-         * Sets the minimum/maximum scalar values for scalar mapping.
-         * Scalar values less than minimum range value are clamped to minimum range value.
-         * Scalar values greater than maximum range value are clamped to maximum range value.
-         *
-         * @param start A double representing the minimum scaler value of the LookupTable
-         * @param end A double representing the maximum scaler value of the LookupTable
+         * Maps scalar values into colors via a lookup table
+         * LookupTable is an object that is used by mapper objects to map scalar values
+         * into rgba (red-green-blue-alpha transparency) color specification, or rgba into scalar values.
+         * The color table can be created by direct insertion of color values,
+         * or by specifying hue, saturation, value, and alpha range and generating a table
          */
-        setTableRange: (start: number, end: number) => void
+        export class LookupTable {
+            /**
+             * Specify the number of values (i.e., colors) in the lookup table.
+             *
+             * @param numColors The number of colors in he LookupTable
+             */
+            setNumberOfTableValues: (numColors: number) => void
 
-        /**
-         * Set the range in hue (using automatic generation). Hue ranges between [0,1].
-         * @param start A double representing the minimum hue value in a range. Min. is 0
-         * @param end A double representing the maximum hue value in a range. Max. is 1
-         */
-        setHueRange: (start: number, end: number) => void
+            /**
+             * Set the shape of the table ramp to either 'linear', 'scurve' or 'sqrt'
+             *
+             * @param ramp A string value representing the shape of the table. Allowed values are 'linear', 'scurve' or 'sqrt'
+             */
+            setRamp: (ramp: 'linear' | 'scurve' | 'sqrt') => void
 
-        /**
-         * Set the range in saturation (using automatic generation). Saturation ranges between [0,1].
-         *
-         * @param start A double representing the minimum Saturation value in a range. Min. is 0
-         * @param end A double representing the maximum Saturation value in a range. Max. is 1
-         */
-        setSaturationRange: (start: number, end: number) => void
+            /**
+             * Sets the minimum/maximum scalar values for scalar mapping.
+             * Scalar values less than minimum range value are clamped to minimum range value.
+             * Scalar values greater than maximum range value are clamped to maximum range value.
+             *
+             * @param start A double representing the minimum scaler value of the LookupTable
+             * @param end A double representing the maximum scaler value of the LookupTable
+             */
+            setTableRange: (start: number, end: number) => void
 
-        /**
-         * Set the range in value (using automatic generation). Value ranges between [0,1].
-         *
-         * @param start A double representing the minimum value in a range. Min. is 0
-         * @param end A double representing the maximum value in a range. Max. is 1
-         */
-        setValueRange: (start: number, end: number) => void
+            /**
+             * Set the range in hue (using automatic generation). Hue ranges between [0,1].
+             * @param start A double representing the minimum hue value in a range. Min. is 0
+             * @param end A double representing the maximum hue value in a range. Max. is 1
+             */
+            setHueRange: (start: number, end: number) => void
 
-        /**
-         * Set the range in alpha (using automatic generation). Alpha ranges from [0,1].
-         *
-         * @param start A double representing the minimum alpha value
-         * @param end A double representing the maximum alpha value
-         */
-        setAlphaRange: (start: number, end: number) => void
+            /**
+             * Set the range in saturation (using automatic generation). Saturation ranges between [0,1].
+             *
+             * @param start A double representing the minimum Saturation value in a range. Min. is 0
+             * @param end A double representing the maximum Saturation value in a range. Max. is 1
+             */
+            setSaturationRange: (start: number, end: number) => void
 
-        /**
-         * Map one value through the lookup table and return the color as an
-         * RGBA array of doubles between 0 and 1.
-         *
-         * @param scalar A double scalar value which will be mapped to a color in the LookupTable
-         * @returns An RGBA array of doubles between 0 and 1
-         */
-        getColor: (scalar: number) => [number, number, number, number]
+            /**
+             * Set the range in value (using automatic generation). Value ranges between [0,1].
+             *
+             * @param start A double representing the minimum value in a range. Min. is 0
+             * @param end A double representing the maximum value in a range. Max. is 1
+             */
+            setValueRange: (start: number, end: number) => void
 
-        /**
-         * Generate lookup table from hue, saturation, value, alpha min/max values. Table is built from linear ramp of each value.
-         *
-         * @param force true to force the build of the LookupTable. Otherwie, false. This is useful if a lookup table has been defined manually
-         * (using SetTableValue) and then an application decides to rebuild the lookup table using the implicit process.
-         */
-        build: (force: boolean) => void
+            /**
+             * Set the range in alpha (using automatic generation). Alpha ranges from [0,1].
+             *
+             * @param start A double representing the minimum alpha value
+             * @param end A double representing the maximum alpha value
+             */
+            setAlphaRange: (start: number, end: number) => void
 
-        /**
-         * Ensures the out-of-range colors (Below range and Above range) are set correctly.
-         */
-        buildSpecialColors: () => void
+            /**
+             * Map one value through the lookup table and return the color as an
+             * RGBA array of doubles between 0 and 1.
+             *
+             * @param scalar A double scalar value which will be mapped to a color in the LookupTable
+             * @returns An RGBA array of doubles between 0 and 1
+             */
+            getColor: (scalar: number) => [number, number, number, number]
 
-        /**
-         * Similar to GetColor - Map one value through the lookup table and return the color as an
-         * RGBA array of doubles between 0 and 1.
-         *
-         * @param v A double scalar value which will be mapped to a color in the LookupTable
-         * @returns An RGBA array of doubles between 0 and 1
-         */
-        mapValue: (v: number) => [number, number, number, number]
+            /**
+             * Generate lookup table from hue, saturation, value, alpha min/max values. Table is built from linear ramp of each value.
+             *
+             * @param force true to force the build of the LookupTable. Otherwie, false. This is useful if a lookup table has been defined manually
+             * (using SetTableValue) and then an application decides to rebuild the lookup table using the implicit process.
+             */
+            build: (force: boolean) => void
 
-        /**
-         * Return the table index associated with a particular value.
-         *
-         * @param v A double value which table index will be returned.
-         * @returns The index in the LookupTable
-         */
-        getIndex: (v: number) => number
+            /**
+             * Ensures the out-of-range colors (Below range and Above range) are set correctly.
+             */
+            buildSpecialColors: () => void
 
-        /**
-         * Directly load color into lookup table. Use [0,1] double values for color component specification.
-         * Make sure that you've either used the Build() method or used SetNumberOfTableValues() prior to using this method.
-         *
-         * @param index The index in the LookupTable of where to insert the color value
-         * @param rgba An array of [0,1] double values for an RGBA color component
-         */
-        setTableValue: (index: number, rgba: [number, number, number, number]) => void
-      }
+            /**
+             * Similar to GetColor - Map one value through the lookup table and return the color as an
+             * RGBA array of doubles between 0 and 1.
+             *
+             * @param v A double scalar value which will be mapped to a color in the LookupTable
+             * @returns An RGBA array of doubles between 0 and 1
+             */
+            mapValue: (v: number) => [number, number, number, number]
+
+            /**
+             * Return the table index associated with a particular value.
+             *
+             * @param v A double value which table index will be returned.
+             * @returns The index in the LookupTable
+             */
+            getIndex: (v: number) => number
+
+            /**
+             * Directly load color into lookup table. Use [0,1] double values for color component specification.
+             * Make sure that you've either used the Build() method or used SetNumberOfTableValues() prior to using this method.
+             *
+             * @param index The index in the LookupTable of where to insert the color value
+             * @param rgba An array of [0,1] double values for an RGBA color component
+             */
+            setTableValue: (index: number, rgba: [number, number, number, number]) => void
+        }
     }
 
     namespace internal {
-      /**
-       * Internal API function to draw an image to a given enabled element
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used (optional, default false)
-       */
-      function drawImage(enabledElement: EnabledElement, invalidated?: boolean): void
+        /**
+         * Internal API function to draw an image to a given enabled element
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used (optional, default false)
+         */
+        function drawImage(enabledElement: EnabledElement, invalidated?: boolean): void
 
-      /**
-       * Creates a LUT used while rendering to convert stored pixel values to display pixels
-       *
-       * @param image A Cornerstone Image Object
-       * @param windowWidth The Window Width
-       * @param windowCenter The Window Center
-       * @param invert A boolean describing whether or not the image has been inverted
-       * @param modalityLUT A modality Lookup Table
-       * @param voiLUT A Volume of Interest Lookup Table
-       * @returns A lookup table to apply to the image
-       */
-      function generateLut(image: Image, windowWidth: number, windowCenter: number, invert: boolean, modalityLUT?: number[], voiLUT?: number[]): Uint8ClampedArray
+        /**
+         * Creates a LUT used while rendering to convert stored pixel values to display pixels
+         *
+         * @param image A Cornerstone Image Object
+         * @param windowWidth The Window Width
+         * @param windowCenter The Window Center
+         * @param invert A boolean describing whether or not the image has been inverted
+         * @param modalityLUT A modality Lookup Table
+         * @param voiLUT A Volume of Interest Lookup Table
+         * @returns A lookup table to apply to the image
+         */
+        function generateLut(image: Image, windowWidth: number, windowCenter: number, invert: boolean, modalityLUT?: number[], voiLUT?: number[]): Uint8ClampedArray
 
-      // https://github.com/cornerstonejs/cornerstone/blob/12da9ed267499345ef192d9e5f214cc79122ffc3/test/internal/getDefaultViewport_test.js
-      /**
-       * Creates a new viewport object containing default values for the image and canvas
-       *
-       * @param canvas
-       * @param image
-       */
-      function getDefaultViewport(canvas: HTMLCanvasElement | {} | undefined, image?: Image): Viewport
+        // https://github.com/cornerstonejs/cornerstone/blob/12da9ed267499345ef192d9e5f214cc79122ffc3/test/internal/getDefaultViewport_test.js
+        /**
+         * Creates a new viewport object containing default values for the image and canvas
+         *
+         * @param canvas
+         * @param image
+         */
+        function getDefaultViewport(canvas: HTMLCanvasElement | {} | undefined, image?: Image): Viewport
 
-      /**
-       * Sets new default values for `getDefaultViewport`
-       *
-       * @param viewport Object that sets new default values for getDefaultViewport
-       */
-      function setDefaultViewport(viewport: Viewport): void
+        /**
+         * Sets new default values for `getDefaultViewport`
+         *
+         * @param viewport Object that sets new default values for getDefaultViewport
+         */
+        function setDefaultViewport(viewport: Viewport): void
 
-      /**
-       * This function transforms stored pixel values into a canvas image data buffer by using a LUT. This is the most performance sensitive code in cornerstone and we use a special trick to make this go as fast as possible. Specifically we use the alpha channel only to control the luminance rather than the red, green and blue channels which makes it over 3x faster. The canvasImageDataData buffer needs to be previously filled with white pixels.
-       *
-       * NOTE: Attribution would be appreciated if you use this technique!
-       *
-       * @param image A Cornerstone Image Object
-       * @param lut Lookup table array
-       * @param canvasImageData canvasImageData.data buffer filled with white pixels
-       */
-      function storedPixelDataToCanvasImageData(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
+        /**
+         * This function transforms stored pixel values into a canvas image data buffer by using a LUT. This is the most performance sensitive code in cornerstone and we use a special trick to make this go as fast as possible. Specifically we use the alpha channel only to control the luminance rather than the red, green and blue channels which makes it over 3x faster. The canvasImageDataData buffer needs to be previously filled with white pixels.
+         *
+         * NOTE: Attribution would be appreciated if you use this technique!
+         *
+         * @param image A Cornerstone Image Object
+         * @param lut Lookup table array
+         * @param canvasImageData canvasImageData.data buffer filled with white pixels
+         */
+        function storedPixelDataToCanvasImageData(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
 
-      /**
-       * This function transforms stored pixel values into a canvas image data buffer by using a LUT.
-       *
-       * @param image A Cornerstone Image Object
-       * @param lut Lookup table array
-       * @param canvasImageData canvasImageData.data buffer filled with white pixels
-       */
-      function storedPixelDataToCanvasImageDataRGBA(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
+        /**
+         * This function transforms stored pixel values into a canvas image data buffer by using a LUT.
+         *
+         * @param image A Cornerstone Image Object
+         * @param lut Lookup table array
+         * @param canvasImageData canvasImageData.data buffer filled with white pixels
+         */
+        function storedPixelDataToCanvasImageDataRGBA(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
 
-      /**
-       * Converts stored color pixel values to display pixel values using a LUT.
-       *
-       * Note: Skips alpha value for any input image pixel data.
-       *
-       * @param image A Cornerstone Image Object
-       * @param lut Lookup table array
-       * @param canvasImageData canvasImageData.data buffer filled with white pixels
-       */
-      function storedColorPixelDataToCanvasImageData(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
+        /**
+         * Converts stored color pixel values to display pixel values using a LUT.
+         *
+         * Note: Skips alpha value for any input image pixel data.
+         *
+         * @param image A Cornerstone Image Object
+         * @param lut Lookup table array
+         * @param canvasImageData canvasImageData.data buffer filled with white pixels
+         */
+        function storedColorPixelDataToCanvasImageData(image: Image, lut: number[], canvasImageData: Uint8ClampedArray): void
 
-      /**
-       *
-       * @param image A Cornerstone Image Object
-       * @param colorLut Lookup table array
-       * @param canvasImageData canvasImageData.data buffer filled with white pixels
-       */
-      function storedPixelDataToCanvasImageDataColorLUT(image: Image, colorLut: colors.LookupTable | number[], canvasImageData: Uint8ClampedArray): void
+        /**
+         *
+         * @param image A Cornerstone Image Object
+         * @param colorLut Lookup table array
+         * @param canvasImageData canvasImageData.data buffer filled with white pixels
+         */
+        function storedPixelDataToCanvasImageDataColorLUT(image: Image, colorLut: colors.LookupTable | number[], canvasImageData: Uint8ClampedArray): void
 
-      /**
-       *
-       * @param image A Cornerstone Image Object
-       * @param grayscaleLut Lookup table array
-       * @param colorLut Lookup table array
-       * @param canvasImageData canvasImageData.data buffer filled with white pixels
-       */
-      function storedPixelDataToCanvasImageDataPseudocolorLUT(image: Image, grayscaleLut: number[], colorLut: colors.LookupTable | number[], canvasImageData: Uint8ClampedArray): void
+        /**
+         *
+         * @param image A Cornerstone Image Object
+         * @param grayscaleLut Lookup table array
+         * @param colorLut Lookup table array
+         * @param canvasImageData canvasImageData.data buffer filled with white pixels
+         */
+        function storedPixelDataToCanvasImageDataPseudocolorLUT(image: Image, grayscaleLut: number[], colorLut: colors.LookupTable | number[], canvasImageData: Uint8ClampedArray): void
 
-      function getTransform(enabledElement: EnabledElement): Transform
+        function getTransform(enabledElement: EnabledElement): Transform
 
-      /**
-       * Calculate the transform for a Cornerstone enabled element
-       *
-       * @param enabledElement The Cornerstone Enabled Element
-       * @param scale The viewport scale
-       * @returns The current transform
-       */
-      function calculateTransform(enabledElement: EnabledElement, scale?: number): Transform
+        /**
+         * Calculate the transform for a Cornerstone enabled element
+         *
+         * @param enabledElement The Cornerstone Enabled Element
+         * @param scale The viewport scale
+         * @returns The current transform
+         */
+        function calculateTransform(enabledElement: EnabledElement, scale?: number): Transform
 
-      class Transform {
-        reset: () => void
-        clone: () => Transform
-        multiply: (matrix: Matrix) => void
-        invert: () => void
-        rotate: (rad: number) => void
-        translate: (x: number, y: number) => void
-        scale: (sx: number, sy: number) => void
-        transformPoint: (px: number, py: number) => {x: number, y: number}
-      }
+        class Transform {
+            reset: () => void
+            clone: () => Transform
+            multiply: (matrix: Matrix) => void
+            invert: () => void
+            rotate: (rad: number) => void
+            translate: (x: number, y: number) => void
+            scale: (sx: number, sy: number) => void
+            transformPoint: (px: number, py: number) => {x: number, y: number}
+        }
     }
 
     /** @link https://docs.cornerstonejs.org/api.html#metadata */
     namespace metaData {
-      /**
-       * Adds a metadata provider with the specified priority
-       *
-       * @param provider Metadata provider function
-       * @param priority 0 is default/normal, > 0 is high, < 0 is low (optional, default 0)
-       */
-      function addProvider(provider: Function, priority: number): void
+        /**
+         * Adds a metadata provider with the specified priority
+         *
+         * @param provider Metadata provider function
+         * @param priority 0 is default/normal, > 0 is high, < 0 is low (optional, default 0)
+         */
+        function addProvider(provider: Function, priority: number): void
 
-      /**
-       * Removes the specified provider
-       *
-       * @param provider Metadata provider function
-       */
-      function removeProvider(provider: Function): void
+        /**
+         * Removes the specified provider
+         *
+         * @param provider Metadata provider function
+         */
+        function removeProvider(provider: Function): void
 
-      /**
-       * Gets metadata from the registered metadata providers. Will call each one from highest priority to lowest until one responds
-       *
-       * @param type The type of metadata requested from the metadata store
-       * @param imageId The Cornerstone Image Object's imageId
-       * @returns The metadata retrieved from the metadata store
-       */
-      function get(type: string, imageId: string): unknown
+        /**
+         * Gets metadata from the registered metadata providers. Will call each one from highest priority to lowest until one responds
+         *
+         * @param type The type of metadata requested from the metadata store
+         * @param imageId The Cornerstone Image Object's imageId
+         * @returns The metadata retrieved from the metadata store
+         */
+        function get(type: string, imageId: string): unknown
     }
 
     namespace rendering {
-      /**
-       * API function to render a color image to an enabled element
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
-       */
-      function colorImage(enabledElement: EnabledElement, invalidated: boolean): void
+        /**
+         * API function to render a color image to an enabled element
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
+         */
+        function colorImage(enabledElement: EnabledElement, invalidated: boolean): void
 
-      /**
-       * API function to draw a grayscale image to a given enabledElement
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
-       */
-      function grayscaleImage(enabledElement: EnabledElement, invalidated: boolean): void
+        /**
+         * API function to draw a grayscale image to a given enabledElement
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
+         */
+        function grayscaleImage(enabledElement: EnabledElement, invalidated: boolean): void
 
-      /**
-       * API function to draw a standard web image (PNG, JPG) to an enabledImage
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
-       */
-      function webImage(enabledElement: EnabledElement, invalidated: boolean): void
+        /**
+         * API function to draw a standard web image (PNG, JPG) to an enabledImage
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
+         */
+        function webImage(enabledElement: EnabledElement, invalidated: boolean): void
 
-      /**
-       * API function to draw a pseudo-color image to a given enabledElement
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
-       */
-      function pseudoColorImage(enabledElement: EnabledElement, invalidated: boolean): void
+        /**
+         * API function to draw a pseudo-color image to a given enabledElement
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
+         */
+        function pseudoColorImage(enabledElement: EnabledElement, invalidated: boolean): void
 
-      /**
-       * API function to draw a label map image to a given enabledElement
-       *
-       * @param enabledElement The Cornerstone Enabled Element to redraw
-       * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
-       */
-      function labelMapImage(enabledElement: EnabledElement, invalidated: boolean): void
+        /**
+         * API function to draw a label map image to a given enabledElement
+         *
+         * @param enabledElement The Cornerstone Enabled Element to redraw
+         * @param invalidated true if pixel data has been invalidated and cached rendering should not be used
+         */
+        function labelMapImage(enabledElement: EnabledElement, invalidated: boolean): void
 
-      /**
-       * Render the image to the provided canvas immediately.
-       *
-       * @param canvas The HTML canvas where the image will be rendered.
-       * @param image An Image loaded by a Cornerstone Image Loader
-       * @param viewport A set of Cornerstone viewport parameters
-       * @param options Options for rendering the image (e.g. enable webgl by {renderer: 'webgl'})
-       */
-      function toCanvas(canvas: HTMLCanvasElement, image: Image, viewport?: Viewport, options?: {renderer?: 'webgl'}): void
+        /**
+         * Render the image to the provided canvas immediately.
+         *
+         * @param canvas The HTML canvas where the image will be rendered.
+         * @param image An Image loaded by a Cornerstone Image Loader
+         * @param viewport A set of Cornerstone viewport parameters
+         * @param options Options for rendering the image (e.g. enable webgl by {renderer: 'webgl'})
+         */
+        function toCanvas(canvas: HTMLCanvasElement, image: Image, viewport?: Viewport, options?: {renderer?: 'webgl'}): void
     }
 
     namespace imageCache {
-      interface CachedImage {
-        loaded: boolean
-        imageId: string
-        sharedCacheKey: string | undefined
-        imageLoadObject: ImageLoadObject
-        timeStamp: number
-        sizeInBytes: number
-      }
+        interface CachedImage {
+            loaded: boolean
+            imageId: string
+            sharedCacheKey: string | undefined
+            imageLoadObject: ImageLoadObject
+            timeStamp: number
+            sizeInBytes: number
+        }
 
-      const imageCache: {[imageId: string]: CachedImage}
+        const imageCache: {[imageId: string]: CachedImage}
 
-      const cachedImages: CachedImage[]
+        const cachedImages: CachedImage[]
 
-      /**
-       * Sets the maximum size of cache and purges cache contents if necessary.
-       *
-       * @param numBytes The maximun size that the cache should occupy.
-       */
-      function setMaximumSizeBytes(numBytes: number): void
+        /**
+         * Sets the maximum size of cache and purges cache contents if necessary.
+         *
+         * @param numBytes The maximun size that the cache should occupy.
+         */
+        function setMaximumSizeBytes(numBytes: number): void
 
-      /**
-       * Puts a new image loader into the cache
-       *
-       * @param imageId ImageId of the image loader
-       * @param imageLoadObject The object that is loading or loaded the image
-       */
-      function putImageLoadObject(imageId: string, imageLoadObject: ImageLoadObject): void
+        /**
+         * Puts a new image loader into the cache
+         *
+         * @param imageId ImageId of the image loader
+         * @param imageLoadObject The object that is loading or loaded the image
+         */
+        function putImageLoadObject(imageId: string, imageLoadObject: ImageLoadObject): void
 
-      /**
-       * Retuns the object that is loading a given imageId
-       *
-       * @param imageId Image ID
-       */
-      function getImageLoadObject(imageId: string): ImageLoadObject | undefined
+        /**
+         * Retuns the object that is loading a given imageId
+         *
+         * @param imageId Image ID
+         */
+        function getImageLoadObject(imageId: string): ImageLoadObject | undefined
 
-      /**
-       * Removes the image loader associated with a given Id from the cache
-       *
-       * @param imageId Image ID
-       */
-      function removeImageLoadObject(imageId: string): void
+        /**
+         * Removes the image loader associated with a given Id from the cache
+         *
+         * @param imageId Image ID
+         */
+        function removeImageLoadObject(imageId: string): void
 
-      /**
-       * Gets the current state of the cache
-       */
-      function getCacheInfo(): {
-        maximumSizeInBytes: number
-        cacheSizeInBytes: number
-        numberOfImagesCached: number
-      }
+        /**
+         * Gets the current state of the cache
+         */
+        function getCacheInfo(): {
+            maximumSizeInBytes: number
+            cacheSizeInBytes: number
+            numberOfImagesCached: number
+        }
 
-      /**
-       * Removes all images from cache
-       */
-      function purgeCache(): void
+        /**
+         * Removes all images from cache
+         */
+        function purgeCache(): void
 
-      /**
-       * Updates the space than an image is using in the cache
-       *
-       * @param imageId Image ID
-       * @param newCacheSize New image size
-       */
-      function changeImageIdCacheSize(imageId: string, newCacheSize: number): void
+        /**
+         * Updates the space than an image is using in the cache
+         *
+         * @param imageId Image ID
+         * @param newCacheSize New image size
+         */
+        function changeImageIdCacheSize(imageId: string, newCacheSize: number): void
     }
 
     const drawImage: typeof internal.drawImage
@@ -1074,21 +1074,21 @@ declare module 'cornerstone-core' {
     type RGBAArray = [number, number, number, number]
 
     interface Colormap {
-      getId: () => string
-      getColorSchemeName: () => string
-      setColorSchemeName: (value: string) => string
-      getNumberOfColors: () => number
-      setNumberOfColors: (numColors: number) => void
-      getColor: (index: number) => RGBAArray
-      getColorRepeating: (index: number) => RGBAArray
-      setColor: (index: number, rgbs: RGBAArray) => void
-      addColor: (rgba: RGBAArray) => void
-      insertColor: (index: number, rgba: RGBAArray) => void
-      removeColor: (indeX: number) => void
-      clearColor: () => void
-      buildLookupTable: (lut: LUT) => void
-      createLookupTable: () => LUT
-      isValidIndex: (index: number) => boolean
+        getId: () => string
+        getColorSchemeName: () => string
+        setColorSchemeName: (value: string) => string
+        getNumberOfColors: () => number
+        setNumberOfColors: (numColors: number) => void
+        getColor: (index: number) => RGBAArray
+        getColorRepeating: (index: number) => RGBAArray
+        setColor: (index: number, rgbs: RGBAArray) => void
+        addColor: (rgba: RGBAArray) => void
+        insertColor: (index: number, rgba: RGBAArray) => void
+        removeColor: (indeX: number) => void
+        clearColor: () => void
+        buildLookupTable: (lut: LUT) => void
+        createLookupTable: () => LUT
+        isValidIndex: (index: number) => boolean
     }
 
     /**
@@ -1126,44 +1126,44 @@ declare module 'cornerstone-core' {
     function triggerEvent(el: EventTarget, type: EventTypes, detail: CornerstoneEventData | null): void
 
     type EventTypes = 'cornerstonenewimage'
-      | 'cornerstoneinvalidated'
-      | 'cornerstoneprerender'
-      | 'cornerstoneimagecachemaximumsizechanged'
-      | 'cornerstoneimagecachepromiseremoved'
-      | 'cornerstoneimagecachefull'
-      | 'cornerstoneimagecachechanged'
-      | 'cornerstonewebgltextureremoved'
-      | 'cornerstonewebgltexturecachefull'
-      | 'cornerstoneimageloaded'
-      | 'cornerstoneimageloadfailed'
-      | 'cornerstoneelementresized'
-      | 'cornerstoneimagerendered'
-      | 'cornerstonelayeradded'
-      | 'cornerstonelayerremoved'
-      | 'cornerstoneactivelayerchanged'
-      | 'cornerstoneelementdisabled'
-      | 'cornerstoneelementenabled'
+        | 'cornerstoneinvalidated'
+        | 'cornerstoneprerender'
+        | 'cornerstoneimagecachemaximumsizechanged'
+        | 'cornerstoneimagecachepromiseremoved'
+        | 'cornerstoneimagecachefull'
+        | 'cornerstoneimagecachechanged'
+        | 'cornerstonewebgltextureremoved'
+        | 'cornerstonewebgltexturecachefull'
+        | 'cornerstoneimageloaded'
+        | 'cornerstoneimageloadfailed'
+        | 'cornerstoneelementresized'
+        | 'cornerstoneimagerendered'
+        | 'cornerstonelayeradded'
+        | 'cornerstonelayerremoved'
+        | 'cornerstoneactivelayerchanged'
+        | 'cornerstoneelementdisabled'
+        | 'cornerstoneelementenabled'
 
     enum EVENTS {
-      NEW_IMAGE = 'cornerstonenewimage',
-      INVALIDATED = 'cornerstoneinvalidated',
-      PRE_RENDER = 'cornerstoneprerender',
-      IMAGE_CACHE_MAXIMUM_SIZE_CHANGED = 'cornerstoneimagecachemaximumsizechanged',
-      IMAGE_CACHE_PROMISE_REMOVED = 'cornerstoneimagecachepromiseremoved',
-      IMAGE_CACHE_FULL = 'cornerstoneimagecachefull',
-      IMAGE_CACHE_CHANGED = 'cornerstoneimagecachechanged',
-      WEBGL_TEXTURE_REMOVED = 'cornerstonewebgltextureremoved',
-      WEBGL_TEXTURE_CACHE_FULL = 'cornerstonewebgltexturecachefull',
-      IMAGE_LOADED = 'cornerstoneimageloaded',
-      IMAGE_LOAD_FAILED = 'cornerstoneimageloadfailed',
-      ELEMENT_RESIZED = 'cornerstoneelementresized',
-      IMAGE_RENDERED = 'cornerstoneimagerendered',
-      LAYER_ADDED = 'cornerstonelayeradded',
-      LAYER_REMOVED = 'cornerstonelayerremoved',
-      ACTIVE_LAYER_CHANGED = 'cornerstoneactivelayerchanged',
-      ELEMENT_DISABLED = 'cornerstoneelementdisabled',
-      ELEMENT_ENABLED = 'cornerstoneelementenabled',
+        NEW_IMAGE = 'cornerstonenewimage',
+        INVALIDATED = 'cornerstoneinvalidated',
+        PRE_RENDER = 'cornerstoneprerender',
+        IMAGE_CACHE_MAXIMUM_SIZE_CHANGED = 'cornerstoneimagecachemaximumsizechanged',
+        IMAGE_CACHE_PROMISE_REMOVED = 'cornerstoneimagecachepromiseremoved',
+        IMAGE_CACHE_FULL = 'cornerstoneimagecachefull',
+        IMAGE_CACHE_CHANGED = 'cornerstoneimagecachechanged',
+        WEBGL_TEXTURE_REMOVED = 'cornerstonewebgltextureremoved',
+        WEBGL_TEXTURE_CACHE_FULL = 'cornerstonewebgltexturecachefull',
+        IMAGE_LOADED = 'cornerstoneimageloaded',
+        IMAGE_LOAD_FAILED = 'cornerstoneimageloadfailed',
+        ELEMENT_RESIZED = 'cornerstoneelementresized',
+        IMAGE_RENDERED = 'cornerstoneimagerendered',
+        LAYER_ADDED = 'cornerstonelayeradded',
+        LAYER_REMOVED = 'cornerstonelayerremoved',
+        ACTIVE_LAYER_CHANGED = 'cornerstoneactivelayerchanged',
+        ELEMENT_DISABLED = 'cornerstoneelementdisabled',
+        ELEMENT_ENABLED = 'cornerstoneelementenabled',
     }
 
     const events: EventTarget
-  }
+}
