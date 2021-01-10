@@ -51,6 +51,7 @@ export default Vue.extend({
                     // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
                     set: 0,
                     // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
+                    // Tools that use the same mouse button must all share the same group as well!
                     groups: ['interact'],
                     // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
                     icon: [ ['fal', 'layer-group'], ['far', 'layer-group'] ],
@@ -102,7 +103,7 @@ export default Vue.extend({
                 {
                     id: 'link',
                     set: 3,
-                    groups: [],
+                    groups: ['interact'],
                     icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
                     tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
                 },
@@ -285,24 +286,31 @@ export default Vue.extend({
         },
         toggleAdjust: function () {
             this.buttonStates.adjust.active = !this.buttonStates.adjust.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'adjust')
         },
         toggleArea: function () {
             this.buttonStates.area.active = !this.buttonStates.area.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'area')
         },
         toggleDistance: function () {
             this.buttonStates.distance.active = !this.buttonStates.distance.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'distance')
         },
         toggleLink: function () {
             this.buttonStates.link.active = !this.buttonStates.link.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'link')
         },
         togglePan: function () {
             this.buttonStates.pan.active = !this.buttonStates.pan.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'pan')
         },
         toggleScroll: function () {
             this.buttonStates.scroll.active = !this.buttonStates.scroll.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'scroll')
         },
         toggleZoom: function () {
             this.buttonStates.zoom.active = !this.buttonStates.zoom.active
+            this.$store.commit('SET_ACTIVE_TOOL', 'zoom')
         },
         undoLast: function () {
 

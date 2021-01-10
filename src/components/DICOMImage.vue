@@ -82,12 +82,28 @@ export default Vue.extend({
             // Update last position
             this.lastMousePos = [event.pageX, event.pageY]
             // Select appropriate response depending on mouse button
-            if (this.mouseRBtnDown) {
-                this.adjustLevels(deltaX, deltaY)
-            } else if (this.mouseLBtnDown) {
-                this.panImage(deltaX, deltaY)
+            if (this.mouseLBtnDown) {
+                // Selecting a tool changes what left mouse button does
+                let activeTool = this.$store.state.activeTool
+                if (activeTool === null) {
+                    // If no tool is active, resort to default
+                    this.panImage(deltaX, deltaY)
+                } else if (activeTool === 'adjust') {
+                    this.adjustLevels(deltaX, deltaY)
+                } else if (activeTool === 'area') {
+                } else if (activeTool === 'distance') {
+                } else if (activeTool === 'link') {
+                } else if (activeTool === 'pan') {
+                    this.panImage(deltaX, deltaY)
+                } else if (activeTool === 'scroll') {
+                    this.scrollStack(deltaY)
+                } else if (activeTool === 'zoom') {
+                    this.zoomImage(deltaY)
+                }
             } else if (this.mouseMBtnDown) {
                 this.zoomImage(deltaY)
+            } else if (this.mouseRBtnDown) {
+                this.adjustLevels(deltaX, deltaY)
             }
         },
         panImage: function (x: number, y: number) {
