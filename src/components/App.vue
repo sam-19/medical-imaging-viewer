@@ -31,7 +31,7 @@ import cornerstone from 'cornerstone-core'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { DICOMResource }from '../types/viewer'
+import { DICOMImageStack, DICOMResource }from '../types/viewer'
 
 export default Vue.extend({
     components: {
@@ -45,7 +45,7 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
-            dcmElements: [] as DICOMResource[],
+            dcmElements: [] as DICOMResource[] | DICOMImageStack[],
             mediaContainerSize: [0, 0],
             wadoImageLoader: null,
         }
@@ -64,17 +64,17 @@ export default Vue.extend({
 
         handleFileDrop: async function (event: DragEvent) {
             // Helper functions to recover the files asynchronously
+            interface fileDir { name: string, items: File[] }
             // This method recurses only one level of directories!
-            let readAllItems = async (items: DataTransferItemList) => {
-                let fileTree = [] as DataTransferItem[] | Object[]
-                // Chrome may not return the entire list at once (max 100 entires)
+            let readAllItems = async (items: DataTransferItemList): Promise<File[] | fileDir[]> => {
+                let fileTree = [] as File[] | fileDir[]
+                // At least Chrome may not return the entire list at once (max 100 entires)
                 // so we need to cache returned items in a separate list
                 let cache = []
                 // Initial cache
                 for (let i=0; i<items.length; i++) {
                     cache.push(items[i].webkitGetAsEntry())
                 }
-                console.log(cache.length)
                 // Go through the queue until it is empty
                 while (cache.length > 0) {
                     let item = cache.shift()
@@ -116,18 +116,30 @@ export default Vue.extend({
             event.preventDefault()
             // Get FileList from the droppped object
             if (event.dataTransfer && event.dataTransfer.items) {
-                let items = await readAllItems(event.dataTransfer.items)
-                if (items.length === 1 && !items[0].hasOwnProperty('items')) {
-                    let file = items[0] as File
+                let fileTree = await readAllItems(event.dataTransfer.items)
+                if (fileTree.length === 1 && !fileTree[0].hasOwnProperty('items')) {
+                    let file = fileTree[0] as File
+                    // Display single image
                     if (file) {
                         const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                         if (imageId) {
-                            let dcmEl = { url: imageId, size: file.size, name: file.name } as DICOMResource
-                            this.dcmElements.push(dcmEl)
+                            this.dcmElements = [{ url: imageId, size: file.size, name: file.name } as DICOMResource]
                         }
                     }
                 } else {
-                    console.log('ITEMS', items)
+                    for (let i=0; i<fileTree.length; i++) {
+                        if (fileTree[0].hasOwnProperty('items')) {
+                            // Add all loaded images as an image stack
+                            this.dcmElements = [{ label: 'Image stack', modality: 'UNKNOWN', images: [] } as DICOMImageStack]
+                            for (let j=0; j<(fileTree[i] as fileDir).items.length; j++) {
+                                let file = (fileTree[i] as fileDir).items[j] as File
+                                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
+                                if (imageId) {
+                                    this.dcmElements[i].images.push({ url: imageId, size: file.size, name: file.name } as DICOMResource)
+                                }
+                            }
+                        }
+                    }
                 }
             } else if (event.dataTransfer && event.dataTransfer.files) {
                 for (let i=0; i<event.dataTransfer.files.length; i++) {
