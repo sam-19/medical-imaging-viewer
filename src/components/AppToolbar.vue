@@ -244,6 +244,7 @@ export default Vue.extend({
          * Reset all modifications, returning the media to default state.
          */
         resetAll: function () {
+            this.$root.$emit('reset-default-viewport')
         },
         /**
          * Disable a set of buttons.

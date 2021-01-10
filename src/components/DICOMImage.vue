@@ -179,6 +179,11 @@ export default Vue.extend({
             })
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            // Start listening to some global events
+            this.$root.$off('reset-default-viewport')
+            this.$root.$on('reset-default-viewport', () => {
+                this.displayStackImage(true)
+            })
             // Display first image with default settings
             this.displayStackImage(true)
         }
