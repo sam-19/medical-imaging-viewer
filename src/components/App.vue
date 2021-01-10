@@ -123,7 +123,9 @@ export default Vue.extend({
                     if (file) {
                         const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                         if (imageId) {
-                            this.dcmElements = [{ url: imageId, size: file.size, name: file.name } as DICOMResource]
+                            this.dcmElements = [{ label: 'Image stack', modality: 'UNKNOWN', images: [
+                                { url: imageId, size: file.size, name: file.name } as DICOMResource
+                            ] } as DICOMImageStack]
                         }
                     }
                 } else {

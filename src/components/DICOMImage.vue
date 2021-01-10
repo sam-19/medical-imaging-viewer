@@ -1,6 +1,6 @@
 <template>
 
-    <div ref="container" @click="scrollStack()" oncontextmenu="return false // Prevent context menu pop-up on right click">
+    <div ref="container" oncontextmenu="return false // Prevent context menu pop-up on right click">
 
     </div>
 
@@ -26,6 +26,7 @@ export default Vue.extend({
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
             stackPos: 0, // Position in an image stack
+            viewport: null as any, // Save this.viewport settings for image stacks
         }
     },
     watch: {
@@ -38,18 +39,20 @@ export default Vue.extend({
     },
     methods: {
         adjustLevels: function (x: number, y: number) {
-            let viewport = this.$root.cornerstone.getViewport(this.dicomEl)
-            viewport.voi.windowWidth += (x / viewport.scale)
-            viewport.voi.windowCenter += (y / viewport.scale)
-            this.$root.cornerstone.setViewport(this.dicomEl, viewport)
+            this.viewport.voi.windowWidth += (x / this.viewport.scale)
+            this.viewport.voi.windowCenter += (y / this.viewport.scale)
+            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
-        displayStackImage: function () {
+        displayStackImage: function (defaultVP: boolean) {
             if (this.resource.hasOwnProperty('images') && this.resource.images.length > this.stackPos) {
                 // Display the image at the selected position
                 this.$root.cornerstone.loadImage(this.resource.images[this.stackPos].url).then((image: any) => {
-                    const viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
-                    if (viewport) {
-                        this.$root.cornerstone.displayImage(this.dicomEl, image, viewport)
+                    if (defaultVP) {
+                        // Set this.viewport to default settings
+                        this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                    }
+                    if (this.viewport) {
+                        this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
                     }
                 }, (error: Error) => {
                     console.error(error)
@@ -81,7 +84,19 @@ export default Vue.extend({
             // Select appropriate response depending on mouse button
             if (this.mouseRBtnDown) {
                 this.adjustLevels(deltaX, deltaY)
+            } else if (this.mouseLBtnDown) {
+                this.panImage(deltaX, deltaY)
+            } else if (this.mouseMBtnDown) {
+                this.zoomImage(deltaY)
             }
+        },
+        panImage: function (x: number, y: number) {
+            this.viewport.translation.x -= (x / this.viewport.scale)
+            this.viewport.translation.y -= (y / this.viewport.scale)
+            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+        },
+        resetImage: function () {
+            this.displayStackImage(true)
         },
         resizeImage: function (dimensions: Array<number>) {
             if (this.listPosition[1] === 1) {
@@ -101,41 +116,18 @@ export default Vue.extend({
             } else {
                 this.stackPos += delta
             }
-            this.displayStackImage()
+            this.displayStackImage(false)
         },
+        zoomImage: function (z: number) {
+            this.viewport.scale *= 1 + z*0.01
+            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+        }
     },
     mounted () {
         this.dicomEl = this.$refs['container'] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
-            // See if we only have one image and display it
-            if (!this.resource.hasOwnProperty('images')) {
-                this.$root.cornerstone.loadImage(this.resource.url).then((image: any) => {
-                    const viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
-                    if (viewport) {
-                        this.$root.cornerstone.displayImage(this.dicomEl, image, viewport)
-                    }
-                }, (error: Error) => {
-                    console.error(error)
-                })
-            } else {
-                // Bind mouse wheel scrolling event
-                this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
-                    // Prevent default mousewheel event
-                    event.stopPropagation()
-                    event.preventDefault()
-                    if (event.deltaY > 0) {
-                        this.scrollStack(1)
-                    } else if (event.deltaY < 0) {
-                        this.scrollStack(-1)
-                    }
-                })
-                this.displayStackImage()
-                Vue.nextTick(() => {
-                    this.resizeImage(this.containerSize as number[])
-                })
-            }
             // Bind mouse interaction listeners
             this.dicomEl.addEventListener('mousedown', (event) => {
                 event.stopPropagation()
@@ -164,7 +156,35 @@ export default Vue.extend({
                 }
                 this.dicomEl.removeEventListener('mousemove', this.handleMouseMove)
             })
+            // Bind default mouse wheel event
+            this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
+                event.stopPropagation()
+                event.preventDefault()
+                // Default event depends on image count
+                if (this.resource.images.length > 1) {
+                    // For an image stack, bind mouse wheel to stack scroll
+                    if (event.deltaY > 0) {
+                        this.scrollStack(1)
+                    } else if (event.deltaY < 0) {
+                        this.scrollStack(-1)
+                    }
+                } else {
+                    // For single image, bind it to zoom
+                    if (event.deltaY > 0) {
+                        this.zoomImage(-5)
+                    } else if (event.deltaY < 0) {
+                        this.zoomImage(5)
+                    }
+                }
+            })
+            // Save viewport
+            this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            // Display first image with default settings
+            this.displayStackImage(true)
         }
+        Vue.nextTick(() => {
+            this.resizeImage(this.containerSize as number[])
+        })
     }
 })
 
