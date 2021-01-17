@@ -8,7 +8,9 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MOUSE_BUTTON, DICOMImageStack, DICOMResource } from '../types/viewer'
+import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
+import DICOMImage from '../assets/dicom/DICOMImage'
+import { MOUSE_BUTTON, DICOMImageStack, DICOMImageResource } from '../types/viewer'
 
 export default Vue.extend({
     components: {
@@ -21,6 +23,7 @@ export default Vue.extend({
     data () {
         return {
             dicomEl: null as unknown as HTMLDivElement, // DICOM image element
+            imageStack: [] as any[], // Stack of sorted images
             lastMousePos: [0, 0], // Last mouse position on the screen
             mouseLBtnDown: false, // Is the left mouse button down (depressed)
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
@@ -38,27 +41,60 @@ export default Vue.extend({
         },
     },
     methods: {
+        /**
+         * Adjust image levels (window width and center) by given values.
+         * @param {number} x amount to adjust window width.
+         * @param {number} y amount to adjust window center.
+         */
         adjustLevels: function (x: number, y: number) {
             this.viewport.voi.windowWidth += (x / this.viewport.scale)
             this.viewport.voi.windowCenter += (y / this.viewport.scale)
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
+        /**
+         * Display a single image from this.resource.
+         * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
+         */
+        displayImage: function (defaultVP: boolean) {
+            if (!this.resource.hasOwnProperty('url')) {
+                return
+            }
+            this.$root.cornerstone.loadImage(this.resource.url).then((image: any) => {
+                if (defaultVP) {
+                    // Set this.viewport to default settings
+                    this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                }
+                if (this.viewport) {
+                    this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
+                }
+            })
+        },
+        /**
+         * Display the image located at this.stackPos.
+         * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
+         */
         displayStackImage: function (defaultVP: boolean) {
-            if (this.resource.hasOwnProperty('images') && this.resource.images.length > this.stackPos) {
+            if (this.resource.hasOwnProperty('images') && this.imageStack.length > this.stackPos) {
                 // Display the image at the selected position
-                this.$root.cornerstone.loadImage(this.resource.images[this.stackPos].url).then((image: any) => {
+                this.$root.cornerstone.loadImage(this.imageStack[this.stackPos].url).then((image: any) => {
                     if (defaultVP) {
                         // Set this.viewport to default settings
-                        this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                        this.viewport = this.$root.cornerstone.getDefaultViewportForImage(
+                            this.dicomEl, image
+                        )
                     }
                     if (this.viewport) {
-                        this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
+                        this.$root.cornerstone.displayImage(
+                            this.dicomEl, image, this.viewport
+                        )
                     }
-                }, (error: Error) => {
-                    console.error(error)
                 })
             }
         },
+        /**
+         * Trigger the desired effect from mouse move according to the active toolbar tool.
+         * @param {MouseEvent} event
+         */
         handleMouseMove: function (event: MouseEvent) {
             event.stopPropagation()
             event.preventDefault()
@@ -96,7 +132,7 @@ export default Vue.extend({
                 } else if (activeTool === 'pan') {
                     this.panImage(deltaX, deltaY)
                 } else if (activeTool === 'scroll') {
-                    this.scrollStack(deltaY)
+                    this.scrollStack(-deltaY)
                 } else if (activeTool === 'zoom') {
                     this.zoomImage(deltaY)
                 }
@@ -106,14 +142,26 @@ export default Vue.extend({
                 this.adjustLevels(deltaX, deltaY)
             }
         },
+        /**
+         * Pan image by given coordinates.
+         * @param {number} x distance on the x-axis.
+         * @param {number} y distance on the y-axis.
+         */
         panImage: function (x: number, y: number) {
             this.viewport.translation.x -= (x / this.viewport.scale)
             this.viewport.translation.y -= (y / this.viewport.scale)
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
+        /**
+         * Reset the displayed image to default viewport settings.
+         */
         resetImage: function () {
             this.displayStackImage(true)
         },
+        /**
+         * Resize the displayed image into given dimensions.
+         * @param {number[]} dimensions [width, height].
+         */
         resizeImage: function (dimensions: Array<number>) {
             if (this.listPosition[1] === 1) {
                 // Only one item in the list, we can take up the whole space
@@ -123,6 +171,10 @@ export default Vue.extend({
                 this.$root.cornerstone.resize(container)
             }
         },
+        /**
+         * Scroll the image stack.
+         * @param {number} delta positive or negative number (absolute amount is irrelevant).
+         */
         scrollStack: function (delta: number) {
             // Don't scroll out of bounds
             if (delta < 0 && this.stackPos + delta < 0) {
@@ -134,6 +186,43 @@ export default Vue.extend({
             }
             this.displayStackImage(false)
         },
+        /**
+         * Preload the image stack images into cache and sort them by instance number.
+         */
+        preloadAndSortStackImages: function () {
+            if (!this.resource.hasOwnProperty('images')) {
+                return
+            }
+            for (let i=0; i<this.resource.images.length; i++) {
+                this.$root.cornerstone.loadAndCacheImage(this.resource.images[i].url).then((image: any) => {
+                    const loadedImg = new DICOMImage(
+                        this.resource.images[i].url,
+                        this.resource.images[i].size,
+                        this.resource.images[i].name
+                    )
+                    loadedImg.readMetadataFromImage(image)
+                    // Add the image object to stack
+                    this.imageStack.push(loadedImg)
+                    if (this.imageStack.length === this.resource.images.length) {
+                        // All images have been loaded, sort them according to Instance Number
+                        this.imageStack.sort((a: any, b: any) => {
+                            const aPos = a.getInstanceNumber() || 0
+                            const bPos = b.getInstanceNumber() || 0
+                            return aPos - bPos
+                        })
+                        // Display first image with default settings
+                        this.displayStackImage(true)
+                        this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                    }
+                    // Emit the change in image cache status
+                    this.$root.$emit('image-cache-changed')
+                })
+            }
+        },
+        /**
+         * Zoom in our out of the displayed image.
+         * @param {number} z zoom amount in percents.
+         */
         zoomImage: function (z: number) {
             this.viewport.scale *= 1 + z*0.01
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
@@ -195,13 +284,18 @@ export default Vue.extend({
             })
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            // Sort the images if the resource is an image stack
+            if (this.resource.hasOwnProperty('images')) {
+                this.preloadAndSortStackImages()
+            } else {
+                // Display first image with default settings
+                this.displayImage(true)
+            }
             // Start listening to some global events
             this.$root.$off('reset-default-viewport')
             this.$root.$on('reset-default-viewport', () => {
                 this.displayStackImage(true)
             })
-            // Display first image with default settings
-            this.displayStackImage(true)
         }
         Vue.nextTick(() => {
             this.resizeImage(this.containerSize as number[])

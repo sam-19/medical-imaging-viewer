@@ -10,14 +10,14 @@
         <div ref="media" class="medigi-viewer-media">
             <div v-if="!dcmElements.length" :id="`${appName}-medigi-viewer-dropzone`" class="medigi-viewer-dropzone"></div>
             <div v-else class="medigi-viewer-images">
-                <DICOMImage v-for="(resource, idx) in dcmElements"
+                <DICOMImageDisplay v-for="(resource, idx) in dcmElements"
                     :key="`${appName}-medigi-viewer-element-${idx}`"
                     :containerSize="mediaContainerSize"
                     :listPosition="[idx, dcmElements.length]"
                     :resource="resource"
                     ref="images"
                 >
-                </DICOMImage>
+                </DICOMImageDisplay>
             </div>
         </div>
     </div>
@@ -31,11 +31,11 @@ import cornerstone from 'cornerstone-core'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { DICOMImageStack, DICOMResource }from '../types/viewer'
+import { DICOMImageStack, DICOMImageResource }from '../types/viewer'
 
 export default Vue.extend({
     components: {
-        DICOMImage: () => import('./DICOMImage.vue'),
+        DICOMImageDisplay: () => import('./DICOMImageDisplay.vue'),
         ViewerSidebar: () => import('./AppSidebar.vue'),
         ViewerToolbar: () => import('./AppToolbar.vue'),
     },
@@ -45,7 +45,7 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
-            dcmElements: [] as DICOMResource[] | DICOMImageStack[],
+            dcmElements: [] as DICOMImageResource[] | DICOMImageStack[],
             mediaContainerSize: [0, 0],
             wadoImageLoader: null,
         }
@@ -124,7 +124,7 @@ export default Vue.extend({
                         const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                         if (imageId) {
                             this.dcmElements = [{ label: 'Image stack', modality: 'UNKNOWN', images: [
-                                { url: imageId, size: file.size, name: file.name } as DICOMResource
+                                { url: imageId, size: file.size, name: file.name } as DICOMImageResource
                             ] } as DICOMImageStack]
                         }
                     }
@@ -132,12 +132,16 @@ export default Vue.extend({
                     for (let i=0; i<fileTree.length; i++) {
                         if (fileTree[0].hasOwnProperty('items')) {
                             // Add all loaded images as an image stack
-                            this.dcmElements = [{ label: 'Image stack', modality: 'UNKNOWN', images: [] } as DICOMImageStack]
+                            this.dcmElements = [
+                                { label: 'Image stack', modality: 'UNKNOWN', images: [] } as DICOMImageStack
+                            ]
                             for (let j=0; j<(fileTree[i] as fileDir).items.length; j++) {
                                 let file = (fileTree[i] as fileDir).items[j] as File
                                 const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                                 if (imageId) {
-                                    this.dcmElements[i].images.push({ url: imageId, size: file.size, name: file.name } as DICOMResource)
+                                    this.dcmElements[i].images.push(
+                                        { url: imageId, size: file.size, name: file.name } as DICOMImageResource
+                                    )
                                 }
                             }
                         }
@@ -152,7 +156,10 @@ export default Vue.extend({
             }
         },
         mediaResized: function () {
-            this.mediaContainerSize = [(this.$refs['media'] as HTMLElement).offsetWidth, (this.$refs['media'] as HTMLElement).offsetHeight]
+            this.mediaContainerSize = [
+                (this.$refs['media'] as HTMLElement).offsetWidth,
+                (this.$refs['media'] as HTMLElement).offsetHeight
+            ]
         },
     },
     mounted () {
@@ -181,6 +188,7 @@ export default Vue.extend({
     --medigi-viewer-border-highlight: #F0F0F0;
     --medigi-viewer-text-main: #E0E0E0;
     --medigi-viewer-text-minor: #C0C0C0;
+    --medigi-viewer-text-faint: #808080;
 }
 .medigi-viewer-light-mode, .medigi-viewer-light-mode * {
     --medigi-viewer-background: #FFFFFF;
@@ -189,6 +197,7 @@ export default Vue.extend({
     --medigi-viewer-border-highlight: #101010;
     --medigi-viewer-text-main: #000000;
     --medigi-viewer-text-minor: #303030;
+    --medigi-viewer-text-faint: #808080;
 }
 /* Main app view component styles */
 .medigi-viewer div {
@@ -205,9 +214,11 @@ export default Vue.extend({
     font-family: sans-serif;
 }
     .medigi-viewer-sidebar {
+        position: relative;
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;
+        grid-row-end: bottom-edge;
     }
     .medigi-viewer-toolbar {
         grid-column-start: divider;

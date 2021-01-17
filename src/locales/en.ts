@@ -1,6 +1,6 @@
 /** MEDIGI VIEWER ENGLISH LOCALE
  * @package    medigi-viewer
- * @copyright  2020 Sampsa Lohi
+ * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 

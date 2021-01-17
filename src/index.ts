@@ -1,12 +1,12 @@
 /** MEDIGI VIEWER ENTRY SCRIPT
  * @package    medigi-viewer
- * @copyright  2020 Sampsa Lohi
+ * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
 import { MEDigiI18n, validLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
-import { DICOMResource } from './types/viewer'
+import { DICOMImageResource } from './types/viewer'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
@@ -87,7 +87,7 @@ class MEDigiViewer {
      * Load DICOM objects defined by the type DICOMResource.
      * @param resource a single resource or an array of resources
      */
-    loadResource (resource: DICOMResource | DICOMResource[]): void {
+    loadResource (resource: DICOMImageResource | DICOMImageResource[]): void {
         if (this.viewer === undefined) {
             // Viewer must be initialized first
             return

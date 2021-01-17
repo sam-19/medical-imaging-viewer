@@ -1,8 +1,10 @@
 /** MEDIGI VIEWER CUSTOM TYPES
  * @package    medigi-viewer
- * @copyright  2020 Sampsa Lohi
+ * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
+
+import { Image } from "cornerstone-core"
 
 const MOUSE_BUTTON = {
     LEFT: 0,
@@ -20,18 +22,25 @@ type AnyModality = BiosignalModality | ImageModality
  */
 interface DICOMImageStack {
     label: string
-    images: DICOMResource[]
+    images: DICOMImageResource[]
     modality: ImageModality
 }
 /**
  * A general DICOM resource interface
  */
-interface DICOMResource {
+interface DICOMImageResource {
     url: string        // Download URL or Cornerstone image ID for the resource
     size: number       // Either byte size or item count
     name: string       // Display name for the resource list
     type: MediaType
-    modality: AnyModality
+    modality: ImageModality
+    image?: object
+    instanceNumber?: number
+    sopClassUID?: string
+    sopInstanceUID?: string
+    numberOfFrames?: number
+    rows?: number
+    columns?: number
 }
 /**
  * Metadata interface used by SidebarItem
@@ -58,5 +67,5 @@ export {
     // Types
     AnyModality, MediaType, ImageModality, BiosignalModality,
     // Interfaces
-    DICOMImageStack, DICOMResource, ToolbarButton, MediaItem,
+    DICOMImageStack, DICOMImageResource, ToolbarButton, MediaItem,
 }

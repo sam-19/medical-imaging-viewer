@@ -16,6 +16,13 @@
             :title="item.title"
             :type="item.type"
         />
+        <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
+            <span>{{ $t('Cache statistics') }}</span>
+            <span>{{ $store.state.cacheStatus.count }} {{ $t('images') }}</span>
+            <span v-if="$store.state.cacheStatus.size">
+                - {{ Math.round(1000*$store.state.cacheStatus.size/$store.state.cacheStatus.max)/10 }}% {{ $t('usage') }}
+            </span>
+        </div>
     </div>
 
 </template>
@@ -80,5 +87,15 @@ export default Vue.extend({
             }
     .medigi-viewer-sidebar-dropdown:hover > ul {
         display: block;
+    }
+.medigi-viewer-statusbar {
+    position: absolute;
+    bottom: 0;
+    padding: 10px 0;
+    color: var(--medigi-viewer-text-faint);
+}
+    .medigi-viewer-statusbar > span:nth-child(1) {
+        display: block;
+        padding-bottom: 5px;
     }
 </style>
