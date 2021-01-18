@@ -1,11 +1,11 @@
 <template>
     <div class="medigi-viewer-media-icon">
         <!-- Single image -->
-        <div v-if="type==='image' && count===1" class="medigi-viewer-icon-image-single">
+        <div v-if="type==='image'" class="medigi-viewer-icon-image-single">
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
         <!-- Image stack -->
-        <div v-else-if="type==='image' && count>1" class="medigi-viewer-icon-image-stack">
+        <div v-else-if="type==='image-stack'" class="medigi-viewer-icon-image-stack">
             <div></div>
             <div></div>
             <div></div>
@@ -37,7 +37,7 @@ export default Vue.extend({
          */
         getLabelFontSize: function (): string {
             let baseSize = 14
-            if (this.label.length > 3) {
+            if (this.label && this.label.length > 3) {
                 baseSize -= (this.label.length-3)*2
             }
             return 'font-size:' + baseSize.toString() + 'px'

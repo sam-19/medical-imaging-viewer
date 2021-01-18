@@ -10,10 +10,10 @@
                 <li>OPTION 4</li>
             </ul>
         </div>
-        <SidebarItem v-for="(item, idx) in mediaItems" :key="`sidebaritem${idx}`"
-            :count="item.count"
+        <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem${idx}`"
+            :count="item.size"
             :label="item.modality"
-            :title="item.title"
+            :title="item.name"
             :type="item.type"
         />
         <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
@@ -35,6 +35,9 @@ import { MediaResource } from '../types/assets'
 export default Vue.extend({
     components: {
         SidebarItem: () => import('./SidebarItem.vue'),
+    },
+    props: {
+        items: Array
     },
     data () {
         return {

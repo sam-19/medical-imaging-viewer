@@ -5,7 +5,8 @@
             <ViewerToolbar></ViewerToolbar>
         </div>
         <div class="medigi-viewer-sidebar">
-            <ViewerSidebar></ViewerSidebar>
+            <ViewerSidebar :items="dcmElements">
+            </ViewerSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
             <div v-if="!dcmElements.length" :id="`${appName}-medigi-viewer-dropzone`" class="medigi-viewer-dropzone"></div>
@@ -54,7 +55,30 @@ export default Vue.extend({
         }
     },
     methods: {
-
+        addFileAsImage: function (file: File) {
+            const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
+            if (imageId) {
+                (this.dcmElements as ImageResource[]).push(new DICOMImage(file.name, file.size, imageId))
+            }
+        },
+        addFilesAsImageStack: function (files: File[], name: string) {
+            if (!files.length) {
+                return
+            }
+            const imgStack = new DICOMImageStack(files.length, name || 'Image stack')
+            for (let i=0; i<files.length; i++) {
+                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(files[i])
+                if (imageId) {
+                    imgStack.push(
+                        new DICOMImage(files[i].name, files[i].size, imageId)
+                    )
+                }
+            }
+            // Don't add an empty image stack
+            if (imgStack.length) {
+                (this.dcmElements as ImageStackResource[]).push(imgStack)
+            }
+        },
         handleFileDrag: function (event: DragEvent) {
             // Prevent default event effects
             event.stopPropagation()
@@ -76,119 +100,38 @@ export default Vue.extend({
                         // Recurse until we arrive at the root folder of the image sets
                         rootDir = rootDir.directories[0]
                     }
-                    // Next, check if this is a single file dir
-                    if (rootDir.directories && !rootDir.directories.length &&
-                        rootDir.files && rootDir.files.length
-                    ) {
-                        // Add all loaded images as an image stack
-                        const imgStack = new DICOMImageStack(rootDir.files.length, 'Image stack')
-                        for (let j=0; j<rootDir.files.length; j++) {
-                            const file = rootDir.files[j].file as File
-                            const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
-                            if (imageId) {
-                                imgStack.push(
-                                    new DICOMImage(file.name, file.size, imageId)
-                                )
-                            }
+                    console.log(rootDir)
+                    // Next, check if this is a single file dir or several dirs
+                    if (!rootDir.directories?.length && rootDir.files?.length) {
+                        if (rootDir.files.length > 1) {
+                            // Add multiple files as an image stack
+                            this.addFilesAsImageStack(rootDir.files.map(f => f.file as File), rootDir.name)
+                        } else {
+                            // Single file as an image
+                            this.addFileAsImage(rootDir.files[0].file as File)
                         }
-                        (this.dcmElements as ImageStackResource[]).push(imgStack)
+                    } else if (rootDir.directories?.length) {
+                        // Try to add each individual dir as an image or image stack
+                        // First check that each directory really contains only files, skip those that don't
+                        for (let i=0; i<rootDir.directories.length; i++) {
+                            if (rootDir.directories[i].directories?.length) {
+                                console.warn(`${rootDir.directories[i].path} was omitted because it contained subdirectories.`)
+                                continue
+                            } else if (!rootDir.directories[i].files?.length) {
+                                console.warn(`${rootDir.directories[i].path} was omitted because it was empty.`)
+                                continue
+                            }
+                            // Add the files of each directory as a separate image stack
+                            this.addFilesAsImageStack(
+                                (rootDir.directories[i].files || []).map(f => f.file as File),
+                                rootDir.directories[i].name
+                            )
+                        }
+                    } else {
+                        console.warn("Dropped item had an empty root directory!")
                     }
                 }
             })
-            /*
-            // Helper functions to recover the files asynchronously
-            interface fileDir { name: string, items: File[] }
-            // This method recurses only one level of directories!
-            let readAllItems = async (items: DataTransferItemList): Promise<File[] | fileDir[]> => {
-                let fileTree = [] as File[] | fileDir[]
-                // At least Chrome may not return the entire list at once (max 100 entires)
-                // so we need to cache returned items in a separate list
-                let cache = []
-                // Initial cache
-                for (let i=0; i<items.length; i++) {
-                    cache.push(items[i].webkitGetAsEntry())
-                }
-                // Go through the queue until it is empty
-                while (cache.length > 0) {
-                    let item = cache.shift()
-                    if (item.isFile) {
-                        // Add files to root directory
-                        fileTree.push(await new Promise((resolve, reject) => item.file(resolve, reject)))
-                    } else if (item.isDirectory) {
-                        // New directory encountered
-                        let dirReader = item.createReader()
-                        cache.push(await readDirectoryItems(item.name, dirReader))
-                    } else {
-                        fileTree.push(item)
-                    }
-                }
-                return fileTree
-            }
-            let readDirectoryItems = async (name: string, reader: any) => {
-                let dir = { name: name, items: [] as any[] }
-                let items = await readItems(reader) // Get first batch of items
-                if (Array.isArray(items)) {
-                    while (items.length > 0) {
-                        let file = await new Promise((resolve, reject) => items.shift().file(resolve, reject))
-                        dir.items.push(file)
-                        items = items.concat(await readItems(reader))
-                    }
-                }
-                return dir
-            }
-            let readItems = async (reader: any): Promise<any> => {
-                try {
-                    return await new Promise((resolve, reject) => {
-                        reader.readEntries(resolve, reject)
-                    })
-                } catch (error) {
-                    console.error(error)
-                }
-            }
-            event.stopPropagation()
-            event.preventDefault()
-            // Get FileList from the droppped object
-            if (event.dataTransfer && event.dataTransfer.items) {
-                let fileTree = await readAllItems(event.dataTransfer.items)
-                if (fileTree.length === 1 && !fileTree[0].hasOwnProperty('items')) {
-                    let file = fileTree[0] as File
-                    // Display single image
-                    if (file) {
-                        const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
-                        if (imageId) {
-                            this.dcmElements = [{
-                                name: 'Image stack', modality: 'UNKNOWN', images: [
-                                  { url: imageId,size: file.size,name: file.name } as ImageResource
-                                ]
-                              } as unknown as ImageStackResource]
-                        }
-                    }
-                } else {
-                    for (let i=0; i<fileTree.length; i++) {
-                        if (fileTree[i].hasOwnProperty('items')) {
-                            // Add all loaded images as an image stack
-                            const imgStack = new DICOMImageStack((fileTree[i] as fileDir).items.length, 'Image stack')
-                            for (let j=0; j<(fileTree[i] as fileDir).items.length; j++) {
-                                let file = (fileTree[i] as fileDir).items[j] as File
-                                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
-                                if (imageId) {
-                                    imgStack.push(
-                                        new DICOMImage(file.name, file.size, imageId)
-                                    )
-                                }
-                            }
-                            (this.dcmElements as ImageStackResource[]).push(imgStack)
-                        }
-                    }
-                }
-            } else if (event.dataTransfer && event.dataTransfer.files) {
-                for (let i=0; i<event.dataTransfer.files.length; i++) {
-                    if (event.dataTransfer.files[i].size) {
-                        break // TODO: Handle multiple files and folders?
-                    }
-                }
-            }
-            */
         },
         mediaResized: function () {
             this.mediaContainerSize = [

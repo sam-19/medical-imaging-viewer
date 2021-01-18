@@ -17,6 +17,7 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     constructor (size: number, name: string) {
         super('', size, 'image-stack', '')
         this._images = []
+        this._name = name
         this._preloaded = 0
         this.cornerstone = cornerstone
     }

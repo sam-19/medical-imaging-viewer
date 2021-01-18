@@ -19,7 +19,6 @@ class LocalFileLoader implements FileLoader {
         event.preventDefault()
         if (event.dataTransfer && event.dataTransfer.items) {
             const fileTree = await this.readDirectoryItems('/', '', null, event.dataTransfer.items)
-            console.log(fileTree)
             return fileTree
         }
         return undefined
@@ -33,14 +32,14 @@ class LocalFileLoader implements FileLoader {
         if (reader) {
             // Use the reader to read directory contents
             cache = await this.readItems(reader) // Get first batch of items
-        } else if (items) {
+        } else if (items && items.length) {
             // Go through the initial list of items
             for (let i=0; i<items.length; i++) {
                 cache.push(items[i].webkitGetAsEntry())
             }
         }
         if (!Array.isArray(cache)) {
-            console.log("NOT AN ARRAY", cache)
+            console.error("Reader did not return a file list!", cache)
         }
         // Go through the queue until it is empty
         while (cache.length > 0) {

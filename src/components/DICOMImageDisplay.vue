@@ -68,6 +68,8 @@ export default Vue.extend({
                 if (this.viewport) {
                     this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
                 }
+            }).catch(() => {
+                // TODO: Display error image
             })
         },
         /**
@@ -89,6 +91,8 @@ export default Vue.extend({
                             this.dicomEl, image, this.viewport
                         )
                     }
+                }).catch(() => {
+                    // TODO: Display error image
                 })
             }
         },
@@ -236,6 +240,10 @@ export default Vue.extend({
             this.$root.cornerstone.enable(this.dicomEl)
             // Bind mouse interaction listeners
             this.dicomEl.addEventListener('mousedown', (event) => {
+                // Do not handle events until viewport has been set up
+                if (!this.viewport) {
+                    return
+                }
                 event.stopPropagation()
                 event.preventDefault()
                 // Catch which button was pressed
@@ -250,6 +258,10 @@ export default Vue.extend({
                 this.dicomEl.addEventListener('mousemove', this.handleMouseMove)
             })
             this.dicomEl.addEventListener('mouseup', (event) => {
+                // Do not handle events until viewport has been set up
+                if (!this.viewport) {
+                    return
+                }
                 event.stopPropagation()
                 event.preventDefault()
                 // Catch which button was released
@@ -264,6 +276,10 @@ export default Vue.extend({
             })
             // Bind default mouse wheel event
             this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
+                // Do not handle events until viewport has been set up
+                if (!this.viewport) {
+                    return
+                }
                 event.stopPropagation()
                 event.preventDefault()
                 // Default event depends on image count
