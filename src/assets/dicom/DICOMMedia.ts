@@ -4,25 +4,19 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-
-interface DICOMMediaResource {
-    url: string        // Download URL or Cornerstone image ID for the resource
-    size: number       // Either byte size or item count
-    name: string       // Display name for the media element
-    type: string
-}
-
-class DICOMMedia implements DICOMMediaResource {
-    protected _url: string
-    protected _size: number
+import { MediaResource } from '../../types/assets'
+class DICOMMedia implements MediaResource {
+    protected _modality?: string
     protected _name: string
+    protected _size: number
     protected _type: string
+    protected _url: string
 
-    constructor (url: string, size: number, name: string, type: string) {
-        this._url = url
-        this._size = size
+    constructor (name: string, size: number, type: string, url: string) {
         this._name = name
+        this._size = size
         this._type = type
+        this._url = url
     }
 
     get name () {
@@ -52,4 +46,4 @@ class DICOMMedia implements DICOMMediaResource {
 
 }
 export default DICOMMedia
-export { DICOMMediaResource }
+export { MediaResource }

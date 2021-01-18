@@ -190,6 +190,7 @@ export default Vue.extend({
          * Preload the image stack images into cache and sort them by instance number.
          */
         preloadAndSortStackImages: function () {
+            /*
             if (!this.resource.hasOwnProperty('images')) {
                 return
             }
@@ -218,6 +219,7 @@ export default Vue.extend({
                     this.$root.$emit('image-cache-changed')
                 })
             }
+            */
         },
         /**
          * Zoom in our out of the displayed image.

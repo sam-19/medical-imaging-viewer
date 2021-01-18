@@ -6,22 +6,13 @@
  */
 import DICOMDataProperty from './DICOMDataProperty'
 import DICOMModality from './DICOMModality'
-import DICOMMedia, { DICOMMediaResource } from './DICOMMedia'
+import DICOMMedia from './DICOMMedia'
+import { ImageResource } from '../../types/assets'
 
-interface DICOMImageResource extends DICOMMediaResource {
-    modality?: string
-    instanceNumber?: number
-    sopClassUID?: string
-    sopInstanceUID?: string
-    numberOfFrames?: number
-    rows?: number
-    columns?: number
-}
 
-class DICOMImage extends DICOMMedia implements DICOMImageResource {
+class DICOMImage extends DICOMMedia implements ImageResource {
     private _columns?: number
     private _instanceNumber?: number
-    private _modality?: string
     private _numberOfFrames?: number
     private _rows?: number
     private _sopClassUID?: string
@@ -42,8 +33,8 @@ class DICOMImage extends DICOMMedia implements DICOMImageResource {
         cols: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1),
     }
 
-    constructor (url: string, size: number, name: string) {
-        super(url, size, name, 'image')
+    constructor (name: string, size: number, url: string) {
+        super(name, size, 'image', url)
     }
     // Getters and setters
     // Columns
@@ -127,4 +118,4 @@ class DICOMImage extends DICOMMedia implements DICOMImageResource {
 }
 
 export default DICOMImage
-export { DICOMImageResource }
+export { ImageResource }
