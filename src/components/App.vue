@@ -76,6 +76,7 @@ export default Vue.extend({
             }
             // Don't add an empty image stack
             if (imgStack.length) {
+                // Add cover image
                 (this.dcmElements as ImageStackResource[]).push(imgStack)
             }
         },

@@ -9,7 +9,7 @@ import DICOMMedia from './DICOMMedia'
 import { ImageResource, ImageStackResource } from '../../types/assets'
 
 class DICOMImageStack extends DICOMMedia implements ImageStackResource {
-    private _coverImage?: ImageResource
+    private _coverImage?: string
     private _images: ImageResource[]
     private _preloaded: number
     private cornerstone: typeof cornerstone
@@ -27,7 +27,7 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     get coverImage () {
         return this._coverImage
     }
-    set coverImage (image: ImageResource | undefined) {
+    set coverImage (image: string | undefined) {
         this._coverImage = image
     }
     get images () {
@@ -47,7 +47,7 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     public push (image: ImageResource) {
         if (!this._images.length) {
             // Add the first image as cover image
-            this._coverImage = image
+            this._coverImage = image.url
         }
         this._images.push(image)
     }
@@ -73,6 +73,9 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
             }
         }
         return callback(false)
+    }
+    public setCoverImage (index: number) {
+        this._coverImage = this._images[index].url
     }
     /**
      * Sort images according to one of:

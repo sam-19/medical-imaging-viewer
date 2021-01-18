@@ -1,5 +1,4 @@
 <template>
-
     <div :id="`${$root.appName}-medigi-viewer-sidebar`">
         <div class="medigi-viewer-sidebar-dropdown">
             <span>SELECT RESOURCE</span>
@@ -15,6 +14,7 @@
             :label="item.modality"
             :title="item.name"
             :type="item.type"
+            :cover="item.coverImage"
         />
         <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache statistics') }}</span>
@@ -24,7 +24,6 @@
             </span>
         </div>
     </div>
-
 </template>
 
 <script lang="ts">

@@ -12,6 +12,7 @@ import { ImageResource } from '../../types/assets'
 
 class DICOMImage extends DICOMMedia implements ImageResource {
     private _columns?: number
+    private _coverImage?: string
     private _instanceNumber?: number
     private _numberOfFrames?: number
     private _rows?: number
@@ -61,6 +62,9 @@ class DICOMImage extends DICOMMedia implements ImageResource {
         ) {
             this._modality = modality
         }
+    }
+    get coverImage () {
+        return this._coverImage
     }
     // Name (immutable after initiatian)
     get name () {
@@ -119,6 +123,9 @@ class DICOMImage extends DICOMMedia implements ImageResource {
         this._sopInstanceUID = image.data.string(this.TAGS.sopI) || undefined
         this._rows = image.data.string(this.TAGS.rows) || undefined
         this._columns = image.data.string(this.TAGS.cols) || undefined
+    }
+    public setCoverImage = () => {
+        this._coverImage = this._url
     }
 }
 

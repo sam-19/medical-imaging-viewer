@@ -32,9 +32,10 @@ interface ImageResource extends MediaResource {
     rows?: number
     columns?: number
     readMetadataFromImage(image: any): void
+    setCoverImage(index?: number): void
 }
 interface ImageStackResource extends MediaResource {
-    coverImage?: ImageResource
+    coverImage?: string
     images: ImageResource[]
 }
 

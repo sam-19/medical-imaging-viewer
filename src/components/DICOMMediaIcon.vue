@@ -42,7 +42,7 @@ export default Vue.extend({
             }
             return 'font-size:' + baseSize.toString() + 'px'
         }
-    }
+    },
 })
 
 </script>
