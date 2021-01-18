@@ -206,8 +206,8 @@ export default Vue.extend({
                     if (this.imageStack.length === this.resource.images.length) {
                         // All images have been loaded, sort them according to Instance Number
                         this.imageStack.sort((a: any, b: any) => {
-                            const aPos = a.getInstanceNumber() || 0
-                            const bPos = b.getInstanceNumber() || 0
+                            const aPos = a.instanceNumber || 0
+                            const bPos = b.instanceNumber || 0
                             return aPos - bPos
                         })
                         // Display first image with default settings

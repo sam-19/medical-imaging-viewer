@@ -11,8 +11,8 @@ interface DICOMImageResource {
     url: string        // Download URL or Cornerstone image ID for the resource
     size: number       // Either byte size or item count
     name: string       // Display name for the resource list
-    type: 'image'
-    modality: string
+    type: string
+    modality?: string
     instanceNumber?: number
     sopClassUID?: string
     sopInstanceUID?: string
@@ -21,94 +21,119 @@ interface DICOMImageResource {
     columns?: number
 }
 
-class DICOMImage {
-    readonly url: string
-    readonly size: number
-    readonly name: string
-    readonly type: string
-    private columns?: number
-    private instanceNumber?: number
-    private modality?: string
-    private numberOfFrames?: number
-    private rows?: number
-    private sopClassUID?: string
-    private sopInstanceUID?: string
+class DICOMImage implements DICOMImageResource {
+    private _url: string
+    private _size: number
+    private _name: string
+    private _type: string
+    private _columns?: number
+    private _instanceNumber?: number
+    private _modality?: string
+    private _numberOfFrames?: number
+    private _rows?: number
+    private _sopClassUID?: string
+    private _sopInstanceUID?: string
+    // Store tag values for metadata retrieval (remove the prefixed 0 for cornerstone)
+    private TAGS = {
+        /** Instance Number */
+        iNum: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1),
+        /** Number of Frames */
+        fNum: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0008)?.getTagHex().substring(1),
+        /** SOP Class UID */
+        sopC: DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0016)?.getTagHex().substring(1),
+        /** SOP Instance UID */
+        sopI: DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0018)?.getTagHex().substring(1),
+        /** Rows */
+        rows: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0010)?.getTagHex().substring(1),
+        /** Columns */
+        cols: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1),
+    }
 
     constructor (url: string, size: number, name: string) {
-        this.url = url
-        this.size = size
-        this.name = name
-        this.type = 'image'
+        this._url = url
+        this._size = size
+        this._name = name
+        this._type = 'image'
     }
-    // Getters
-    public getColumns = () => {
-        return this.columns
+    // Getters and setters
+    // Columns
+    get columns () {
+        return this._columns
     }
-    public getInstanceNumber = () => {
-        return this.instanceNumber
+    set columns (columns: number | undefined) {
+        this._columns = columns
     }
-    public getModality = () => {
-        return this.modality
+    // Instance number
+    get instanceNumber () {
+        return this._instanceNumber
     }
-    public getNumberOfFrames = () => {
-        return this.numberOfFrames
+    set instanceNumber (instanceNum: number | undefined) {
+        this._instanceNumber = instanceNum
     }
-    public getRows = () => {
-        return this.rows
+    // Modality
+    get modality () {
+        return this._modality
     }
-    public getSOPClassUID = () => {
-        return this.sopClassUID
-    }
-    public getSOPInstanceUID = () => {
-        return this.sopInstanceUID
-    }
-    public readMetadataFromImage = (image: any) => {
-        // Get tag values for metadata retrieval and remove the prefixed 0 for cornerstone
-        // Instance Number
-        const iNum = DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1)
-        // Number of Frames
-        const fNum = DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0008)?.getTagHex().substring(1)
-        // SOP Class UID
-        const sopC = DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0016)?.getTagHex().substring(1)
-        // SOP Instance UID
-        const sopI = DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0018)?.getTagHex().substring(1)
-        // Rows
-        const rows = DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0010)?.getTagHex().substring(1)
-        // Columns
-        const cols = DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1)
-        // Store image metadata
-        this.instanceNumber = parseInt(image.data.string(iNum), 10)
-        this.numberOfFrames = image.data.string(fNum) || undefined
-        this.sopClassUID = image.data.string(sopC) || undefined
-        this.sopInstanceUID = image.data.string(sopI) || undefined
-        this.rows = image.data.string(rows) || undefined
-        this.columns = image.data.string(cols) || undefined
-    }
-    // Setters
-    public setColumns = (columns: number) => {
-        this.columns = columns
-    }
-    public setInstanceNumber = (instanceNum: number) => {
-        this.instanceNumber = instanceNum
-    }
-    public setModality = (modality: string) => {
-        if (Object.keys(DICOMModality.LIST).indexOf(modality) !== -1) {
-            this.modality = modality
+    set modality (modality: string | undefined) {
+        if (modality !== undefined &&
+            Object.keys(DICOMModality.LIST).indexOf(modality) !== -1
+        ) {
+            this._modality = modality
         }
     }
-    public setNumberOfFrames = (frameNum: number) => {
-        this.numberOfFrames = frameNum
+    // Name (immutable after initiatian)
+    get name () {
+        return this._name
     }
-    public setRows = (rows: number) => {
-        this.rows = rows
+    // Number of Frames
+    get numberOfFrames () {
+        return this._numberOfFrames
     }
-    public setSOPClassUID = (sopCUID: string) => {
-        this.sopClassUID = sopCUID
+    set numberOfFrames (frameNum: number | undefined) {
+        this._numberOfFrames = frameNum
     }
-    public setSOPInstanceUID = (sopIUID: string) => {
-        this.sopInstanceUID = sopIUID
+    // Rows
+    get rows () {
+        return this._rows
     }
-
+    set rows (rows: number | undefined) {
+        this._rows = rows
+    }
+    // Size (immutable after initiatian)
+    get size () {
+        return this._size
+    }
+    // SOP Class UID
+    get sopClassUID () {
+        return this._sopClassUID
+    }
+    set sopClassUID (sopCUID: string | undefined) {
+        this._sopClassUID = sopCUID
+    }
+    // SOP Instance UID
+    get sopInstanceUID () {
+        return this._sopInstanceUID
+    }
+    set sopInstanceUID (sopIUID: string | undefined) {
+        this._sopInstanceUID = sopIUID
+    }
+    // Type (immutable after initiatian)
+    get type () {
+        return this._type
+    }
+    // URL (immutable after initiatian)
+    get url () {
+        return this._url
+    }
+    public readMetadataFromImage = (image: any) => {
+        // Store image metadata
+        this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10)
+        this._numberOfFrames = image.data.string(this.TAGS.fNum) || undefined
+        this._sopClassUID = image.data.string(this.TAGS.sopC) || undefined
+        this._sopInstanceUID = image.data.string(this.TAGS.sopI) || undefined
+        this._rows = image.data.string(this.TAGS.rows) || undefined
+        this._columns = image.data.string(this.TAGS.cols) || undefined
+    }
 }
 
 export default DICOMImage
