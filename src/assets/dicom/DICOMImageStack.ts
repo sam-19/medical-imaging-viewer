@@ -8,16 +8,17 @@ import cornerstone from 'cornerstone-core'
 import DICOMMedia from './DICOMMedia'
 import { ImageResource, ImageStackResource } from '../../types/assets'
 
-
 class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: ImageResource
     private _images: ImageResource[]
     private _preloaded: number
+    private cornerstone: typeof cornerstone
 
     constructor (size: number, name: string) {
-        super('', size, name, 'image-stack')
+        super('', size, 'image-stack', '')
         this._images = []
         this._preloaded = 0
+        this.cornerstone = cornerstone
     }
 
     // Getters and setters
@@ -59,19 +60,37 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
         }
         this._preloaded = 0 // Reset counter
         for (let i=0; i<this._images.length; i++) {
-            await cornerstone.loadAndCacheImage(this._images[i].url).promise.then((image: any) => {
+            // Await is DEFINITELY needed here!
+            await this.cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
+                this._images[i].readMetadataFromImage(image)
                 this._preloaded++
-                if (this._preloaded === this._images.length) {
-                    // All images have been loaded, sort them according to Instance Number
-                    this._images.sort((a: any, b: any) => {
-                        const aPos = a.instanceNumber || 0
-                        const bPos = b.instanceNumber || 0
-                        return aPos - bPos
-                    })
-                    return callback(true)
-                }
             })
+            if (this._preloaded === this._images.length) {
+                // All images have been loaded, sort them according to Instance Number
+                this.sortImages('i')
+                return callback(true)
+            }
         }
         return callback(false)
     }
+    /**
+     * Sort images according to one of:
+     * @param {string} key 'i' for index, 'n' for name
+     */
+    public sortImages (key: 'i' | 'n'): void {
+        this._images.sort((a: ImageResource, b: ImageResource) => {
+            if (key === 'i') {
+                // Sort by index (instance number)
+                return (a.instanceNumber || 0) - (b.instanceNumber || 0)
+            } else if (key === 'n') {
+                // Sort by file name
+                return a.name.localeCompare(b.name)
+            } else {
+                // To humor TSLint
+                return 0
+            }
+        })
+    }
 }
+
+export default DICOMImageStack

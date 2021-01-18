@@ -106,6 +106,11 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     get url () {
         return this._url
     }
+    /**
+     * Reads and stores metadata from the supplied image. The image is not saved,
+     * use cornerstone cache to retrieve cached images.
+     * @param {Image} image cornerstone Image object
+     */
     public readMetadataFromImage = (image: any) => {
         // Store image metadata
         this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10)

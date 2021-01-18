@@ -27,11 +27,14 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone from 'cornerstone-core'
+import cornerstone, { imageCache } from 'cornerstone-core'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { DICOMImageStack, DICOMImageResource }from '../types/viewer'
+import { ImageResource, ImageStackResource }from '../types/assets'
+import DICOMImage from '../assets/dicom/DICOMImage'
+import DICOMImageStack from '../assets/dicom/DICOMImageStack'
+import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
 export default Vue.extend({
     components: {
@@ -45,7 +48,7 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
-            dcmElements: [] as DICOMImageResource[] | DICOMImageStack[],
+            dcmElements: [] as ImageResource[] | ImageStackResource[],
             mediaContainerSize: [0, 0],
             wadoImageLoader: null,
         }
@@ -63,6 +66,36 @@ export default Vue.extend({
         },
 
         handleFileDrop: async function (event: DragEvent) {
+            const fileLoader = new LocalFileLoader()
+            fileLoader.readFilesFromSource(event).then((fileTree) => {
+                if (fileTree) {
+                    let rootDir = fileTree
+                    while (rootDir.files && !rootDir.files.length &&
+                           rootDir.directories && rootDir.directories.length === 1
+                    ) {
+                        // Recurse until we arrive at the root folder of the image sets
+                        rootDir = rootDir.directories[0]
+                    }
+                    // Next, check if this is a single file dir
+                    if (rootDir.directories && !rootDir.directories.length &&
+                        rootDir.files && rootDir.files.length
+                    ) {
+                        // Add all loaded images as an image stack
+                        const imgStack = new DICOMImageStack(rootDir.files.length, 'Image stack')
+                        for (let j=0; j<rootDir.files.length; j++) {
+                            const file = rootDir.files[j].file as File
+                            const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
+                            if (imageId) {
+                                imgStack.push(
+                                    new DICOMImage(file.name, file.size, imageId)
+                                )
+                            }
+                        }
+                        (this.dcmElements as ImageStackResource[]).push(imgStack)
+                    }
+                }
+            })
+            /*
             // Helper functions to recover the files asynchronously
             interface fileDir { name: string, items: File[] }
             // This method recurses only one level of directories!
@@ -123,27 +156,28 @@ export default Vue.extend({
                     if (file) {
                         const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                         if (imageId) {
-                            this.dcmElements = [{ label: 'Image stack', modality: 'UNKNOWN', images: [
-                                { url: imageId, size: file.size, name: file.name } as DICOMImageResource
-                            ] } as DICOMImageStack]
+                            this.dcmElements = [{
+                                name: 'Image stack', modality: 'UNKNOWN', images: [
+                                  { url: imageId,size: file.size,name: file.name } as ImageResource
+                                ]
+                              } as unknown as ImageStackResource]
                         }
                     }
                 } else {
                     for (let i=0; i<fileTree.length; i++) {
-                        if (fileTree[0].hasOwnProperty('items')) {
+                        if (fileTree[i].hasOwnProperty('items')) {
                             // Add all loaded images as an image stack
-                            this.dcmElements = [
-                                { label: 'Image stack', modality: 'UNKNOWN', images: [] } as DICOMImageStack
-                            ]
+                            const imgStack = new DICOMImageStack((fileTree[i] as fileDir).items.length, 'Image stack')
                             for (let j=0; j<(fileTree[i] as fileDir).items.length; j++) {
                                 let file = (fileTree[i] as fileDir).items[j] as File
                                 const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
                                 if (imageId) {
-                                    this.dcmElements[i].images.push(
-                                        { url: imageId, size: file.size, name: file.name } as DICOMImageResource
+                                    imgStack.push(
+                                        new DICOMImage(file.name, file.size, imageId)
                                     )
                                 }
                             }
+                            (this.dcmElements as ImageStackResource[]).push(imgStack)
                         }
                     }
                 }
@@ -154,6 +188,7 @@ export default Vue.extend({
                     }
                 }
             }
+            */
         },
         mediaResized: function () {
             this.mediaContainerSize = [

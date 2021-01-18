@@ -6,7 +6,7 @@
 
 import { MEDigiI18n, validLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
-import { DICOMImageResource } from './types/viewer'
+import { MediaResource } from './types/assets'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
@@ -87,7 +87,7 @@ class MEDigiViewer {
      * Load DICOM objects defined by the type DICOMResource.
      * @param resource a single resource or an array of resources
      */
-    loadResource (resource: DICOMImageResource | DICOMImageResource[]): void {
+    loadResource (resource: MediaResource | MediaResource[]): void {
         if (this.viewer === undefined) {
             // Viewer must be initialized first
             return

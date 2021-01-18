@@ -4,7 +4,19 @@
  * @license    MIT
  */
 
+interface FileSystemItem {
+    name: string
+    path: string
+    type: 'directory' | 'file'
+    directories?: FileSystemItem[]
+    files?: FileSystemItem[]
+    file?: File
+}
+interface FileLoader {
+    readFilesFromSource(source: DragEvent | string): Promise<FileSystemItem|undefined>
+}
 interface MediaResource {
+    modality?: string
     name: string       // Display name for the media element
     size: number       // Either byte size or item count
     type: string
@@ -19,10 +31,11 @@ interface ImageResource extends MediaResource {
     numberOfFrames?: number
     rows?: number
     columns?: number
+    readMetadataFromImage(image: any): void
 }
 interface ImageStackResource extends MediaResource {
     coverImage?: ImageResource
     images: ImageResource[]
 }
 
-export { MediaResource, ImageResource, ImageStackResource }
+export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource }

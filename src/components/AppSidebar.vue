@@ -30,7 +30,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { MediaItem } from '../types/viewer'
+import { MediaResource } from '../types/assets'
 
 export default Vue.extend({
     components: {
@@ -38,13 +38,13 @@ export default Vue.extend({
     },
     data () {
         return {
-            mediaItems: [] as MediaItem[]
+            mediaItems: [] as MediaResource[]
         }
     },
     mounted () {
-        this.mediaItems.push({ count: 1, modality: 'XR', title: 'Thorax AP', type: 'image' })
-        this.mediaItems.push({ count: 64, modality: 'CT', title: 'Head CT sagittal', type: 'image' })
-        this.mediaItems.push({ count: 19, modality: 'EEG', title: 'Routine EEG', type: 'biosignal' })
+        this.mediaItems.push({ size: 1, modality: 'XR', name: 'Thorax AP', type: 'image', url: '' })
+        this.mediaItems.push({ size: 64, modality: 'CT', name: 'Head CT sagittal', type: 'image', url: '' })
+        this.mediaItems.push({ size: 19, modality: 'EEG', name: 'Routine EEG', type: 'biosignal', url: '' })
     }
 })
 

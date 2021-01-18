@@ -10,7 +10,8 @@
 import Vue from 'vue'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 import DICOMImage from '../assets/dicom/DICOMImage'
-import { MOUSE_BUTTON, DICOMImageStack, DICOMImageResource } from '../types/viewer'
+import { MOUSE_BUTTON } from '../types/viewer'
+import { ImageResource, ImageStackResource } from '../types/assets'
 
 export default Vue.extend({
     components: {
@@ -56,7 +57,7 @@ export default Vue.extend({
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: function (defaultVP: boolean) {
-            if (!this.resource.hasOwnProperty('url')) {
+            if (this.resource.type !== 'image') {
                 return
             }
             this.$root.cornerstone.loadImage(this.resource.url).then((image: any) => {
@@ -74,9 +75,9 @@ export default Vue.extend({
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayStackImage: function (defaultVP: boolean) {
-            if (this.resource.hasOwnProperty('images') && this.imageStack.length > this.stackPos) {
+            if (this.resource.type === 'image-stack' && this.resource.length > this.stackPos) {
                 // Display the image at the selected position
-                this.$root.cornerstone.loadImage(this.imageStack[this.stackPos].url).then((image: any) => {
+                this.$root.cornerstone.loadImage(this.resource.images[this.stackPos].url).then((image: any) => {
                     if (defaultVP) {
                         // Set this.viewport to default settings
                         this.viewport = this.$root.cornerstone.getDefaultViewportForImage(
@@ -213,10 +214,8 @@ export default Vue.extend({
                         })
                         // Display first image with default settings
                         this.displayStackImage(true)
-                        this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
                     }
                     // Emit the change in image cache status
-                    this.$root.$emit('image-cache-changed')
                 })
             }
             */
@@ -287,8 +286,14 @@ export default Vue.extend({
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             // Sort the images if the resource is an image stack
-            if (this.resource.hasOwnProperty('images')) {
-                this.preloadAndSortStackImages()
+            if (this.resource.type === 'image-stack') {
+                this.resource.preloadAndSortImages((success: boolean) => {
+                    if (success) {
+                        this.displayStackImage(true)
+                    }
+                    this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                    this.$root.$emit('image-cache-changed')
+                })
             } else {
                 // Display first image with default settings
                 this.displayImage(true)

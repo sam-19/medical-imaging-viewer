@@ -137,7 +137,8 @@ declare module 'cornerstone-core' {
     interface ImageLoadObject {
         /** The Promise tracking the loading of this image */
         promise: Promise<Image>
-
+        /** Image loading done */
+        then: (image: any) => Image
         /** A function to cancel the image load request */
         cancelFn: () => void | undefined
     }

@@ -17,40 +17,6 @@ type ImageModality = 'US' | 'XR' | 'CT' | 'MRI' | 'PET' | 'SPECT' | 'UNKNOWN'
 type BiosignalModality = 'ECG' | 'EEG' | 'EOG' | 'UNKNOWN'
 type AnyModality = BiosignalModality | ImageModality
 
-/**
- * An image stack passed to DICOMImage component
- */
-interface DICOMImageStack {
-    label: string
-    images: DICOMImageResource[]
-    modality: ImageModality
-}
-/**
- * A general DICOM resource interface
- */
-interface DICOMImageResource {
-    url: string        // Download URL or Cornerstone image ID for the resource
-    size: number       // Either byte size or item count
-    name: string       // Display name for the resource list
-    type: MediaType
-    modality: ImageModality
-    image?: object
-    instanceNumber?: number
-    sopClassUID?: string
-    sopInstanceUID?: string
-    numberOfFrames?: number
-    rows?: number
-    columns?: number
-}
-/**
- * Metadata interface used by SidebarItem
- */
- interface MediaItem {
-    count: number
-    title: string
-    type: MediaType
-    modality: AnyModality
-}
  interface ToolbarButton {
     id: string
     active: boolean,
@@ -67,5 +33,5 @@ export {
     // Types
     AnyModality, MediaType, ImageModality, BiosignalModality,
     // Interfaces
-    DICOMImageStack, DICOMImageResource, ToolbarButton, MediaItem,
+    ToolbarButton,
 }
