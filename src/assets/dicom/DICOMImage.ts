@@ -6,12 +6,9 @@
  */
 import DICOMDataProperty from './DICOMDataProperty'
 import DICOMModality from './DICOMModality'
+import DICOMMedia, { DICOMMediaResource } from './DICOMMedia'
 
-interface DICOMImageResource {
-    url: string        // Download URL or Cornerstone image ID for the resource
-    size: number       // Either byte size or item count
-    name: string       // Display name for the resource list
-    type: string
+interface DICOMImageResource extends DICOMMediaResource {
     modality?: string
     instanceNumber?: number
     sopClassUID?: string
@@ -21,11 +18,7 @@ interface DICOMImageResource {
     columns?: number
 }
 
-class DICOMImage implements DICOMImageResource {
-    private _url: string
-    private _size: number
-    private _name: string
-    private _type: string
+class DICOMImage extends DICOMMedia implements DICOMImageResource {
     private _columns?: number
     private _instanceNumber?: number
     private _modality?: string
@@ -50,10 +43,7 @@ class DICOMImage implements DICOMImageResource {
     }
 
     constructor (url: string, size: number, name: string) {
-        this._url = url
-        this._size = size
-        this._name = name
-        this._type = 'image'
+        super(url, size, name, 'image')
     }
     // Getters and setters
     // Columns
