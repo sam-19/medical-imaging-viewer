@@ -180,6 +180,8 @@ export default Vue.extend({
                 this.toggleArea()
             } else if (buttonId === 'distance') {
                 this.toggleDistance()
+            } else if (buttonId === 'invert') {
+                this.invertColors()
             } else if (buttonId === 'link') {
                 this.toggleLink()
             } else if (buttonId === 'pan') {
@@ -240,6 +242,12 @@ export default Vue.extend({
                 ].toString()
             }
             return ''
+        },
+        /**
+         * Invert media colors.
+         */
+        invertColors: function () {
+            this.$root.$emit('invert-media-colors')
         },
         /**
          * Reset all modifications, returning the media to default state.

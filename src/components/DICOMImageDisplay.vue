@@ -53,14 +53,14 @@ export default Vue.extend({
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
-         * Display a single image from this.resource.
+         * Display the single image from this.resource or current image (this.stackPos) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: function (defaultVP: boolean) {
-            if (this.resource.type !== 'image') {
-                return
-            }
-            this.$root.cornerstone.loadImage(this.resource.url).then((image: any) => {
+            const imageUrl = this.resource.type === 'image-stack'
+                             ? this.resource.images[this.stackPos].url
+                             : this.resource.url
+            this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP) {
                     // Set this.viewport to default settings
                     this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
@@ -71,30 +71,6 @@ export default Vue.extend({
             }).catch(() => {
                 // TODO: Display error image
             })
-        },
-        /**
-         * Display the image located at this.stackPos.
-         * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
-         */
-        displayStackImage: function (defaultVP: boolean) {
-            if (this.resource.type === 'image-stack' && this.resource.length > this.stackPos) {
-                // Display the image at the selected position
-                this.$root.cornerstone.loadImage(this.resource.images[this.stackPos].url).then((image: any) => {
-                    if (defaultVP) {
-                        // Set this.viewport to default settings
-                        this.viewport = this.$root.cornerstone.getDefaultViewportForImage(
-                            this.dicomEl, image
-                        )
-                    }
-                    if (this.viewport) {
-                        this.$root.cornerstone.displayImage(
-                            this.dicomEl, image, this.viewport
-                        )
-                    }
-                }).catch(() => {
-                    // TODO: Display error image
-                })
-            }
         },
         /**
          * Trigger the desired effect from mouse move according to the active toolbar tool.
@@ -148,6 +124,13 @@ export default Vue.extend({
             }
         },
         /**
+         * Invert the image colors values.
+         */
+        invertImage: function () {
+            this.viewport.invert = !this.viewport.invert
+            this.displayImage(false)
+        },
+        /**
          * Pan image by given coordinates.
          * @param {number} x distance on the x-axis.
          * @param {number} y distance on the y-axis.
@@ -161,7 +144,7 @@ export default Vue.extend({
          * Reset the viewport to default state.
          */
         resetViewport: function () {
-            this.displayStackImage(true)
+            this.displayImage(true)
         },
         /**
          * Resize the displayed image into given dimensions.
@@ -208,7 +191,7 @@ export default Vue.extend({
                 this.stackPos += delta
             }
             this.resource.lastPosition = this.stackPos
-            this.displayStackImage(false)
+            this.displayImage(false)
         },
         /**
          * Zoom in our out of the displayed image.
@@ -293,7 +276,7 @@ export default Vue.extend({
                     if (success) {
                         // Fetch last position from the stack
                         this.stackPos = this.resource.lastPosition
-                        this.displayStackImage(true)
+                        this.displayImage(true)
                     }
                     this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
                 })
@@ -302,6 +285,7 @@ export default Vue.extend({
                 this.displayImage(true)
             }
             // Start listening to some global events
+            this.$root.$on('invert-media-colors', this.invertImage)
             this.$root.$on('restore-default-viewport', this.resetViewport)
         }
         Vue.nextTick(() => {
@@ -309,6 +293,7 @@ export default Vue.extend({
         })
     },
     beforeDestroy () {
+        this.$root.$off('invert-media-colors', this.invertImage)
         this.$root.$off('restore-default-viewport', this.resetViewport)
     },
 })
