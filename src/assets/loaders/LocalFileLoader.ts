@@ -31,7 +31,12 @@ class LocalFileLoader implements FileLoader {
         let cache = []
         if (reader) {
             // Use the reader to read directory contents
-            cache = await this.readItems(reader) // Get first batch of items
+            let items = await this.readItems(reader) // Get first batch of items
+            while (items && items.length) {
+                // Add all directory contents to cache, one batch at a time
+                cache.push(...items.splice(0))
+                items = items.concat(await this.readItems(reader))
+            }
         } else if (items && items.length) {
             // Go through the initial list of items
             for (let i=0; i<items.length; i++) {
