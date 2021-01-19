@@ -5,11 +5,15 @@
             <ViewerToolbar></ViewerToolbar>
         </div>
         <div class="medigi-viewer-sidebar">
-            <ViewerSidebar :items="dcmElements">
+            <ViewerSidebar
+                :appName="appName"
+                :items="dcmElements"
+                v-on:file-dropped="handleFileDrop($event)"
+            >
             </ViewerSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="!dcmElements.length" :id="`${appName}-medigi-viewer-dropzone`" class="medigi-viewer-dropzone"></div>
+            <div v-if="!dcmElements.length" :id="`${appName}-medigi-viewer-dropzone2`" class="medigi-viewer-dropzone"></div>
             <div v-else class="medigi-viewer-images">
                 <DICOMImageDisplay v-for="(resource, idx) in dcmElements"
                     :key="`${appName}-medigi-viewer-element-${idx}`"
@@ -91,6 +95,7 @@ export default Vue.extend({
         },
 
         handleFileDrop: async function (event: DragEvent) {
+            console.log(event)
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {
@@ -146,12 +151,12 @@ export default Vue.extend({
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
-        // Set up DICOM file dropzone
-        const dropZone = document.getElementById(`${this.appName}-medigi-viewer-dropzone`)
+        /* Set up DICOM file dropzone
+        const dropZone = document.getElementById(`${this.appName}-medigi-viewer-dropzone2`)
         if (dropZone) {
             dropZone.addEventListener('dragover', this.handleFileDrag, false)
             dropZone.addEventListener('drop', this.handleFileDrop, false)
-        }
+        } */
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
     },
@@ -165,6 +170,7 @@ export default Vue.extend({
     --medigi-viewer-background: #000000;
     --medigi-viewer-background-highlight: #202020;
     --medigi-viewer-border: #C0C0C0;
+    --medigi-viewer-border-faint: #606060;
     --medigi-viewer-border-highlight: #F0F0F0;
     --medigi-viewer-text-main: #E0E0E0;
     --medigi-viewer-text-minor: #C0C0C0;
@@ -174,6 +180,7 @@ export default Vue.extend({
     --medigi-viewer-background: #FFFFFF;
     --medigi-viewer-background-highlight: #D0D0D0;
     --medigi-viewer-border: #303030;
+    --medigi-viewer-border-faint: #A0A0A0;
     --medigi-viewer-border-highlight: #101010;
     --medigi-viewer-text-main: #000000;
     --medigi-viewer-text-minor: #303030;

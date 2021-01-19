@@ -1,5 +1,5 @@
 <template>
-    <div :id="`${$root.appName}-medigi-viewer-sidebar`">
+    <div :id="`${appName}-medigi-viewer-sidebar`">
         <div class="medigi-viewer-sidebar-dropdown">
             <span>SELECT RESOURCE</span>
             <ul>
@@ -16,6 +16,7 @@
             :type="item.type"
             :cover="item.coverImage"
         />
+        <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache statistics') }}</span>
             <span>{{ $store.state.cacheStatus.count }} {{ $t('images') }}</span>
@@ -36,18 +37,56 @@ export default Vue.extend({
         SidebarItem: () => import('./SidebarItem.vue'),
     },
     props: {
-        items: Array
+        appName: String,
+        items: Array,
     },
     data () {
         return {
-            mediaItems: [] as MediaResource[]
+            dropZone: null as HTMLElement | null,
+            mediaItems: [] as MediaResource[],
+        }
+    },
+    computed: {
+        dropZoneStyles () {
+            const heightTaken = 10 + 60 + 60 + this.items.length*149 + 20
+            return `width: 100%; height: calc(100% - ${heightTaken}px`
+        },
+    },
+    methods: {
+        clearDropZoneHighlight: function () {
+            if (this.dropZone) {
+                this.dropZone.classList.remove('medigi-viewer-highlight')
+            }
+        },
+        handleFileDrag: function (event: DragEvent) {
+            // Prevent default event effects
+            event.stopPropagation()
+            event.preventDefault()
+            if (event.dataTransfer) {
+                // Show that dropping the file "copies" it
+                event.dataTransfer.dropEffect = 'copy'
+                // Highlight the dropzone
+                if (this.dropZone) {
+                    this.dropZone.classList.add('medigi-viewer-highlight')
+                }
+            }
+        },
+        handleFileDrop: function (event: DragEvent) {
+            // Clear the highlight
+            this.clearDropZoneHighlight()
+            // Pass file drop event to parent component
+            this.$emit('file-dropped', event)
         }
     },
     mounted () {
-        this.mediaItems.push({ size: 1, modality: 'XR', name: 'Thorax AP', type: 'image', url: '' })
-        this.mediaItems.push({ size: 64, modality: 'CT', name: 'Head CT sagittal', type: 'image', url: '' })
-        this.mediaItems.push({ size: 19, modality: 'EEG', name: 'Routine EEG', type: 'biosignal', url: '' })
-    }
+        // Set up DICOM file dropzone
+        this.dropZone = document.getElementById(`${this.appName}-medigi-viewer-dropzone`)
+        if (this.dropZone) {
+            this.dropZone.addEventListener('dragover', this.handleFileDrag, false)
+            this.dropZone.addEventListener('drop', this.handleFileDrop, false)
+            this.dropZone.addEventListener('dragleave', this.clearDropZoneHighlight, false)
+        }
+    },
 })
 
 </script>
@@ -90,14 +129,21 @@ export default Vue.extend({
     .medigi-viewer-sidebar-dropdown:hover > ul {
         display: block;
     }
+.medigi-viewer-dropzone {
+    margin: 10px 0;
+}
+    .medigi-viewer-dropzone.medigi-viewer-highlight {
+        background-color: var(--medigi-viewer-background-highlight);
+    }
 .medigi-viewer-statusbar {
     position: absolute;
     bottom: 0;
+    height: 60px;
+    line-height: 20px;
     padding: 10px 0;
     color: var(--medigi-viewer-text-faint);
 }
     .medigi-viewer-statusbar > span:nth-child(1) {
         display: block;
-        padding-bottom: 5px;
     }
 </style>

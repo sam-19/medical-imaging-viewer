@@ -168,12 +168,14 @@ export default Vue.extend({
          * @param {number[]} dimensions [width, height].
          */
         resizeImage: function (dimensions: Array<number>) {
+            if (!this.dicomEl) {
+                return
+            }
             if (this.listPosition[1] === 1) {
                 // Only one item in the list, we can take up the whole space
-                let container = this.$refs['container'] as HTMLDivElement
-                container.style.width = `${dimensions[0]}px`
-                container.style.height = `${dimensions[1]}px`
-                this.$root.cornerstone.resize(container)
+                this.dicomEl.style.width = `${dimensions[0]}px`
+                this.dicomEl.style.height = `${dimensions[1]}px`
+                this.$root.cornerstone.resize(this.dicomEl)
             }
         },
         /**

@@ -3,19 +3,21 @@
         <!-- DICOM image -->
         <div v-if="cover" ref="cover-image" class="medigi-viewer-cover-image"></div>
         <!-- Single image -->
-        <div v-else-if="type==='image'" class="medigi-viewer-icon-image-single">
-            <span :style="getLabelFontSize()">{{ $t(label) }}</span>
-        </div>
-        <!-- Image stack -->
-        <div v-else-if="type==='image-stack'" class="medigi-viewer-icon-image-stack">
-            <div></div>
-            <div></div>
-            <div></div>
-            <span :style="getLabelFontSize()">{{ $t(label) }}</span>
-        </div>
-        <!-- Single biosignal -->
-        <div v-else-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
-            <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+        <div v-else class="medigi-viewer-default-icon">
+            <div v-if="type==='image'" class="medigi-viewer-icon-image-single">
+                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+            </div>
+            <!-- Image stack -->
+            <div v-else-if="type==='image-stack'" class="medigi-viewer-icon-image-stack">
+                <div></div>
+                <div></div>
+                <div></div>
+                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+            </div>
+            <!-- Single biosignal -->
+            <div v-else-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
+                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+            </div>
         </div>
     </div>
 </template>
@@ -43,8 +45,23 @@ export default Vue.extend({
             if (coverEl) {
                 this.$root.cornerstone.enable(coverEl)
                 this.$root.cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
+                    // Get image dimensions and set the cover image dimensions to preserve the aspec ratio
+                    /*
+                    const maxDim = [150, 125] // Max width and height
+                    if (image.width && image.height) { // I don't think this is even needed but better safe than sorry
+                        const ar = image.width/image.height
+                        // Container height is our limiting factor
+                        coverEl.style.height = `${maxDim[1]}px`
+                        if (ar*maxDim[1] < maxDim[0]) {
+                            coverEl.style.width = `${Math.round(ar*maxDim[1])}px`
+                        } else {
+                            coverEl.style.width = `${maxDim[0]}px`
+                        }
+                        this.$root.cornerstone.resize(coverEl)
+                    }*/
                     const viewport = this.$root.cornerstone.getDefaultViewportForImage(coverEl, image)
                     this.$root.cornerstone.displayImage(coverEl, image, viewport)
+                    this.$root.cornerstone.resize(coverEl)
                     this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
                 }).catch((error: Error) => {
                     // TODO: Handle error
@@ -73,10 +90,16 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-media-icon {
-    height: 100%;
-    width: 100%;
-    padding: 10% 20% 20% 10%;
+
+.medigi-viewer-cover-image {
+    /* Initial dimensions */
+    height: 125px;
+    width: 125px;
+}
+.medigi-viewer-default-icon {
+    width: 125px; /* Initial width */
+    height: 125px;
+    padding: 10% 20% 20% 10%; /* Apply margins to all the default icons */
 }
     .medigi-viewer-icon-image-single {
         position: relative;

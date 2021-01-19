@@ -38,18 +38,21 @@ export default Vue.extend({
 <style scoped>
 .medigi-viewer-sidebar-item {
     display: flex;
-    height: 60px;
+    height: 139px;
     width: 100%;
+    padding: 5px;
     margin-top: 10px;
+    cursor: pointer;
+    border: 2px solid var(--medigi-viewer-border-faint);
+    border-radius: 10px;
 }
-    .medigi-viewer-sidebar-icon {
-        height: 60px;
-        width: 60px;
+    .medigi-viewer-sidebar-item:hover {
+        border-color: var(--medigi-viewer-border-highlight);
     }
     .medigi-viewer-sidebar-details {
         height: 60px;
-        width: calc(100% - 60px);
-        padding-top: 5px;
+        flex-grow: 1;
+        padding: 5px 0 0 5px;
         color: var(--medigi-viewer-text-main);
     }
         .medigi-viewer-sidebar-details > div:nth-child(1) {
