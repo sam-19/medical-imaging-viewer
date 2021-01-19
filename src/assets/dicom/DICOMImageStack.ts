@@ -12,14 +12,12 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: string
     private _images: ImageResource[]
     private _preloaded: number
-    private cornerstone: typeof cornerstone
 
     constructor (size: number, name: string) {
         super('', size, 'image-stack', '')
         this._images = []
         this._name = name
         this._preloaded = 0
-        this.cornerstone = cornerstone
     }
 
     // Getters and setters
@@ -62,7 +60,7 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
         this._preloaded = 0 // Reset counter
         for (let i=0; i<this._images.length; i++) {
             // Await is DEFINITELY needed here!
-            await this.cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
+            await cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
                 this._images[i].readMetadataFromImage(image)
                 this._preloaded++
             })
