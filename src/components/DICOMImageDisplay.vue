@@ -90,7 +90,6 @@ export default Vue.extend({
                         this.$root.cornerstone.displayImage(
                             this.dicomEl, image, this.viewport
                         )
-                        this.$root.cornerstone.resize(this.dicomEl, true)
                     }
                 }).catch(() => {
                     // TODO: Display error image
@@ -180,8 +179,8 @@ export default Vue.extend({
             } else if ((this.listPosition[1] as number) < 4) {
                 // Place items side by side
                 this.dicomEl.style.display = 'inline-block'
-                const maxWidth = Math.round(dimensions[0]/(this.listPosition[1] as number))
-                const relWidth = Math.round((this.resource.dimensions[0]/this.resource.dimensions[1])*dimensions[1])
+                const maxWidth = dimensions[0]/(this.listPosition[1] as number)
+                const relWidth = (this.resource.dimensions[0]/this.resource.dimensions[1])*dimensions[1]
                 // Don't crop the image container
                 if (relWidth < maxWidth) {
                     this.dicomEl.style.width = `${relWidth}px`
@@ -190,7 +189,10 @@ export default Vue.extend({
                 }
                 this.dicomEl.style.height = `${dimensions[1]}px`
             }
-            this.$root.cornerstone.resize(this.dicomEl, true)
+            this.$root.cornerstone.resize(this.dicomEl, false)
+            // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
+            this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            //this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
          * Scroll the image stack.
@@ -207,39 +209,6 @@ export default Vue.extend({
             }
             this.resource.lastPosition = this.stackPos
             this.displayStackImage(false)
-        },
-        /**
-         * Preload the image stack images into cache and sort them by instance number.
-         */
-        preloadAndSortStackImages: function () {
-            /*
-            if (!this.resource.hasOwnProperty('images')) {
-                return
-            }
-            for (let i=0; i<this.resource.images.length; i++) {
-                this.$root.cornerstone.loadAndCacheImage(this.resource.images[i].url).then((image: any) => {
-                    const loadedImg = new DICOMImage(
-                        this.resource.images[i].url,
-                        this.resource.images[i].size,
-                        this.resource.images[i].name
-                    )
-                    loadedImg.readMetadataFromImage(image)
-                    // Add the image object to stack
-                    this.imageStack.push(loadedImg)
-                    if (this.imageStack.length === this.resource.images.length) {
-                        // All images have been loaded, sort them according to Instance Number
-                        this.imageStack.sort((a: any, b: any) => {
-                            const aPos = a.instanceNumber || 0
-                            const bPos = b.instanceNumber || 0
-                            return aPos - bPos
-                        })
-                        // Display first image with default settings
-                        this.displayStackImage(true)
-                    }
-                    // Emit the change in image cache status
-                })
-            }
-            */
         },
         /**
          * Zoom in our out of the displayed image.
@@ -323,7 +292,6 @@ export default Vue.extend({
                 this.resource.preloadAndSortImages((success: boolean) => {
                     if (success) {
                         // Fetch last position from the stack
-                        console.log(this.resource.lastPosition)
                         this.stackPos = this.resource.lastPosition
                         this.displayStackImage(true)
                     }
