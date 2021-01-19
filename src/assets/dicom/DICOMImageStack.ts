@@ -21,7 +21,6 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     }
 
     // Getters and setters
-    // Cover image
     get coverImage () {
         return this._coverImage
     }
@@ -71,6 +70,10 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
             await cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
                 this._images[i].readMetadataFromImage(image)
                 this._preloaded++
+                if (!i) {
+                    // Store dimensions from the first image
+                    this._dimensions = [image.width, image.height]
+                }
             })
             if (this._preloaded === this._images.length) {
                 // All images have been loaded, sort them according to Instance Number

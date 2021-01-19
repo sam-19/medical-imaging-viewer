@@ -1,6 +1,6 @@
 <template>
 
-    <div :ref="`container-${listPosition[0]}/${listPosition[1]}`" :id="`container-${listPosition[0]}/${listPosition[1]}`"
+    <div :ref="`container-${resource.id}`" :id="`container-${resource.id}`"
          oncontextmenu="return false // Prevent context menu pop-up on right click"
     ></div>
 
@@ -39,9 +39,6 @@ export default Vue.extend({
         },
         listPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage(this.containerSize as number[])
-            this.$nextTick(() => {
-                this.displayStackImage(false)
-            })
         },
     },
     methods: {
@@ -93,6 +90,7 @@ export default Vue.extend({
                         this.$root.cornerstone.displayImage(
                             this.dicomEl, image, this.viewport
                         )
+                        this.$root.cornerstone.resize(this.dicomEl, true)
                     }
                 }).catch(() => {
                     // TODO: Display error image
@@ -182,10 +180,17 @@ export default Vue.extend({
             } else if ((this.listPosition[1] as number) < 4) {
                 // Place items side by side
                 this.dicomEl.style.display = 'inline-block'
-                this.dicomEl.style.width = `${dimensions[0]/(this.listPosition[1] as number)}px`
+                const maxWidth = Math.round(dimensions[0]/(this.listPosition[1] as number))
+                const relWidth = Math.round((this.resource.dimensions[0]/this.resource.dimensions[1])*dimensions[1])
+                // Don't crop the image container
+                if (relWidth < maxWidth) {
+                    this.dicomEl.style.width = `${relWidth}px`
+                } else {
+                    this.dicomEl.style.width = `${maxWidth}px`
+                }
                 this.dicomEl.style.height = `${dimensions[1]}px`
             }
-            this.$root.cornerstone.resize(this.dicomEl)
+            this.$root.cornerstone.resize(this.dicomEl, true)
         },
         /**
          * Scroll the image stack.
@@ -246,7 +251,7 @@ export default Vue.extend({
         }
     },
     mounted () {
-        this.dicomEl = this.$refs[`container-${this.listPosition[0]}/${this.listPosition[1]}`] as HTMLDivElement
+        this.dicomEl = this.$refs[`container-${this.resource.id}`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)

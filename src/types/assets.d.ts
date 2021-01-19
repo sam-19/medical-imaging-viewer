@@ -16,6 +16,7 @@ interface FileLoader {
     readFilesFromSource(source: DragEvent | string): Promise<FileSystemItem|undefined>
 }
 interface MediaResource {
+    dimensions: number[]
     id: string
     modality?: string
     name: string       // Display name for the media element

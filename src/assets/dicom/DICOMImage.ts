@@ -117,6 +117,7 @@ class DICOMImage extends DICOMMedia implements ImageResource {
      */
     public readMetadataFromImage = (image: any) => {
         // Store image metadata
+        this._dimensions = [image.width, image.height]
         this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10)
         this._numberOfFrames = image.data.string(this.TAGS.fNum) || undefined
         this._sopClassUID = image.data.string(this.TAGS.sopC) || undefined

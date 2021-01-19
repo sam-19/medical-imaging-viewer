@@ -6,6 +6,7 @@
  */
 import { MediaResource } from '../../types/assets'
 class DICOMMedia implements MediaResource {
+    protected _dimensions: number[] = [0, 0]
     protected _id: string
     protected _modality?: string
     protected _name: string
@@ -22,6 +23,9 @@ class DICOMMedia implements MediaResource {
         this._url = url
     }
 
+    get dimensions () {
+        return this._dimensions
+    }
     get id () {
         return this._id
     }
