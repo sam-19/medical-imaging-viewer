@@ -7,18 +7,18 @@
         <div class="medigi-viewer-sidebar">
             <ViewerSidebar
                 :appName="appName"
-                :items="dcmElements"
+                :items="dicomElements"
                 v-on:file-dropped="handleFileDrop($event)"
             >
             </ViewerSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="!dcmElements.length" :id="`${appName}-medigi-viewer-dropzone2`" class="medigi-viewer-dropzone"></div>
+            <div v-if="!dicomElements.length" :id="`${appName}-medigi-viewer-dropzone2`" class="medigi-viewer-dropzone"></div>
             <div v-else class="medigi-viewer-images">
-                <DICOMImageDisplay v-for="(resource, idx) in dcmElements"
+                <DICOMImageDisplay v-for="(resource, idx) in activeElements"
                     :key="`${appName}-medigi-viewer-element-${idx}`"
                     :containerSize="mediaContainerSize"
-                    :listPosition="[idx, dcmElements.length]"
+                    :listPosition="[idx, activeElements.length]"
                     :resource="resource"
                     ref="images"
                 >
@@ -53,7 +53,8 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
-            dcmElements: [] as ImageResource[] | ImageStackResource[],
+            dicomElements: [] as ImageResource[] | ImageStackResource[],
+            activeElements: [] as ImageResource[] | ImageStackResource[],
             mediaContainerSize: [0, 0],
             wadoImageLoader: null,
         }
@@ -62,7 +63,7 @@ export default Vue.extend({
         addFileAsImage: function (file: File) {
             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
             if (imageId) {
-                (this.dcmElements as ImageResource[]).push(new DICOMImage(file.name, file.size, imageId))
+                (this.dicomElements as ImageResource[]).push(new DICOMImage(file.name, file.size, imageId))
             }
         },
         addFilesAsImageStack: function (files: File[], name: string) {
@@ -81,7 +82,7 @@ export default Vue.extend({
             // Don't add an empty image stack
             if (imgStack.length) {
                 // Add cover image
-                (this.dcmElements as ImageStackResource[]).push(imgStack)
+                (this.dicomElements as ImageStackResource[]).push(imgStack)
             }
         },
         handleFileDrag: function (event: DragEvent) {
@@ -95,7 +96,6 @@ export default Vue.extend({
         },
 
         handleFileDrop: async function (event: DragEvent) {
-            console.log(event)
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {

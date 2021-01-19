@@ -19,9 +19,9 @@
         <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache statistics') }}</span>
-            <span>{{ $store.state.cacheStatus.count }} {{ $t('images') }}</span>
-            <span v-if="$store.state.cacheStatus.size">
-                - {{ Math.round(1000*$store.state.cacheStatus.size/$store.state.cacheStatus.max)/10 }}% {{ $t('usage') }}
+            <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
+            <span v-if="cacheSize">
+                - {{ cacheUtil }}% {{ $t('usage') }}
             </span>
         </div>
     </div>
@@ -47,6 +47,23 @@ export default Vue.extend({
         }
     },
     computed: {
+        cacheImages () {
+            return this.$store.state.cacheStatus.count
+        },
+        cacheMax () {
+            return this.$store.state.cacheStatus.max
+        },
+        cacheSize () {
+            return this.$store.state.cacheStatus.size
+        },
+        cacheUtil () {
+            if (!this.$store.state.cacheStatus.max) {
+                return '~' // Don't want division by zero
+            }
+            const util = Math.round(1000*this.$store.state.cacheStatus.size/this.$store.state.cacheStatus.max)/10
+            // Prepend a tilde if rounded utilization is 0% (but there are items in the cache)
+            return this.$store.state.cacheStatus.count && !util ? `~${util}` : `${util}`
+        },
         dropZoneStyles () {
             const heightTaken = 10 + 60 + 60 + this.items.length*149 + 20
             return `width: 100%; height: calc(100% - ${heightTaken}px`
