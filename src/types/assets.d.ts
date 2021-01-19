@@ -38,6 +38,7 @@ interface ImageResource extends MediaResource {
 interface ImageStackResource extends MediaResource {
     coverImage?: string
     images: ImageResource[]
+    lastPosition: number
 }
 
 export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource }

@@ -11,13 +11,13 @@ import { ImageResource, ImageStackResource } from '../../types/assets'
 class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: string
     private _images: ImageResource[]
-    private _preloaded: number
+    private _lastPosition: number = 0
+    private _preloaded: number = 0
 
     constructor (size: number, name: string) {
         super('', size, 'image-stack', '')
         this._images = []
         this._name = name
-        this._preloaded = 0
     }
 
     // Getters and setters
@@ -30,6 +30,14 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     }
     get images () {
         return this._images
+    }
+    get lastPosition () {
+        return this._lastPosition
+    }
+    set lastPosition (pos: number) {
+        if (pos >= 0 && pos < this._images.length) {
+            this._lastPosition = pos
+        }
     }
     get length () {
         return this._images.length

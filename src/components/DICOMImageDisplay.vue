@@ -200,6 +200,7 @@ export default Vue.extend({
             } else {
                 this.stackPos += delta
             }
+            this.resource.lastPosition = this.stackPos
             this.displayStackImage(false)
         },
         /**
@@ -316,6 +317,9 @@ export default Vue.extend({
             if (this.resource.type === 'image-stack') {
                 this.resource.preloadAndSortImages((success: boolean) => {
                     if (success) {
+                        // Fetch last position from the stack
+                        console.log(this.resource.lastPosition)
+                        this.stackPos = this.resource.lastPosition
                         this.displayStackImage(true)
                     }
                     this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())

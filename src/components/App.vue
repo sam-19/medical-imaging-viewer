@@ -149,7 +149,6 @@ export default Vue.extend({
             ]
         },
         toggleSidebarItem: function (itemIdx: number) {
-            console.log(itemIdx)
             // Add or remove intemIdx from active items
             const actIdx = this.activeElements.indexOf(itemIdx)
             if (actIdx !== -1) {
