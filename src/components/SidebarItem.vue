@@ -1,5 +1,5 @@
 <template>
-    <div class="medigi-viewer-sidebar-item">
+    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="$emit('toggle-item')">
         <div class="medigi-viewer-sidebar-icon">
             <DICOMMediaIcon :type="type" :cover="cover" :count="count" :label="label" />
         </div>
@@ -20,6 +20,7 @@ export default Vue.extend({
         DICOMMediaIcon: () => import('./DICOMMediaIcon.vue'),
     },
     props: {
+        active: Boolean,
         count: Number,
         cover: String,
         label: String,
@@ -46,7 +47,7 @@ export default Vue.extend({
     border: 2px solid var(--medigi-viewer-border-faint);
     border-radius: 10px;
 }
-    .medigi-viewer-sidebar-item:hover {
+    .medigi-viewer-sidebar-item:hover, .medigi-viewer-sidebar-item-active {
         border-color: var(--medigi-viewer-border-highlight);
     }
     .medigi-viewer-sidebar-details {

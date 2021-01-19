@@ -6,6 +6,7 @@
  */
 import { MediaResource } from '../../types/assets'
 class DICOMMedia implements MediaResource {
+    protected _id: string
     protected _modality?: string
     protected _name: string
     protected _size: number
@@ -13,12 +14,17 @@ class DICOMMedia implements MediaResource {
     protected _url: string
 
     constructor (name: string, size: number, type: string, url: string) {
+        // Generate a pseudo-random identifier for this object
+        this._id = Math.random().toString(36).substr(2, 8)
         this._name = name
         this._size = size
         this._type = type
         this._url = url
     }
 
+    get id () {
+        return this._id
+    }
     get name () {
         return this._name
     }

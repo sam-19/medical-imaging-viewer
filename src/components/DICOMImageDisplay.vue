@@ -1,8 +1,8 @@
 <template>
 
-    <div ref="container" oncontextmenu="return false // Prevent context menu pop-up on right click">
-
-    </div>
+    <div :ref="`container-${listPosition[0]}/${listPosition[1]}`" :id="`container-${listPosition[0]}/${listPosition[1]}`"
+         oncontextmenu="return false // Prevent context menu pop-up on right click"
+    ></div>
 
 </template>
 
@@ -38,7 +38,10 @@ export default Vue.extend({
             this.resizeImage(value)
         },
         listPosition (value: Array<number>, old: Array<number>) {
-            // TODO: Update display
+            this.resizeImage(this.containerSize as number[])
+            this.$nextTick(() => {
+                this.displayStackImage(false)
+            })
         },
     },
     methods: {
@@ -167,16 +170,22 @@ export default Vue.extend({
          * Resize the displayed image into given dimensions.
          * @param {number[]} dimensions [width, height].
          */
-        resizeImage: function (dimensions: Array<number>) {
+        resizeImage: function (dimensions: number[]) {
             if (!this.dicomEl) {
                 return
             }
             if (this.listPosition[1] === 1) {
                 // Only one item in the list, we can take up the whole space
+                this.dicomEl.style.display = 'block'
                 this.dicomEl.style.width = `${dimensions[0]}px`
                 this.dicomEl.style.height = `${dimensions[1]}px`
-                this.$root.cornerstone.resize(this.dicomEl)
+            } else if ((this.listPosition[1] as number) < 4) {
+                // Place items side by side
+                this.dicomEl.style.display = 'inline-block'
+                this.dicomEl.style.width = `${dimensions[0]/(this.listPosition[1] as number)}px`
+                this.dicomEl.style.height = `${dimensions[1]}px`
             }
+            this.$root.cornerstone.resize(this.dicomEl)
         },
         /**
          * Scroll the image stack.
@@ -236,7 +245,7 @@ export default Vue.extend({
         }
     },
     mounted () {
-        this.dicomEl = this.$refs['container'] as HTMLDivElement
+        this.dicomEl = this.$refs[`container-${this.listPosition[0]}/${this.listPosition[1]}`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)

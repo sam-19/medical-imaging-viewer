@@ -8,7 +8,9 @@
             <ViewerSidebar
                 :appName="appName"
                 :items="dicomElements"
+                :activeItems="activeElements"
                 v-on:file-dropped="handleFileDrop($event)"
+                v-on:toggle-item="toggleSidebarItem($event)"
             >
             </ViewerSidebar>
         </div>
@@ -16,10 +18,10 @@
             <div v-if="!dicomElements.length" :id="`${appName}-medigi-viewer-dropzone2`" class="medigi-viewer-dropzone"></div>
             <div v-else class="medigi-viewer-images">
                 <DICOMImageDisplay v-for="(resource, idx) in activeElements"
-                    :key="`${appName}-medigi-viewer-element-${idx}`"
+                    :key="`${appName}-medigi-viewer-element-${dicomElements[resource].id}`"
                     :containerSize="mediaContainerSize"
                     :listPosition="[idx, activeElements.length]"
-                    :resource="resource"
+                    :resource="dicomElements[resource]"
                     ref="images"
                 >
                 </DICOMImageDisplay>
@@ -54,7 +56,7 @@ export default Vue.extend({
         return {
             cornerstone: cornerstone,
             dicomElements: [] as ImageResource[] | ImageStackResource[],
-            activeElements: [] as ImageResource[] | ImageStackResource[],
+            activeElements: [] as number[],
             mediaContainerSize: [0, 0],
             wadoImageLoader: null,
         }
@@ -146,6 +148,20 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetHeight
             ]
         },
+        toggleSidebarItem: function (itemIdx: number) {
+            console.log(itemIdx)
+            // Add or remove intemIdx from active items
+            const actIdx = this.activeElements.indexOf(itemIdx)
+            if (actIdx !== -1) {
+                this.activeElements.splice(actIdx, 1)
+            } else {
+                this.activeElements.push(itemIdx)
+                // Sort the items in the correct order
+                this.activeElements.sort((a, b) => {
+                    return a - b
+                })
+            }
+        }
     },
     mounted () {
         // Set up WADO Image Loader

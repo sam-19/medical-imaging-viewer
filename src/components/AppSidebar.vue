@@ -9,12 +9,14 @@
                 <li>OPTION 4</li>
             </ul>
         </div>
-        <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem${idx}`"
+        <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
             :count="item.size"
             :label="item.modality"
             :title="item.name"
             :type="item.type"
             :cover="item.coverImage"
+            :active="activeItems.indexOf(idx) !== -1"
+            v-on:toggle-item="$emit('toggle-item', idx)"
         />
         <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
@@ -39,6 +41,7 @@ export default Vue.extend({
     props: {
         appName: String,
         items: Array,
+        activeItems: Array,
     },
     data () {
         return {
@@ -93,7 +96,7 @@ export default Vue.extend({
             this.clearDropZoneHighlight()
             // Pass file drop event to parent component
             this.$emit('file-dropped', event)
-        }
+        },
     },
     mounted () {
         // Set up DICOM file dropzone
