@@ -118,8 +118,9 @@ export default Vue.extend({
                         return
                     }
                     // Scroll relative to window height;
-                    // half of image height to scroll the full stack, or
-                    // if the stack has more images than 1/3 image pixels, one image per pixel
+                    // - half of image height to scroll the full stack, or
+                    // - if the stack has more images than half image heigh (in pixels),
+                    //   one image per pixel
                     const yFac = ((this.containerSize[1] as number)/2)/this.resource.images.length > 1
                                  ? ((this.containerSize[1] as number)/2)/this.resource.images.length
                                  : 1
@@ -200,6 +201,9 @@ export default Vue.extend({
          * @param {number} delta positive or negative number (absolute amount is irrelevant).
          */
         scrollStack: function (delta: number) {
+            if (this.resource.type !== 'image-stack') {
+                return
+            }
             // Don't scroll out of bounds
             if (delta < 0 && this.stackPos + delta < 0) {
                 this.stackPos = 0
