@@ -49,7 +49,7 @@ export default Vue.extend({
     .medigi-viewer-toolbar-button.element-active {
         box-shadow: 0 0 0 1px var(--medigi-viewer-border-highlight);
         background-color: var(--medigi-viewer-background-highlight);
-        color: #FFFFFF;
+        color: var(--medigi-viewer-text-highlight);
     }
     .medigi-viewer-toolbar-button.medigi-viewer-disabled {
         opacity: 0.5 !important;

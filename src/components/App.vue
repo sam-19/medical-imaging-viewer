@@ -58,6 +58,7 @@ export default Vue.extend({
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             activeElements: [] as number[],
             mediaContainerSize: [0, 0],
+            themeChange: 0,
             wadoImageLoader: null,
         }
     },
@@ -148,6 +149,39 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetHeight
             ]
         },
+        toggleColorTheme: function (light?: boolean) {
+            const appEl = document.getElementById(`${this.appName}-medigi-viewer`)
+            if (appEl) {
+                appEl.classList.add('medigi-viewer-theme-change')
+                this.$nextTick(() => {
+                    if (light === undefined) {
+                        if (appEl.classList.contains('medigi-viewer-dark-mode')) {
+                            appEl.classList.remove('medigi-viewer-dark-mode')
+                            appEl.classList.add('medigi-viewer-light-mode')
+                        } else {
+                            appEl.classList.remove('medigi-viewer-light-mode')
+                            appEl.classList.add('medigi-viewer-dark-mode')
+                        }
+                    } else if (light) {
+                        appEl.classList.remove('medigi-viewer-dark-mode')
+                        appEl.classList.add('medigi-viewer-light-mode')
+                    } else {
+                        appEl.classList.remove('medigi-viewer-light-mode')
+                        appEl.classList.add('medigi-viewer-dark-mode')
+                    }
+                })
+                if (this.themeChange) {
+                    window.clearTimeout(this.themeChange)
+                }
+                // Two reasons for the timeout:
+                // 1. Don't want the transition outside of color theme change
+                // 2. It forces Chromium browsers to update the color of text and icons
+                //    (which sometimes takes AGES, for some reason)
+                this.themeChange = window.setTimeout(() => {
+                    appEl.classList.remove('medigi-viewer-theme-change')
+                }, 2100)
+            }
+        },
         toggleSidebarItem: function (itemIdx: number) {
             // Add or remove intemIdx from active items
             const actIdx = this.activeElements.indexOf(itemIdx)
@@ -160,7 +194,7 @@ export default Vue.extend({
                     return a - b
                 })
             }
-        }
+        },
     },
     mounted () {
         // Set up WADO Image Loader
@@ -181,6 +215,12 @@ export default Vue.extend({
 
 <style>
 /* Global app styles */
+.medigi-viewer-theme-change, .medigi-viewer-theme-change * {
+    -moz-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
+    -ms-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
+    -webkit-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
+    transition: color 2.0s linear, background-color 2.0s linear, border-color 2.0s linear;
+}
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
     --medigi-viewer-background-highlight: #202020;
@@ -188,6 +228,7 @@ export default Vue.extend({
     --medigi-viewer-border-faint: #606060;
     --medigi-viewer-border-highlight: #F0F0F0;
     --medigi-viewer-text-main: #E0E0E0;
+    --medigi-viewer-text-highlight: #F0F0F0;
     --medigi-viewer-text-minor: #C0C0C0;
     --medigi-viewer-text-faint: #808080;
 }
@@ -197,8 +238,9 @@ export default Vue.extend({
     --medigi-viewer-border: #303030;
     --medigi-viewer-border-faint: #A0A0A0;
     --medigi-viewer-border-highlight: #101010;
-    --medigi-viewer-text-main: #000000;
-    --medigi-viewer-text-minor: #303030;
+    --medigi-viewer-text-main: #202020;
+    --medigi-viewer-text-highlight: #101010;
+    --medigi-viewer-text-minor: #404040;
     --medigi-viewer-text-faint: #808080;
 }
 /* Main app view component styles */
