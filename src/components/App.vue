@@ -258,7 +258,6 @@ export default Vue.extend({
     font-family: sans-serif;
 }
     .medigi-viewer-sidebar {
-        position: relative;
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;

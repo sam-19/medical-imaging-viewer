@@ -1,30 +1,29 @@
 <template>
     <div :id="`${appName}-medigi-viewer-sidebar`">
         <div class="medigi-viewer-sidebar-dropdown">
-            <span>SELECT RESOURCE</span>
+            <span>DROP A FILE BELOW TO START</span>
             <ul>
-                <li>OPTION 1</li>
-                <li>OPTION 2</li>
-                <li>OPTION 3</li>
-                <li>OPTION 4</li>
+                <!--<li>LIST OF OPTIONS</li>-->
             </ul>
         </div>
-        <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
-            :count="item.size"
-            :label="item.modality"
-            :title="item.name"
-            :type="item.type"
-            :cover="item.coverImage"
-            :active="activeItems.indexOf(idx) !== -1"
-            v-on:toggle-item="$emit('toggle-item', idx)"
-        />
-        <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
-        <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
-            <span>{{ $t('Cache statistics') }}</span>
-            <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
-            <span v-if="cacheSize">
-                - {{ cacheUtil }}% {{ $t('usage') }}
-            </span>
+        <div class="medigi-viewer-sidebar-items">
+            <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
+                :count="item.size"
+                :label="item.modality"
+                :title="item.name"
+                :type="item.type"
+                :cover="item.coverImage"
+                :active="activeItems.indexOf(idx) !== -1"
+                v-on:toggle-item="$emit('toggle-item', idx)"
+            />
+            <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
+            <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
+                <span>{{ $t('Cache status') }}</span>
+                <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
+                <span v-if="cacheSize">
+                    - {{ cacheUtil }}% {{ $t('usage') }}
+                </span>
+            </div>
         </div>
     </div>
 </template>
@@ -113,20 +112,30 @@ export default Vue.extend({
 
 <style scoped>
 .medigi-viewer-sidebar > div {
+    position: relative;
     padding: 10px;
+    width: 300px;
+    height: calc(100% - 70px);
+    margin-top: 70px;
 }
 .medigi-viewer-sidebar-dropdown {
-    position: relative;
+    position: absolute;
+    top: -60px;
     min-height: 60px;
-    width: 100%;
+    width: 280px;
     border: solid 2px var(--medigi-viewer-border);
     border-radius: 5px;
+    background-color: var(--medigi-viewer-background);
     font-size: 24px;
     line-height: 56px;
     font-size: 16px;
     cursor: pointer;
+    opacity: 0.8;
     z-index: 1;
 }
+    .medigi-viewer-sidebar-dropdown:hover {
+        opacity: 1.0;
+    }
     .medigi-viewer-sidebar-dropdown > span {
         margin: 0 10px;
     }
@@ -149,18 +158,21 @@ export default Vue.extend({
     .medigi-viewer-sidebar-dropdown:hover > ul {
         display: block;
     }
+.medigi-viewer-sidebar-items {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 .medigi-viewer-dropzone {
+    flex-grow: 1;
     margin: 10px 0;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
         background-color: var(--medigi-viewer-background-highlight);
     }
 .medigi-viewer-statusbar {
-    position: absolute;
-    bottom: 0;
-    height: 60px;
-    line-height: 20px;
-    padding: 10px 0;
+    height: 50px;
+    line-height: 25px;
     color: var(--medigi-viewer-text-faint);
 }
     .medigi-viewer-statusbar > span:nth-child(1) {
