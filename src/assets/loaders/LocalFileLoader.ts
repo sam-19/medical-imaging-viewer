@@ -45,6 +45,7 @@ class LocalFileLoader implements FileLoader {
         }
         if (!Array.isArray(cache)) {
             console.error("Reader did not return a file list!", cache)
+            return dir
         }
         // Go through the queue until it is empty
         while (cache.length > 0) {
