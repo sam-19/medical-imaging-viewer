@@ -46,8 +46,12 @@ export default Vue.extend({
     cursor: pointer;
     border: 2px solid var(--medigi-viewer-border-faint);
     border-radius: 10px;
+    opacity: 0.8;
 }
     .medigi-viewer-sidebar-item:hover, .medigi-viewer-sidebar-item-active {
+        opacity: 1.0;
+    }
+    .medigi-viewer-sidebar-item-active {
         border-color: var(--medigi-viewer-border-highlight);
     }
     .medigi-viewer-sidebar-details {

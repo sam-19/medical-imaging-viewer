@@ -40,10 +40,16 @@ export default Vue.extend({
     font-size: 36px;
     cursor: pointer;
     margin-right: 10px;
+    opacity: 0.8;
 }
     .medigi-viewer-toolbar-button:hover, .medigi-viewer-toolbar-button.element-active {
-        box-shadow: 0 0 0 1px var(--medigi-viewer-border-highlight);
         border-color: var(--medigi-viewer-border-highlight);
+        opacity: 1.0;
+    }
+    .medigi-viewer-toolbar-button.element-active {
+        box-shadow: 0 0 0 1px var(--medigi-viewer-border-highlight);
+        background-color: var(--medigi-viewer-background-highlight);
+        color: #FFFFFF;
     }
     .medigi-viewer-toolbar-button.medigi-viewer-disabled {
         opacity: 0.5 !important;

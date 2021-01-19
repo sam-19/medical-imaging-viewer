@@ -54,7 +54,7 @@ export default Vue.extend({
                     // Tools that use the same mouse button must all share the same group as well!
                     groups: ['interact'],
                     // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                    icon: [ ['fal', 'layer-group'], ['far', 'layer-group'] ],
+                    icon: [ ['fal', 'layer-group'] ],
                     // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
                     tooltip:[ this.$t('Scroll image stack') ]
                 },
@@ -62,14 +62,14 @@ export default Vue.extend({
                     id: 'pan',
                     set: 0,
                     groups: ['interact'],
-                    icon: [ ['fal', 'arrows'], ['far', 'arrows'] ],
+                    icon: [ ['fal', 'arrows'] ],
                     tooltip: [ this.$t('Pan image') ]
                 },
                 {
                     id: 'zoom',
                     set: 0,
                     groups: ['interact'],
-                    icon: [ ['fal', 'search'], ['fas', 'search'] ],
+                    icon: [ ['fal', 'search'] ],
                     tooltip: [ this.$t('Zoom') ],
                 },
                 {
@@ -90,14 +90,14 @@ export default Vue.extend({
                     id: 'distance',
                     set: 2,
                     groups: ['interact'],
-                    icon: [ ['fal', 'ruler'], ['far', 'ruler'] ],
+                    icon: [ ['fal', 'ruler'] ],
                     tooltip: [ this.$t('Measure distance') ],
                 },
                 {
                     id: 'area',
                     set: 2,
                     groups: ['interact'],
-                    icon: [ ['fal', 'draw-circle'], ['far', 'draw-circle'] ],
+                    icon: [ ['fal', 'draw-circle'] ],
                     tooltip: [ this.$t('Measure area') ],
                 },
                 {
@@ -107,18 +107,18 @@ export default Vue.extend({
                     icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
                     tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
                 },
-                {
-                    id: 'undo',
-                    set: 4,
-                    groups: ['undo'],
-                    icon: [ ['fal', 'reply'], ['fal', 'share'] ],
-                    tooltip: [ this.$t('Undo last adjustment'), this.$t('Redo last adjustment') ],
-                },
+                //{
+                //    id: 'undo',
+                //    set: 4,
+                //    groups: ['undo'],
+                //    icon: [ ['fal', 'reply'] ],
+                //    tooltip: [ this.$t('Undo last adjustment'), this.$t('Redo last adjustment') ],
+                //},
                 {
                     id: 'reset',
                     set: 4,
                     groups: ['undo'],
-                    icon: [ ['fal', 'reply-all'], ['fal', 'share-all'] ],
+                    icon: [ ['fal', 'reply-all'] ],
                     tooltip: [ this.$t('Reset all adjustments'), this.$t('Reapply all adjustment') ],
                 },
             ],
