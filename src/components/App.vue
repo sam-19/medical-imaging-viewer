@@ -101,7 +101,6 @@ export default Vue.extend({
                         // Recurse until we arrive at the root folder of the image sets
                         rootDir = rootDir.directories[0]
                     }
-                    console.log(rootDir)
                     // Next, check if this is a single file dir or several dirs
                     if (!rootDir.directories?.length && rootDir.files?.length) {
                         if (rootDir.files.length > 1) {
@@ -132,6 +131,8 @@ export default Vue.extend({
                         console.warn("Dropped item had an empty root directory!")
                     }
                 }
+            }).catch((error: Error) => {
+                // TODO: Implement errors in the file loader
             })
         },
         mediaResized: function () {

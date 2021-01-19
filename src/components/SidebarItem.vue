@@ -1,8 +1,7 @@
 <template>
     <div class="medigi-viewer-sidebar-item">
         <div class="medigi-viewer-sidebar-icon">
-            <div v-if="cover" ref="cover-image"></div>
-            <DICOMMediaIcon v-else :type="type" :count="count" :label="label" />
+            <DICOMMediaIcon :type="type" :cover="cover" :count="count" :label="label" />
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
@@ -22,28 +21,15 @@ export default Vue.extend({
     },
     props: {
         count: Number,
-        cover: Object,
+        cover: String,
         label: String,
         title: String,
         type: String,
         url: String,
     },
     methods: {
-        displayCoverImage: function () {
-            const coverEl = this.$refs['cover-image'] as HTMLDivElement
-            if (coverEl) {
-                this.$root.cornerstone.enable(coverEl)
-                this.$root.cornerstone.loadImage(this.cover).then((image: any) => {
-                    const viewport = this.$root.cornerstone.getDefaultViewportForImage(coverEl, image)
-                    this.$root.cornerstone.displayImage(coverEl, image, viewport)
-                })
-            }
-        },
     },
     mounted () {
-        if (this.cover) {
-            this.displayCoverImage()
-        }
     },
 })
 

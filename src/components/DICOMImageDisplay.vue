@@ -308,7 +308,6 @@ export default Vue.extend({
                         this.displayStackImage(true)
                     }
                     this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
-                    this.$root.$emit('image-cache-changed')
                 })
             } else {
                 // Display first image with default settings

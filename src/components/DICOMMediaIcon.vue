@@ -1,7 +1,9 @@
 <template>
     <div class="medigi-viewer-media-icon">
+        <!-- DICOM image -->
+        <div v-if="cover" ref="cover-image" class="medigi-viewer-cover-image"></div>
         <!-- Single image -->
-        <div v-if="type==='image'" class="medigi-viewer-icon-image-single">
+        <div v-else-if="type==='image'" class="medigi-viewer-icon-image-single">
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
         <!-- Image stack -->
@@ -12,7 +14,7 @@
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
         <!-- Single biosignal -->
-        <div v-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
+        <div v-else-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
             <span :style="getLabelFontSize()">{{ $t(label) }}</span>
         </div>
     </div>
@@ -28,10 +30,27 @@ export default Vue.extend({
     },
     props: {
         type: String,
+        cover: String,
         count: Number,
         label: String,
     },
     methods: {
+        /**
+         * Display the image from cover image URL
+         */
+        displayCoverImage: function () {
+            const coverEl = this.$refs['cover-image'] as HTMLDivElement
+            if (coverEl) {
+                this.$root.cornerstone.enable(coverEl)
+                this.$root.cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
+                    const viewport = this.$root.cornerstone.getDefaultViewportForImage(coverEl, image)
+                    this.$root.cornerstone.displayImage(coverEl, image, viewport)
+                    this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                }).catch((error: Error) => {
+                    // TODO: Handle error
+                })
+            }
+        },
         /**
          * Accommodate font size if label is long
          */
@@ -43,6 +62,12 @@ export default Vue.extend({
             return 'font-size:' + baseSize.toString() + 'px'
         }
     },
+    mounted () {
+        // Attempt to load the cover image
+        if (this.cover) {
+            this.displayCoverImage()
+        }
+    }
 })
 
 </script>
