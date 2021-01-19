@@ -158,9 +158,9 @@ export default Vue.extend({
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
-         * Reset the displayed image to default viewport settings.
+         * Reset the viewport to default state.
          */
-        resetImage: function () {
+        resetViewport: function () {
             this.displayStackImage(true)
         },
         /**
@@ -302,15 +302,15 @@ export default Vue.extend({
                 this.displayImage(true)
             }
             // Start listening to some global events
-            this.$root.$off('reset-default-viewport')
-            this.$root.$on('reset-default-viewport', () => {
-                this.displayStackImage(true)
-            })
+            this.$root.$on('restore-default-viewport', this.resetViewport)
         }
         Vue.nextTick(() => {
             this.resizeImage(this.containerSize as number[])
         })
-    }
+    },
+    beforeDestroy () {
+        this.$root.$off('restore-default-viewport', this.resetViewport)
+    },
 })
 
 </script>
