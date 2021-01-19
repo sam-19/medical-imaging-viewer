@@ -29,6 +29,7 @@ export default Vue.extend({
             mouseLBtnDown: false, // Is the left mouse button down (depressed)
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
+            scrollProgress: 0, // Progress towards a scroll step
             stackPos: 0, // Position in an image stack
             viewport: null as any, // Save this.viewport settings for image stacks
         }
@@ -113,7 +114,24 @@ export default Vue.extend({
                 } else if (activeTool === 'pan') {
                     this.panImage(deltaX, deltaY)
                 } else if (activeTool === 'scroll') {
-                    this.scrollStack(-deltaY)
+                    if (this.resource.type !== 'image-stack') {
+                        return
+                    }
+                    // Scroll relative to window height;
+                    // half of image height to scroll the full stack, or
+                    // if the stack has more images than 1/3 image pixels, one image per pixel
+                    const yFac = ((this.containerSize[1] as number)/2)/this.resource.images.length > 1
+                                 ? ((this.containerSize[1] as number)/2)/this.resource.images.length
+                                 : 1
+                    // Invert the direction so moving the mouse down will scroll a stack caudally
+                    this.scrollProgress -= deltaY
+                    if (this.scrollProgress <= -yFac || this.scrollProgress >= yFac) {
+                        this.scrollStack(this.scrollProgress < 0
+                            ? Math.ceil(this.scrollProgress/yFac) // Round negatives up
+                            : Math.floor(this.scrollProgress/yFac) // and positives down
+                        )
+                        this.scrollProgress = this.scrollProgress%yFac
+                    }
                 } else if (activeTool === 'zoom') {
                     this.zoomImage(deltaY)
                 }
@@ -185,7 +203,7 @@ export default Vue.extend({
             // Don't scroll out of bounds
             if (delta < 0 && this.stackPos + delta < 0) {
                 this.stackPos = 0
-            } else if (delta > 0 && this.stackPos + delta > this.resource.images.length) {
+            } else if (delta > 0 && this.stackPos + delta >= this.resource.images.length) {
                 this.stackPos = this.resource.images.length - 1
             } else {
                 this.stackPos += delta
