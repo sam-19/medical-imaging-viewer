@@ -87,8 +87,9 @@ module.exports = {
     devServer: {
         contentBase: path.join(__dirname, 'dist'),
         compress: true,
-        port: 8080,
         historyApiFallback: true,
+        port: 8080,
+        publicPath: '/',
     },
     performance: {
         hints: false
