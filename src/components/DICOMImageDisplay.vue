@@ -1,8 +1,21 @@
 <template>
 
-    <div :ref="`container-${resource.id}`" :id="`container-${resource.id}`"
-         oncontextmenu="return false // Prevent context menu pop-up on right click"
-    ></div>
+    <div :ref="`wrapper-${resource.id}`" class="medigi-viewer-image-wrapper">
+        <div :ref="`container-${resource.id}`" :id="`container-${resource.id}`"
+            oncontextmenu="return false // Prevent context menu pop-up on right click"
+        ></div>
+        <font-awesome-icon v-if="resource.type==='image-stack' && isFirstLoaded"
+            :icon="isLinked ? ['fal', 'unlink'] : ['fal', 'link']"
+            :title="$t('Link this image stack')"
+            @click="isLinked = !isLinked"
+            :class="{ 'medigi-viewer-link-icon-active' : isLinked }"
+            class="medigi-viewer-link-icon"
+            fixed-width
+        />
+        <span v-if="resource.type==='image-stack' && isFirstLoaded"
+            class="medigi-viewer-stack-position"
+        >{{ this.stackPos + 1 }}/{{ this.resource.images.length }}</span>
+    </div>
 
 </template>
 
@@ -18,25 +31,50 @@ export default Vue.extend({
     },
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
+        linkedStackPos: Object, // Linked stack position
         listPosition: Array, // Position of this image in the image list as [index, list length]
         resource: Object, // DICOMResource or DICOMImageStack
     },
     data () {
         return {
             dicomEl: null as unknown as HTMLDivElement, // DICOM image element
-            imageStack: [] as any[], // Stack of sorted images
+            isFirstLoaded: false, // At least one image is loaded
+            isLinked: false, // Whether this image is linked or not
             lastMousePos: [0, 0], // Last mouse position on the screen
+            linkedPos: null as number | null, // Position where this stack was linked
+            masterLinkPos: null as number | null, // Global "master" linked position
             mouseLBtnDown: false, // Is the left mouse button down (depressed)
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
             scrollProgress: 0, // Progress towards a scroll step
             stackPos: 0, // Position in an image stack
-            viewport: null as any, // Save this.viewport settings for image stacks
+            viewport: null as any, // Save viewport settings for image stacks
         }
     },
     watch: {
         containerSize (value: Array<number>, old: Array<number>) {
             this.resizeImage(value)
+        },
+        /**
+         * We need to save the position where the stack is linked if we want to allow scrolling
+         * relative to that starting point.
+         */
+        isLinked (value: boolean, old: boolean) {
+            // Set linkedPos when isLinked changes
+            if (value) {
+                this.masterLinkPos = this.linkedStackPos ? this.linkedStackPos.pos : 0
+                this.linkedPos = this.stackPos
+            } else {
+                this.linkedPos = null
+            }
+            // Emit the new state
+            this.$emit('resource-linked', value)
+        },
+        linkedStackPos (value: any, old: any) {
+            // Do not update the position if the call originated from this component
+            if (this.isLinked && value !== null && value.origin !== this.resource.id) {
+                this.scrollLinkedStack(value.pos)
+            }
         },
         listPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage(this.containerSize as number[])
@@ -57,7 +95,7 @@ export default Vue.extend({
          * Display the single image from this.resource or current image (this.stackPos) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
-        displayImage: function (defaultVP: boolean) {
+        displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<boolean> {
             const imageUrl = this.resource.type === 'image-stack'
                              ? this.resource.images[this.stackPos].url
                              : this.resource.url
@@ -69,9 +107,12 @@ export default Vue.extend({
                 if (this.viewport) {
                     this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
                 }
+                return true
             }).catch(() => {
                 // TODO: Display error image
+                return false
             })
+            return false
         },
         /**
          * Trigger the desired effect from mouse move according to the active toolbar tool.
@@ -150,6 +191,19 @@ export default Vue.extend({
             this.displayImage(false)
         },
         /**
+         * Link image stack at current index. The link is used both to check if this
+         * image stack is linked and to reset its position.
+         * @param {boolean} value set this stack as linked (true) or unlinked (false)
+         */
+        linkImageStack: function (value: boolean) {
+            if (this.resource.type === 'image-stack' && this.isLinked !== value) {
+                // This will trigger the watcher for isLinked and emit the result to the parent
+                // component, which is a little redundant if this was triggered FROM the parent,
+                // but still an acceptable control method
+                this.isLinked = value
+            }
+        },
+        /**
          * Pan image by given coordinates.
          * @param {number} x distance on the x-axis.
          * @param {number} y distance on the y-axis.
@@ -197,24 +251,74 @@ export default Vue.extend({
             //this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
-         * Scroll the image stack.
-         * @param {number} delta positive or negative number (absolute amount is irrelevant).
+         * Scroll the linked image stack, returning a promise that is fulfilled when the scrolling is
+         * complete. Promise will call true on success, false on failure.
+         * @param {number} relPos the relative master link position
          */
-        scrollStack: function (delta: number) {
+        scrollLinkedStack: async function (relPos: number): Promise<boolean> {
+            if (this.resource.type !== 'image-stack' || !this.isLinked) {
+                return false
+            }
+            // Position must be computed relative to linking point and master linking position
+            const locPos = (this.linkedPos || 0)/this.resource.images.length
+                           + relPos - (this.masterLinkPos || 0)
+            // Corrected local position must be between 0 and 1 (= 0 and 100% of image stack)
+            if (locPos < 0 || locPos > 1) {
+                // Else we would scroll outside the stack, so return false
+                return false
+            } else {
+                // Just return true if we're already at the position.
+                // This is very likely if the origin stack has more images than this stack
+                // -> several origin stack images will map to the same local image
+                const absPos = Math.round(locPos*this.resource.images.length)
+                if (absPos === this.stackPos) {
+                    return true
+                }
+                // Don't announce this position, since it was triggered by another linked stack
+                await this.scrollStack(absPos, true, false)
+            }
+            return true
+        },
+        /**
+         * Scroll the image stack.
+         * @param {number} delta positive or negative number (if absolute is false), or the absolute stack position.
+         * @param {boolean} absolute use delta as absolute stack position (default false).
+         * @param {boolean} announce announce new position to synchronize linked stacks (default true).
+         */
+        scrollStack: async function (delta: number, absolute: boolean = false, announce: boolean = true) {
             if (this.resource.type !== 'image-stack') {
                 return
             }
             // Don't scroll out of bounds
-            if (delta < 0 && this.stackPos + delta < 0) {
+            if ((!absolute && this.stackPos + delta < 0) ||
+                (absolute && delta < 0)
+            ) {
                 this.stackPos = 0
-            } else if (delta > 0 && this.stackPos + delta >= this.resource.images.length) {
+            } else if ((!absolute && this.stackPos + delta >= this.resource.images.length) ||
+                       (absolute && delta >= this.resource.images.length)
+            ) {
                 this.stackPos = this.resource.images.length - 1
-            } else {
+            } else if (!absolute) {
                 this.stackPos += delta
+            } else {
+                this.stackPos = delta
             }
             this.resource.lastPosition = this.stackPos
-            this.displayImage(false)
+            await this.displayImage(false)
+            // Check if this stack is linked and trigger an event if it is
+            if (this.isLinked && announce) {
+                // Calculate current position relative to linked position, and add master link position
+                const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
+                               + (this.masterLinkPos || 0)
+                this.$emit('scroll-linked-stacks', relPos)
+            }
         },
+        /**
+         * Unlink this image stack.
+        unlinkImageStack: function () {
+            this.linkedOffset = null
+        },
+         */
         /**
          * Zoom in our out of the displayed image.
          * @param {number} z zoom amount in percents.
@@ -294,17 +398,20 @@ export default Vue.extend({
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             // Sort the images if the resource is an image stack
             if (this.resource.type === 'image-stack') {
-                this.resource.preloadAndSortImages((success: boolean) => {
+                this.resource.preloadAndSortImages().then((success: boolean) => {
                     if (success) {
                         // Fetch last position from the stack
                         this.stackPos = this.resource.lastPosition
                         this.displayImage(true)
                     }
                     this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                    this.isFirstLoaded = true
                 })
             } else {
                 // Display first image with default settings
-                this.displayImage(true)
+                this.displayImage(true).then((success: boolean) => {
+                    this.isFirstLoaded = true
+                })
             }
             // Start listening to some global events
             this.$root.$on('invert-media-colors', this.invertImage)
@@ -315,6 +422,10 @@ export default Vue.extend({
         })
     },
     beforeDestroy () {
+        // Break linking
+        this.isLinked = false
+        this.linkedPos = null
+        // Unregister emit listeners
         this.$root.$off('invert-media-colors', this.invertImage)
         this.$root.$off('restore-default-viewport', this.resetViewport)
     },
@@ -323,5 +434,26 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-
+.medigi-viewer-image-wrapper {
+    position: relative;
+    display: inline-block;
+}
+    .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--medigi-viewer-text-faint);
+    }
+    .medigi-viewer-image-wrapper > .medigi-viewer-link-icon-active {
+        color: var(--medigi-viewer-text-main);
+    }
+    .medigi-viewer-image-wrapper > .medigi-viewer-stack-position {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        pointer-events: none;
+        color: var(--medigi-viewer-text-faint);
+    }
 </style>

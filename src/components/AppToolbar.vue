@@ -7,7 +7,11 @@
             :icon="button.icon"
             :emit="button.emit"
             :tooltip="button.tooltip"
-            :class="{ 'medigi-viewer-disabled': !button.enabled, 'element-active': button.active, 'medigi-viewer-toolbar-setfirst': button.setFirst }"
+            :class="{ 
+                'medigi-viewer-disabled': !button.enabled,
+                'element-active': button.active,
+                'medigi-viewer-toolbar-setfirst': button.setFirst 
+            }"
             @button-clicked="buttonClicked"
         >
         </ToolbarButton>
@@ -40,6 +44,9 @@ interface ButtonRow {
 export default Vue.extend({
     components: {
         ToolbarButton: () => import('./ToolbarButton.vue'),
+    },
+    props: {
+        canLink: Boolean,
     },
     data () {
         return {
@@ -139,6 +146,13 @@ export default Vue.extend({
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
         }
+    },
+    watch: {
+        canLink (value: boolean, old: boolean) {
+            if (this.buttonStates.link) {
+                this.buttonStates.link.active = !value
+            }
+        },
     },
     computed: {
         buttonRow (): ToolbarButton[] {
@@ -305,8 +319,13 @@ export default Vue.extend({
             this.$store.commit('SET_ACTIVE_TOOL', 'distance')
         },
         toggleLink: function () {
-            this.buttonStates.link.active = !this.buttonStates.link.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'link')
+            if (this.buttonStates.link.active) {
+                // Unlink stacks
+                this.$emit('link-all-stacks', false)
+            } else {
+                // Link stacks
+                this.$emit('link-all-stacks', true)
+            }
         },
         togglePan: function () {
             this.buttonStates.pan.active = !this.buttonStates.pan.active
