@@ -85,8 +85,10 @@ module.exports = {
         new VueLoaderPlugin(),
     ],
     devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 8080,
         historyApiFallback: true,
-        noInfo: true
     },
     performance: {
         hints: false

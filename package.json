@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node node_modules/webpack/bin/webpack.js --progress --config webpack.build.js",
     "dev": "node node_modules/webpack/bin/webpack.js --progress --watch --config webpack.dev.js",
+    "serve": "node node_modules/webpack/bin/webpack.js serve --progress --config webpack.dev.js",
     "test": "npm run test:unit",
     "test:unit": "jest --config test/jest.config.js --coverage --verbose"
   },
@@ -42,7 +43,8 @@
     "vue-template-compiler": "^2.6.12",
     "vue-template-loader": "^1.1.0",
     "webpack": "^5.10.1",
-    "webpack-cli": "^4.2.0",
+    "webpack-cli": "^4.4.0",
+    "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.1.4"
   },
   "dependencies": {
