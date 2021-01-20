@@ -79,6 +79,10 @@ export default Vue.extend({
          * Check if visible stacks can be linked.
          */
         canLink (): boolean {
+            // Display link icon if there are no items visible
+            if (!this.activeElements.length) {
+                return true
+            }
             for (let i=0; i<this.activeElements.length; i++) {
                 // If even one of the active elements is not linked and can be linked, return true
                 if (this.dicomElements[this.activeElements[i]] instanceof DICOMImageStack
@@ -172,6 +176,8 @@ export default Vue.extend({
             })
         },
         linkAllStacks: function (value: boolean) {
+            console.log(this.activeElements)
+            console.log(this.linkedElements)
             const dcmEls = this.$refs['dicom-element'] as any[]
             // Try to link all active DICOM elements
             for (let i=0; i<dcmEls.length; i++) {
@@ -246,6 +252,10 @@ export default Vue.extend({
             const actIdx = this.activeElements.indexOf(itemIdx)
             if (actIdx !== -1) {
                 this.activeElements.splice(actIdx, 1)
+                if (this.linkedElements.indexOf(actIdx) !== -1) {
+                    // Also remove from linked elements
+                    this.linkedElements.splice(actIdx, 1)
+                }
             } else {
                 this.activeElements.push(itemIdx)
                 // Sort the items in the correct order
