@@ -142,6 +142,7 @@ class MEDigiViewer {
         Promise.all([
             import(/* webpackChunkName: "vue" */'vue'),
             import(/* webpackChunkName: "fullscreen" */'vue-fullscreen'),
+            // @ts-ignore: TSLint doesn't seem recognize Vue component styles at runtime
             import(/* webpackChunkName: "viewer" */'./components/App.vue'),
         ]).then((imports) => {
             const Vue = imports[0].default
