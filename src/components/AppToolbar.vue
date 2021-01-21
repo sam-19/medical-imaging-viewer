@@ -256,7 +256,7 @@ export default Vue.extend({
         },
         flip: function (axis: 'x' | 'y') {
             if (axis === 'x') {
-                this.$root.$emit('flip-image-horizontally')
+                this.$store.dispatch('image:flip-horizontally')
             }
         },
         /**
@@ -297,16 +297,16 @@ export default Vue.extend({
          * Invert image colors.
          */
         invertColors: function () {
-            this.$root.$emit('invert-image-colors')
+            this.$store.dispatch('image:invert-colors')
         },
         /**
          * Reset all modifications, returning the media to default state.
          */
         resetAll: function () {
-            this.$root.$emit('restore-default-viewport')
+            this.$store.dispatch('image:restore-default-settings')
         },
         rotate: function (angle: number) {
-            this.$root.$emit('rotate-image', angle)
+            this.$store.dispatch('image:rotate-by', angle)
         },
         /**
          * Disable a set of buttons.
@@ -347,36 +347,36 @@ export default Vue.extend({
         },
         toggleAdjust: function () {
             this.buttonStates.adjust.active = !this.buttonStates.adjust.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'adjust')
+            this.$store.commit('set-active-tool', 'adjust')
         },
         toggleArea: function () {
             this.buttonStates.area.active = !this.buttonStates.area.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'area')
+            this.$store.commit('set-active-tool', 'area')
         },
         toggleDistance: function () {
             this.buttonStates.distance.active = !this.buttonStates.distance.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'distance')
+            this.$store.commit('set-active-tool', 'distance')
         },
         toggleLink: function () {
             if (this.buttonStates.link.active) {
                 // Unlink stacks
-                this.$root.$emit('link-image-stacks', false)
+                this.$store.dispatch('image:link-stacks', false)
             } else {
                 // Link stacks
-                this.$root.$emit('link-image-stacks', true)
+                this.$store.dispatch('image:link-stacks', true)
             }
         },
         togglePan: function () {
             this.buttonStates.pan.active = !this.buttonStates.pan.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'pan')
+            this.$store.commit('set-active-tool', 'pan')
         },
         toggleScroll: function () {
             this.buttonStates.scroll.active = !this.buttonStates.scroll.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'scroll')
+            this.$store.commit('set-active-tool', 'scroll')
         },
         toggleZoom: function () {
             this.buttonStates.zoom.active = !this.buttonStates.zoom.active
-            this.$store.commit('SET_ACTIVE_TOOL', 'zoom')
+            this.$store.commit('set-active-tool', 'zoom')
         },
         undoLast: function () {
 

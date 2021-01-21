@@ -2,10 +2,7 @@
 
     <div :id="`${appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
         <div class="medigi-viewer-toolbar">
-            <ViewerToolbar
-                :canLink="canLink"
-            >
-            </ViewerToolbar>
+            <ViewerToolbar :canLink="canLink"></ViewerToolbar>
         </div>
         <div class="medigi-viewer-sidebar">
             <ViewerSidebar
@@ -24,11 +21,9 @@
                     :key="`${appName}-medigi-viewer-element-${dicomElements[resource].id}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
-                    :linkedStackPos="linkedStackPos"
                     :listPosition="[idx, activeElements.length]"
                     :resource="dicomElements[resource]"
                     v-on:resource-linked="resourceLinked(dicomElements[resource].id, $event)"
-                    v-on:scroll-linked-stacks="scrollLinkedStacks(idx, $event)"
                 >
                 </DICOMImageDisplay>
             </div>
@@ -48,6 +43,7 @@ import { ImageResource, ImageStackResource }from '../types/assets'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
+import { MutationTypes } from '../store'
 
 export default Vue.extend({
     components: {
@@ -64,9 +60,7 @@ export default Vue.extend({
             // Loaded elements
             activeElements: [] as number[],
             dicomElements: [] as ImageResource[] | ImageStackResource[],
-            linkedElements: [] as string[],
             // Other properties
-            linkedStackPos: 0,
             mediaContainerSize: [0, 0],
             themeChange: 0,
             wadoImageLoader: null,
@@ -84,7 +78,9 @@ export default Vue.extend({
             for (let i=0; i<this.activeElements.length; i++) {
                 const dcmEl = this.dicomElements[this.activeElements[i]]
                 // If even one of the active elements is not linked and can be linked, return true
-                if (dcmEl instanceof DICOMImageStack && this.linkedElements.indexOf(dcmEl.id) === -1 ) {
+                if (dcmEl instanceof DICOMImageStack &&
+                    this.$store.state.linkedResources.indexOf(dcmEl.id) === -1
+                ) {
                     return true
                 }
             }
@@ -178,18 +174,6 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetHeight
             ]
         },
-        resourceLinked: function (id: string, value: boolean) {
-            // Add element index to selectedElements, if not already there
-            if (value && this.linkedElements.indexOf(id) == -1) {
-                this.linkedElements.push(id)
-            }
-            // Or remove it if present
-            if (!value && this.linkedElements.indexOf(id) !== -1) {
-                this.linkedElements.splice(
-                    this.linkedElements.indexOf(id), 1
-                )
-            }
-        },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.appName}-medigi-viewer`)
             if (appEl) {
@@ -249,9 +233,6 @@ export default Vue.extend({
         } */
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
-        // Listen to some events
-        // Keep track of the current linked stack position to keep components in sync
-        this.$root.$on('scroll-linked-image-stacks', (oId: string, relPos: number) => { this.linkedStackPos = relPos })
     },
 })
 

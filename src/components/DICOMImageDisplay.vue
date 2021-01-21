@@ -62,13 +62,13 @@ export default Vue.extend({
         isLinked (value: boolean, old: boolean) {
             // Set linkedPos when isLinked changes
             if (value) {
-                this.masterLinkPos = this.linkedStackPos ? this.linkedStackPos : 0
+                this.masterLinkPos = this.$store.state.linkedScrollPosition
                 this.linkedPos = this.stackPos
+                this.$store.commit('add-linked-resource', this.id)
             } else {
                 this.linkedPos = null
+                this.$store.commit('remove-linked-resource', this.id)
             }
-            // Emit the new state
-            this.$emit('resource-linked', value)
         },
         listPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage(this.containerSize as number[])
@@ -263,7 +263,6 @@ export default Vue.extend({
                 this.viewport.rotation += angle
                 this.displayImage(false)
             }
-            console.log("rotate", this.id)
         },
         /**
          * Scroll the linked image stack, returning a promise that is fulfilled when the scrolling is
@@ -323,7 +322,7 @@ export default Vue.extend({
                 // Calculate current position relative to linked position, and add master link position
                 const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
-                this.$root.$emit('scroll-linked-image-stacks', this.id, relPos)
+                this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
             }
         },
         /**
@@ -417,7 +416,7 @@ export default Vue.extend({
                         this.stackPos = this.resource.lastPosition
                         this.displayImage(true)
                     }
-                    this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                    this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true
                 })
             } else {
@@ -426,13 +425,35 @@ export default Vue.extend({
                     this.isFirstLoaded = true
                 })
             }
-            // Start listening to some global events
-            this.$root.$on('flip-image-horizontally', this.flipHorizontally)
-            this.$root.$on('invert-image-colors', this.invertImage)
-            this.$root.$on('link-image-stacks', this.linkImageStack)
-            this.$root.$on('restore-default-viewport', this.resetViewport)
-            this.$root.$on('rotate-image', this.rotateBy)
-            this.$root.$on('scroll-linked-image-stacks', this.scrollLinkedStack)
+            // Subscribe to store dispatch events
+            this.$store.subscribeAction((action) => {
+                switch (action.type) {
+                    case 'image:flip-horizontally':
+                        this.flipHorizontally()
+                        break
+                    case 'image:invert-colors':
+                        this.invertImage()
+                        break
+                    case 'image:link-stacks':
+                        this.linkImageStack(action.payload)
+                        break
+                    case 'image:restore-default-settings':
+                        this.resetViewport()
+                        break
+                    case 'image:rotate-by':
+                        this.rotateBy(action.payload)
+                        break
+                }
+            })
+            // Subscribe to store commit events
+            this.$store.subscribe((mutation) => {
+                switch (mutation.type) {
+                    // Image is flipped horizontally
+                    case 'set-linked-scroll-position':
+                        this.scrollLinkedStack(mutation.payload.origin, mutation.payload.position)
+                        break
+                }
+            })
         }
         Vue.nextTick(() => {
             this.resizeImage(this.containerSize as number[])
@@ -442,14 +463,7 @@ export default Vue.extend({
         // Break linking
         this.isLinked = false
         this.linkedPos = null
-        this.$emit('resource-linked', false)
-        // Unregister emit listeners
-        this.$root.$off('flip-image-horizontally', this.flipHorizontally)
-        this.$root.$off('invert-iamge-colors', this.invertImage)
-        this.$root.$off('link-image-stacks', this.linkImageStack)
-        this.$root.$off('restore-default-viewport', this.resetViewport)
-        this.$root.$off('rotate-image', this.rotateBy)
-        this.$root.$off('scroll-linked-image-stacks', this.scrollLinkedStack)
+        this.$store.commit('remove-linked-resource', this.id)
     },
 })
 

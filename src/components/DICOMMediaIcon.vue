@@ -62,7 +62,7 @@ export default Vue.extend({
                     const viewport = this.$root.cornerstone.getDefaultViewportForImage(coverEl, image)
                     this.$root.cornerstone.displayImage(coverEl, image, viewport)
                     this.$root.cornerstone.resize(coverEl)
-                    this.$store.commit('SET_CACHE_STATUS', this.$root.cornerstone.imageCache.getCacheInfo())
+                    this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                 }).catch((error: Error) => {
                     // TODO: Handle error
                 })
