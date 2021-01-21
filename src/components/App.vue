@@ -35,6 +35,8 @@
 
 import Vue from 'vue'
 import cornerstone, { imageCache } from 'cornerstone-core'
+import cornerstoneMath from 'cornerstone-math'
+import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
@@ -212,6 +214,10 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Set up Cornerstone Tools
+        cornerstoneTools.external.cornerstone = this.cornerstone
+        cornerstoneTools.external.cornerstoneMath = cornerstoneMath
+        cornerstoneTools.init()
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
