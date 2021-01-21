@@ -18,6 +18,7 @@ interface FileLoader {
 interface MediaResource {
     dimensions: number[]
     id: string
+    isStack: boolean
     modality?: string
     name: string       // Display name for the media element
     size: number       // Either byte size or item count

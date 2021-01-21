@@ -29,6 +29,9 @@ class DICOMMedia implements MediaResource {
     get id () {
         return this._id
     }
+    get isStack () {
+        return this._type.endsWith(':stack')
+    }
     get name () {
         return this._name
     }
@@ -42,7 +45,7 @@ class DICOMMedia implements MediaResource {
         this._size = size
     }
     get type () {
-        return this._type
+        return this._type.split(':')[0]
     }
     set type (type: string) {
         this._type = type

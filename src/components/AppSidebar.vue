@@ -9,10 +9,11 @@
         <div class="medigi-viewer-sidebar-items">
             <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
                 :count="item.size"
+                :cover="item.coverImage"
                 :label="item.modality"
+                :stack="item.isStack"
                 :title="item.name"
                 :type="item.type"
-                :cover="item.coverImage"
                 :active="activeItems.indexOf(idx) !== -1"
                 v-on:toggle-item="$emit('toggle-item', idx)"
             />

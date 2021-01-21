@@ -1,11 +1,11 @@
 <template>
     <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="$emit('toggle-item')">
         <div class="medigi-viewer-sidebar-icon">
-            <DICOMMediaIcon :type="type" :cover="cover" :count="count" :label="label" />
+            <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type" />
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
-            <div v-if="count>1 && type==='image-stack'">{{ $t('sidebaritem.imagecount', { count: count }) }}</div>
+            <div v-if="count>1 && stack">{{ $t('sidebaritem.imagecount', { count: count }) }}</div>
             <div v-if="count>1 && type==='biosignal'">{{ $t('sidebaritem.channelcount', { count: count }) }}</div>
         </div>
     </div>
@@ -24,6 +24,7 @@ export default Vue.extend({
         count: Number,
         cover: String,
         label: String,
+        stack: Boolean,
         title: String,
         type: String,
         url: String,

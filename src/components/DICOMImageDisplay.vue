@@ -4,7 +4,7 @@
         <div :ref="`container-${resource.id}`" :id="`container-${resource.id}`"
             oncontextmenu="return false // Prevent context menu pop-up on right click"
         ></div>
-        <font-awesome-icon v-if="resource.type==='image-stack' && isFirstLoaded"
+        <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
             :icon="isLinked ? ['fal', 'unlink'] : ['fal', 'link']"
             :title="$t('Link this image stack')"
             @click="isLinked = !isLinked"
@@ -12,7 +12,7 @@
             class="medigi-viewer-link-icon"
             fixed-width
         />
-        <span v-if="resource.type==='image-stack' && isFirstLoaded"
+        <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
         >{{ this.stackPos + 1 }}/{{ this.resource.images.length }}</span>
     </div>
@@ -98,7 +98,7 @@ export default Vue.extend({
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<boolean> {
-            const imageUrl = this.resource.type === 'image-stack'
+            const imageUrl = this.resource.isStack
                              ? this.resource.images[this.stackPos].url
                              : this.resource.url
             this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
@@ -163,7 +163,7 @@ export default Vue.extend({
                 } else if (activeTool === 'pan') {
                     this.panImage(deltaX, deltaY)
                 } else if (activeTool === 'scroll') {
-                    if (this.resource.type !== 'image-stack') {
+                    if (!this.resource.isStack) {
                         return
                     }
                     // Scroll relative to window height;
@@ -204,7 +204,7 @@ export default Vue.extend({
          * @param {boolean} value set this stack as linked (true) or unlinked (false)
          */
         linkImageStack: function (value: boolean) {
-            if (this.resource.type === 'image-stack' && this.isLinked !== value) {
+            if (this.resource.isStack && this.isLinked !== value) {
                 // This will trigger the watcher for isLinked and emit the result to the parent
                 // component, which is a little redundant if this was triggered FROM the parent,
                 // but still an acceptable control method
@@ -271,7 +271,7 @@ export default Vue.extend({
          * @param {number} relPos the relative master link position
          */
         scrollLinkedStack: async function (oId: string, relPos: number) {
-            if (this.resource.type !== 'image-stack' || !this.isLinked || oId === this.id) {
+            if (!this.resource.isStack || !this.isLinked || oId === this.id) {
                 return
             }
             // Position must be computed relative to linking point and master linking position
@@ -298,7 +298,7 @@ export default Vue.extend({
          * @param {boolean} announce announce new position to synchronize linked stacks (default true).
          */
         scrollStack: async function (delta: number, absolute: boolean = false, announce: boolean = true) {
-            if (this.resource.type !== 'image-stack') {
+            if (!this.resource.isStack) {
                 return
             }
             // Don't scroll out of bounds
@@ -409,7 +409,7 @@ export default Vue.extend({
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             // Sort the images if the resource is an image stack
-            if (this.resource.type === 'image-stack') {
+            if (this.resource.isStack) {
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     if (success) {
                         // Fetch last position from the stack

@@ -8,7 +8,7 @@
                 <span :style="getLabelFontSize()">{{ $t(label) }}</span>
             </div>
             <!-- Image stack -->
-            <div v-else-if="type==='image-stack'" class="medigi-viewer-icon-image-stack">
+            <div v-else-if="stack" class="medigi-viewer-icon-image-stack">
                 <div></div>
                 <div></div>
                 <div></div>
@@ -31,10 +31,11 @@ export default Vue.extend({
     components: {
     },
     props: {
-        type: String,
-        cover: String,
         count: Number,
+        cover: String,
         label: String,
+        stack: Boolean,
+        type: String,
     },
     methods: {
         /**
