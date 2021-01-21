@@ -31,7 +31,7 @@ export default Vue.extend({
     },
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
-        linkedStackPos: Object, // Linked stack position
+        linkedStackPos: Number, // Linked stack position
         listPosition: Array, // Position of this image in the image list as [index, list length]
         resource: Object, // DICOMResource or DICOMImageStack
     },
@@ -62,7 +62,7 @@ export default Vue.extend({
         isLinked (value: boolean, old: boolean) {
             // Set linkedPos when isLinked changes
             if (value) {
-                this.masterLinkPos = this.linkedStackPos ? this.linkedStackPos.pos : 0
+                this.masterLinkPos = this.linkedStackPos ? this.linkedStackPos : 0
                 this.linkedPos = this.stackPos
             } else {
                 this.linkedPos = null
@@ -70,15 +70,17 @@ export default Vue.extend({
             // Emit the new state
             this.$emit('resource-linked', value)
         },
-        linkedStackPos (value: any, old: any) {
-            // Do not update the position if the call originated from this component
-            if (this.isLinked && value !== null && value.origin !== this.resource.id) {
-                this.scrollLinkedStack(value.pos)
-            }
-        },
         listPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage(this.containerSize as number[])
         },
+    },
+    computed: {
+        /**
+         * Shorthand for image resource id
+         */
+        id () {
+            return this.resource.id
+        }
     },
     methods: {
         /**
@@ -113,6 +115,12 @@ export default Vue.extend({
                 return false
             })
             return false
+        },
+        flipHorizontally: function () {
+            if (this.dicomEl && this.viewport) {
+                this.viewport.hflip = this.viewport.hflip
+                this.displayImage(false)
+            }
         },
         /**
          * Trigger the desired effect from mouse move according to the active toolbar tool.
@@ -250,32 +258,37 @@ export default Vue.extend({
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             //this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
+        rotateBy: function (angle: number) {
+            if (this.dicomEl && this.viewport) {
+                this.viewport.rotation += angle
+                this.displayImage(false)
+            }
+            console.log("rotate", this.id)
+        },
         /**
          * Scroll the linked image stack, returning a promise that is fulfilled when the scrolling is
          * complete. Promise will call true on success, false on failure.
+         * @param {string} oId id of the origin resource
          * @param {number} relPos the relative master link position
          */
-        scrollLinkedStack: async function (relPos: number): Promise<boolean> {
-            if (this.resource.type !== 'image-stack' || !this.isLinked) {
-                return false
+        scrollLinkedStack: async function (oId: string, relPos: number) {
+            if (this.resource.type !== 'image-stack' || !this.isLinked || oId === this.id) {
+                return
             }
             // Position must be computed relative to linking point and master linking position
             const locPos = (this.linkedPos || 0)/this.resource.images.length
                            + relPos - (this.masterLinkPos || 0)
             // Corrected local position must be between 0 and 1 (= 0 and 100% of image stack)
-            if (locPos < 0 || locPos > 1) {
-                // Else we would scroll outside the stack, so return false
-                return false
-            } else {
-                // Just return true if we're already at the position.
+            if (locPos >= 0 && locPos <= 1) {
+                // Check if we're already at the position.
                 // This is very likely if the origin stack has more images than this stack
                 // -> several origin stack images will map to the same local image
                 const absPos = Math.round(locPos*this.resource.images.length)
-                if (absPos === this.stackPos) {
-                    return true
+                if (absPos !== this.stackPos) {
+                    // Don't announce this position, since it was triggered by another linked stack
+                    this.scrollStack(absPos, true, false)
                 }
-                // Don't announce this position, since it was triggered by another linked stack
-                await this.scrollStack(absPos, true, false)
+
             }
             return true
         },
@@ -310,7 +323,7 @@ export default Vue.extend({
                 // Calculate current position relative to linked position, and add master link position
                 const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
-                this.$emit('scroll-linked-stacks', relPos)
+                this.$root.$emit('scroll-linked-image-stacks', this.id, relPos)
             }
         },
         /**
@@ -329,7 +342,7 @@ export default Vue.extend({
         }
     },
     mounted () {
-        this.dicomEl = this.$refs[`container-${this.resource.id}`] as HTMLDivElement
+        this.dicomEl = this.$refs[`container-${this.id}`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
@@ -414,8 +427,12 @@ export default Vue.extend({
                 })
             }
             // Start listening to some global events
-            this.$root.$on('invert-media-colors', this.invertImage)
+            this.$root.$on('flip-image-horizontally', this.flipHorizontally)
+            this.$root.$on('invert-image-colors', this.invertImage)
+            this.$root.$on('link-image-stacks', this.linkImageStack)
             this.$root.$on('restore-default-viewport', this.resetViewport)
+            this.$root.$on('rotate-image', this.rotateBy)
+            this.$root.$on('scroll-linked-image-stacks', this.scrollLinkedStack)
         }
         Vue.nextTick(() => {
             this.resizeImage(this.containerSize as number[])
@@ -425,9 +442,14 @@ export default Vue.extend({
         // Break linking
         this.isLinked = false
         this.linkedPos = null
+        this.$emit('resource-linked', false)
         // Unregister emit listeners
-        this.$root.$off('invert-media-colors', this.invertImage)
+        this.$root.$off('flip-image-horizontally', this.flipHorizontally)
+        this.$root.$off('invert-iamge-colors', this.invertImage)
+        this.$root.$off('link-image-stacks', this.linkImageStack)
         this.$root.$off('restore-default-viewport', this.resetViewport)
+        this.$root.$off('rotate-image', this.rotateBy)
+        this.$root.$off('scroll-linked-image-stacks', this.scrollLinkedStack)
     },
 })
 

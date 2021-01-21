@@ -7,10 +7,10 @@
             :icon="button.icon"
             :emit="button.emit"
             :tooltip="button.tooltip"
-            :class="{ 
+            :class="{
                 'medigi-viewer-disabled': !button.enabled,
                 'element-active': button.active,
-                'medigi-viewer-toolbar-setfirst': button.setFirst 
+                'medigi-viewer-toolbar-setfirst': button.setFirst
             }"
             @button-clicked="buttonClicked"
         >
@@ -108,8 +108,30 @@ export default Vue.extend({
                     tooltip: [ this.$t('Measure area') ],
                 },
                 {
-                    id: 'link',
+                    id: 'left',
                     set: 3,
+                    groups: [],
+                    icon: [ ['far', 'undo-alt'] ],
+                    tooltip: [ this.$t('Rotate counter-clockwise') ],
+                },
+                {
+                    id: 'right',
+                    set: 3,
+                    groups: [],
+                    // Could also just flip the above icon, but don't want to create an extra option just for this
+                    icon: [ ['far', 'redo-alt'] ],
+                    tooltip: [ this.$t('Rotate clockwise') ],
+                },
+                {
+                    id: 'flip',
+                    set: 3,
+                    groups: [],
+                    icon: [ ['far', 'arrows-alt-h'] ],
+                    tooltip: [ this.$t('Flip horizontally') ],
+                },
+                {
+                    id: 'link',
+                    set: 4,
                     groups: ['interact'],
                     icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
                     tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
@@ -123,7 +145,7 @@ export default Vue.extend({
                 //},
                 {
                     id: 'reset',
-                    set: 4,
+                    set: 5,
                     groups: ['undo'],
                     icon: [ ['fal', 'reply-all'] ],
                     tooltip: [ this.$t('Reset all adjustments'), this.$t('Reapply all adjustment') ],
@@ -134,10 +156,13 @@ export default Vue.extend({
                 adjust:   { active: false, visible: true, enabled: true } as ButtonState,
                 area:     { active: false, visible: true, enabled: true } as ButtonState,
                 distance: { active: false, visible: true, enabled: true } as ButtonState,
+                flip:     { active: false, visible: true, enabled: true } as ButtonState,
                 invert:   { active: false, visible: true, enabled: true } as ButtonState,
+                left:     { active: false, visible: true, enabled: true } as ButtonState,
                 link:     { active: false, visible: true, enabled: true } as ButtonState,
                 pan:      { active: false, visible: true, enabled: true } as ButtonState,
                 reset:    { active: false, visible: true, enabled: true } as ButtonState,
+                right:    { active: false, visible: true, enabled: true } as ButtonState,
                 scroll:   { active: false, visible: true, enabled: true } as ButtonState,
                 undo:     { active: false, visible: true, enabled: true } as ButtonState,
                 zoom:     { active: false, visible: true, enabled: true } as ButtonState,
@@ -196,12 +221,18 @@ export default Vue.extend({
                 this.toggleDistance()
             } else if (buttonId === 'invert') {
                 this.invertColors()
+            } else if (buttonId === 'flip') {
+                this.flip('x')
+            } else if (buttonId === 'left') {
+                this.rotate(-90)
             } else if (buttonId === 'link') {
                 this.toggleLink()
             } else if (buttonId === 'pan') {
                 this.togglePan()
             } else if (buttonId === 'reset') {
                 this.resetAll()
+            } else if (buttonId === 'right') {
+                this.rotate(90)
             } else if (buttonId === 'scroll') {
                 this.toggleScroll()
             } else if (buttonId === 'undo') {
@@ -222,6 +253,11 @@ export default Vue.extend({
             }
             // Refresh button row
             this.buttonsUpdated = Date.now()
+        },
+        flip: function (axis: 'x' | 'y') {
+            if (axis === 'x') {
+                this.$root.$emit('flip-image-horizontally')
+            }
         },
         /**
          * Get the button icon appropriate for button state.
@@ -258,16 +294,19 @@ export default Vue.extend({
             return ''
         },
         /**
-         * Invert media colors.
+         * Invert image colors.
          */
         invertColors: function () {
-            this.$root.$emit('invert-media-colors')
+            this.$root.$emit('invert-image-colors')
         },
         /**
          * Reset all modifications, returning the media to default state.
          */
         resetAll: function () {
             this.$root.$emit('restore-default-viewport')
+        },
+        rotate: function (angle: number) {
+            this.$root.$emit('rotate-image', angle)
         },
         /**
          * Disable a set of buttons.
@@ -321,10 +360,10 @@ export default Vue.extend({
         toggleLink: function () {
             if (this.buttonStates.link.active) {
                 // Unlink stacks
-                this.$emit('link-all-stacks', false)
+                this.$root.$emit('link-image-stacks', false)
             } else {
                 // Link stacks
-                this.$emit('link-all-stacks', true)
+                this.$root.$emit('link-image-stacks', true)
             }
         },
         togglePan: function () {

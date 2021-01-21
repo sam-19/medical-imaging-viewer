@@ -4,7 +4,6 @@
         <div class="medigi-viewer-toolbar">
             <ViewerToolbar
                 :canLink="canLink"
-                v-on:link-all-stacks="linkAllStacks($event)"
             >
             </ViewerToolbar>
         </div>
@@ -23,13 +22,12 @@
             <div v-else class="medigi-viewer-images">
                 <DICOMImageDisplay v-for="(resource, idx) in activeElements"
                     :key="`${appName}-medigi-viewer-element-${dicomElements[resource].id}`"
-                    :ref="`dicom-element`"
+                    ref="dicom-element"
                     :containerSize="mediaContainerSize"
-                    :isLinked="linkedElements.indexOf(resource) !== -1"
                     :linkedStackPos="linkedStackPos"
                     :listPosition="[idx, activeElements.length]"
                     :resource="dicomElements[resource]"
-                    v-on:resource-linked="resourceLinked(idx, $event)"
+                    v-on:resource-linked="resourceLinked(dicomElements[resource].id, $event)"
                     v-on:scroll-linked-stacks="scrollLinkedStacks(idx, $event)"
                 >
                 </DICOMImageDisplay>
@@ -66,9 +64,9 @@ export default Vue.extend({
             // Loaded elements
             activeElements: [] as number[],
             dicomElements: [] as ImageResource[] | ImageStackResource[],
-            linkedElements: [] as number[],
+            linkedElements: [] as string[],
             // Other properties
-            linkedStackPos: null as object | null,
+            linkedStackPos: 0,
             mediaContainerSize: [0, 0],
             themeChange: 0,
             wadoImageLoader: null,
@@ -84,10 +82,9 @@ export default Vue.extend({
                 return true
             }
             for (let i=0; i<this.activeElements.length; i++) {
+                const dcmEl = this.dicomElements[this.activeElements[i]]
                 // If even one of the active elements is not linked and can be linked, return true
-                if (this.dicomElements[this.activeElements[i]] instanceof DICOMImageStack
-                    && this.linkedElements.indexOf(this.activeElements[i]) === -1
-                ) {
+                if (dcmEl instanceof DICOMImageStack && this.linkedElements.indexOf(dcmEl.id) === -1 ) {
                     return true
                 }
             }
@@ -175,42 +172,23 @@ export default Vue.extend({
                 // TODO: Implement errors in the file loader
             })
         },
-        linkAllStacks: function (value: boolean) {
-            const dcmEls = this.$refs['dicom-element'] as any[]
-            // Try to link all active DICOM elements
-            for (let i=0; i<dcmEls.length; i++) {
-                dcmEls[i].linkImageStack(value)
-            }
-        },
         mediaResized: function () {
             this.mediaContainerSize = [
                 (this.$refs['media'] as HTMLElement).offsetWidth,
                 (this.$refs['media'] as HTMLElement).offsetHeight
             ]
         },
-        resourceLinked: function (index: number, value: boolean) {
-            if (this.activeElements.indexOf(index) === -1) {
-                return
-            }
+        resourceLinked: function (id: string, value: boolean) {
             // Add element index to selectedElements, if not already there
-            if (value && this.linkedElements.indexOf(index) == -1) {
-                this.linkedElements.push(index)
+            if (value && this.linkedElements.indexOf(id) == -1) {
+                this.linkedElements.push(id)
             }
             // Or remove it if present
-            if (!value && this.linkedElements.indexOf(index) !== -1) {
+            if (!value && this.linkedElements.indexOf(id) !== -1) {
                 this.linkedElements.splice(
-                    this.linkedElements.indexOf(index), 1
+                    this.linkedElements.indexOf(id), 1
                 )
             }
-        },
-        scrollLinkedStacks: async function (oIndex: number, oPos: number): Promise<boolean> {
-            // Check the appropriate number of frames to scroll each individual stack
-            if (!(this.dicomElements[oIndex] instanceof DICOMImageStack)) {
-                console.log("Not an image stack")
-                return false
-            }
-            this.linkedStackPos = { pos: oPos, origin: this.dicomElements[oIndex].id }
-            return true
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.appName}-medigi-viewer`)
@@ -250,10 +228,6 @@ export default Vue.extend({
             const actIdx = this.activeElements.indexOf(itemIdx)
             if (actIdx !== -1) {
                 this.activeElements.splice(actIdx, 1)
-                if (this.linkedElements.indexOf(actIdx) !== -1) {
-                    // Also remove from linked elements
-                    this.linkedElements.splice(actIdx, 1)
-                }
             } else {
                 this.activeElements.push(itemIdx)
                 // Sort the items in the correct order
@@ -275,6 +249,9 @@ export default Vue.extend({
         } */
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
+        // Listen to some events
+        // Keep track of the current linked stack position to keep components in sync
+        this.$root.$on('scroll-linked-image-stacks', (oId: string, relPos: number) => { this.linkedStackPos = relPos })
     },
 })
 

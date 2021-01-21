@@ -10,6 +10,7 @@ import { MediaResource } from './types/assets'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
+import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
 import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows'
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
 import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
@@ -20,6 +21,7 @@ import { faExpand } from '@fortawesome/pro-regular-svg-icons/faExpand'
 import { faLayerGroup as faLayerGroupL } from '@fortawesome/pro-light-svg-icons/faLayerGroup'
 import { faLayerGroup as faLayerGroupR } from '@fortawesome/pro-regular-svg-icons/faLayerGroup'
 import { faLink } from '@fortawesome/pro-light-svg-icons/faLink'
+import { faRedoAlt } from '@fortawesome/pro-regular-svg-icons/faRedoAlt'
 import { faReply } from '@fortawesome/pro-light-svg-icons/faReply'
 import { faReplyAll } from '@fortawesome/pro-light-svg-icons/faReplyAll'
 import { faRuler as faRulerL } from '@fortawesome/pro-light-svg-icons/faRuler'
@@ -28,11 +30,13 @@ import { faSearch as faSearchL } from '@fortawesome/pro-light-svg-icons/faSearch
 import { faSearch as faSearchS } from '@fortawesome/pro-solid-svg-icons/faSearch'
 import { faShare } from '@fortawesome/pro-light-svg-icons/faShare'
 import { faShareAll } from '@fortawesome/pro-light-svg-icons/faShareAll'
+import { faUndoAlt } from '@fortawesome/pro-regular-svg-icons/faUndoAlt'
 import { faUnlink } from '@fortawesome/pro-light-svg-icons/faUnlink'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(faAdjust)
+library.add(faArrowsAltH)
 library.add(faArrowsL)
 library.add(faArrowsR)
 library.add(faClone)
@@ -43,6 +47,7 @@ library.add(faExpand)
 library.add(faLayerGroupL)
 library.add(faLayerGroupR)
 library.add(faLink)
+library.add(faRedoAlt)
 library.add(faReply)
 library.add(faReplyAll)
 library.add(faRulerL)
@@ -51,6 +56,7 @@ library.add(faSearchL)
 library.add(faSearchS)
 library.add(faShare)
 library.add(faShareAll)
+library.add(faUndoAlt)
 library.add(faUnlink)
 
 /**
