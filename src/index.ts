@@ -156,5 +156,7 @@ class MEDigiViewer {
     }
 
 }
-
-export { MEDigiViewer }
+// Default export
+export default MEDigiViewer
+// Set as a property of window
+;(window as any).MEDigiViewer = MEDigiViewer

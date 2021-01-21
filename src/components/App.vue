@@ -176,8 +176,6 @@ export default Vue.extend({
             })
         },
         linkAllStacks: function (value: boolean) {
-            console.log(this.activeElements)
-            console.log(this.linkedElements)
             const dcmEls = this.$refs['dicom-element'] as any[]
             // Try to link all active DICOM elements
             for (let i=0; i<dcmEls.length; i++) {
