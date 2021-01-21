@@ -118,7 +118,7 @@ export default Vue.extend({
         },
         flipHorizontally: function () {
             if (this.dicomEl && this.viewport) {
-                this.viewport.hflip = this.viewport.hflip
+                this.viewport.hflip = !this.viewport.hflip
                 this.displayImage(false)
             }
         },
