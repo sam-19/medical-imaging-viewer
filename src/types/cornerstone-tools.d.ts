@@ -9,6 +9,7 @@ declare module 'cornerstone-tools' {
     var external: {
         cornerstone: any,
         cornerstoneMath: any,
+        Hammer: any,
     }
     function init (): void
 }
