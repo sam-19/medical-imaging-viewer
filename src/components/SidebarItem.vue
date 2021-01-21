@@ -1,5 +1,5 @@
 <template>
-    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="$emit('toggle-item')">
+    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="toggleActive()">
         <div class="medigi-viewer-sidebar-icon">
             <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type" />
         </div>
@@ -20,16 +20,29 @@ export default Vue.extend({
         DICOMMediaIcon: () => import('./DICOMMediaIcon.vue'),
     },
     props: {
-        active: Boolean,
         count: Number,
         cover: String,
+        id: String,
         label: String,
         stack: Boolean,
         title: String,
         type: String,
         url: String,
     },
+    data () {
+        return {
+            active: false,
+        }
+    },
     methods: {
+        toggleActive: function () {
+            if (!this.active) {
+                this.$store.commit('add-active-item', this.id)
+            } else {
+                this.$store.commit('remove-active-item', this.id)
+            }
+            this.active = !this.active
+        }
     },
     mounted () {
     },

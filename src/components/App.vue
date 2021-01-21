@@ -2,7 +2,7 @@
 
     <div :id="`${appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
         <div class="medigi-viewer-toolbar">
-            <ViewerToolbar :canLink="canLink"></ViewerToolbar>
+            <ViewerToolbar></ViewerToolbar>
         </div>
         <div class="medigi-viewer-sidebar">
             <ViewerSidebar
@@ -15,14 +15,13 @@
             </ViewerSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="activeElements.length" class="medigi-viewer-images">
-                <DICOMImageDisplay v-for="(resource, idx) in activeElements"
-                    :key="`${appName}-medigi-viewer-element-${dicomElements[resource].id}`"
+            <div v-if="this.$store.state.activeItems.length" class="medigi-viewer-images">
+                <DICOMImageDisplay v-for="(resource, idx) in this.$store.state.activeItems"
+                    :key="`${appName}-medigi-viewer-element-${resource}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
-                    :listPosition="[idx, activeElements.length]"
-                    :resource="dicomElements[resource]"
-                    v-on:resource-linked="resourceLinked(dicomElements[resource].id, $event)"
+                    :listPosition="idx"
+                    :resource="getItemById(resource)"
                 >
                 </DICOMImageDisplay>
             </div>
@@ -44,6 +43,7 @@ import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 import { MutationTypes } from '../store'
+import DICOMMedia from '../assets/dicom/DICOMMedia'
 
 export default Vue.extend({
     components: {
@@ -67,25 +67,6 @@ export default Vue.extend({
         }
     },
     computed: {
-        /**
-         * Check if visible stacks can be linked.
-         */
-        canLink (): boolean {
-            // Display link icon if there are no items visible
-            if (!this.activeElements.length) {
-                return true
-            }
-            for (let i=0; i<this.activeElements.length; i++) {
-                const dcmEl = this.dicomElements[this.activeElements[i]]
-                // If even one of the active elements is not linked and can be linked, return true
-                if (dcmEl instanceof DICOMImageStack &&
-                    this.$store.state.linkedResources.indexOf(dcmEl.id) === -1
-                ) {
-                    return true
-                }
-            }
-            return false
-        },
     },
     methods: {
         addFileAsImage: function (file: File) {
@@ -112,6 +93,14 @@ export default Vue.extend({
                 // Add cover image
                 (this.dicomElements as ImageStackResource[]).push(imgStack)
             }
+        },
+        getItemById: function (id: string): ImageResource | ImageStackResource | undefined {
+            for (let i=0; i<this.dicomElements.length; i++) {
+                if (this.dicomElements[i].id === id) {
+                    return this.dicomElements[i]
+                }
+            }
+            return undefined
         },
         handleFileDrag: function (event: DragEvent) {
             // Prevent default event effects

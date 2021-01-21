@@ -9,7 +9,7 @@
             :tooltip="button.tooltip"
             :class="{
                 'medigi-viewer-disabled': !button.enabled,
-                'element-active': button.active,
+                'element-active': typeof button.active === 'boolean' ? button.active : button.active(),
                 'medigi-viewer-toolbar-setfirst': button.setFirst
             }"
             @button-clicked="buttonClicked"
@@ -44,9 +44,6 @@ interface ButtonRow {
 export default Vue.extend({
     components: {
         ToolbarButton: () => import('./ToolbarButton.vue'),
-    },
-    props: {
-        canLink: Boolean,
     },
     data () {
         return {
@@ -172,13 +169,6 @@ export default Vue.extend({
             buttonsUpdated: 0,
         }
     },
-    watch: {
-        canLink (value: boolean, old: boolean) {
-            if (this.buttonStates.link) {
-                this.buttonStates.link.active = !value
-            }
-        },
-    },
     computed: {
         buttonRow (): ToolbarButton[] {
             this.buttonsUpdated // Trigger refresh when this value changes
@@ -196,7 +186,7 @@ export default Vue.extend({
                     }
                     buttons.push({
                         id: button.id,
-                        active: this.buttonStates[button.id as keyof ButtonRow].active,
+                        active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
                         enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
                         setFirst: newSet,
                         icon: this.getButtonIcon(button),
@@ -271,7 +261,7 @@ export default Vue.extend({
             if (typeof button !== undefined) {
                 return button.icon[
                     button.icon.length === 1 ||
-                    !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1
+                    !(this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active) ? 0 : 1
                 ]
             }
             return []
@@ -288,7 +278,7 @@ export default Vue.extend({
             if (typeof button !== undefined) {
                 return button.tooltip[
                     button.tooltip.length === 1 ||
-                    !this.buttonStates[button.id as keyof ButtonRow].active ? 0 : 1
+                    !(this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active) ? 0 : 1
                 ].toString()
             }
             return ''
@@ -298,6 +288,27 @@ export default Vue.extend({
          */
         invertColors: function () {
             this.$store.dispatch('image:invert-colors')
+        },
+        /**
+         * Check button active state dynamically if needed, else return false.
+         */
+        isActive (button: string): boolean {
+            switch (button) {
+                case 'link':
+                    // Display link icon if no items are selected
+                    if (!this.$store.state.activeItems.length) {
+                        return false
+                    }
+                    for (let i=0; i<this.$store.state.activeItems.length; i++) {
+                        if (this.$store.state.linkedItems.indexOf(this.$store.state.activeItems[i]) == -1) {
+                            // Return true if even one active item is not linked
+                            return false
+                        }
+                    }
+                    return true
+                default:
+                    return false
+            }
         },
         /**
          * Reset all modifications, returning the media to default state.
@@ -358,7 +369,7 @@ export default Vue.extend({
             this.$store.commit('set-active-tool', 'distance')
         },
         toggleLink: function () {
-            if (this.buttonStates.link.active) {
+            if (this.isActive('link')) {
                 // Unlink stacks
                 this.$store.dispatch('image:link-stacks', false)
             } else {

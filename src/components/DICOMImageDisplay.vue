@@ -32,7 +32,7 @@ export default Vue.extend({
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
         linkedStackPos: Number, // Linked stack position
-        listPosition: Array, // Position of this image in the image list as [index, list length]
+        listPosition: Number, // Position of this image in the image list as [index, list length]
         resource: Object, // DICOMResource or DICOMImageStack
     },
     data () {
@@ -65,10 +65,10 @@ export default Vue.extend({
             if (value) {
                 this.masterLinkPos = this.$store.state.linkedScrollPosition
                 this.linkedPos = this.stackPos
-                this.$store.commit('add-linked-resource', this.id)
+                this.$store.commit('add-linked-item', this.id)
             } else {
                 this.linkedPos = null
-                this.$store.commit('remove-linked-resource', this.id)
+                this.$store.commit('remove-linked-item', this.id)
             }
         },
         listPosition (value: Array<number>, old: Array<number>) {
@@ -239,25 +239,25 @@ export default Vue.extend({
             // Remove 20 px for padding
             let hPad = 20
             let vPad = 20
-            if (this.listPosition[1] === 1) {
+            if (this.$store.state.activeItems.length === 1) {
                 // Only one item in the list, we can take up the whole space
                 this.dicomEl.style.display = 'block'
                 this.dicomWrapper.style.borderLeft = 'none'
                 this.dicomWrapper.style.borderBottom = 'none'
                 this.dicomEl.style.width = `${dimensions[0] - 20}px`
                 this.dicomEl.style.height = `${dimensions[1] - 20}px`
-            } else if ((this.listPosition[1] as number) < 4) {
+            } else if (this.$store.state.activeItems.length < 4) {
                 // Place items side by side
                 this.dicomEl.style.display = 'inline-block'
                 // Add a left border to all but the first element
-                if (this.listPosition[0]) {
+                if (this.listPosition) {
                     this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
                     hPad++ // Add border to padding
                 } else {
                     this.dicomWrapper.style.borderLeft = 'none'
                 }
                 this.dicomWrapper.style.borderBottom = 'none'
-                const width = dimensions[0]/(this.listPosition[1] as number) - hPad
+                const width = dimensions[0]/this.$store.state.activeItems.length - hPad
                 this.dicomEl.style.width = `${width}px`
                 this.dicomEl.style.height = `${dimensions[1] - vPad}px`
             }
@@ -461,6 +461,10 @@ export default Vue.extend({
                     case 'set-linked-scroll-position':
                         this.scrollLinkedStack(mutation.payload.origin, mutation.payload.position)
                         break
+                    case 'add-active-item':
+                    case 'remove-active-item':
+                        this.resizeImage(this.containerSize as number[])
+                        break
                 }
             })
         }
@@ -472,7 +476,7 @@ export default Vue.extend({
         // Break linking
         this.isLinked = false
         this.linkedPos = null
-        this.$store.commit('remove-linked-resource', this.id)
+        this.$store.commit('remove-linked-item', this.id)
     },
 })
 

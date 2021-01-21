@@ -10,12 +10,11 @@
             <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
                 :count="item.size"
                 :cover="item.coverImage"
+                :id="item.id"
                 :label="item.modality"
                 :stack="item.isStack"
                 :title="item.name"
                 :type="item.type"
-                :active="activeItems.indexOf(idx) !== -1"
-                v-on:toggle-item="$emit('toggle-item', idx)"
             />
             <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
             <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">

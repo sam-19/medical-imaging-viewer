@@ -10,10 +10,11 @@ import Vuex, { ActionTree, ActionContext, CommitOptions, DispatchOptions, Getter
 
 // State defines store properties
 const state = {
+    activeItems: [] as string[],
     activeTool: null as null | string,
     appName: '' as string,
     cacheStatus: { count: 0, max: 0, size: 0 },
-    linkedResources: [] as string[],
+    linkedItems: [] as string[],
     linkedScrollPosition: 0,
 }
 type State = typeof state
@@ -22,7 +23,7 @@ type Getters = {
     getActiveTool(state: State): null | string,
     getAppName(state: State): string,
     getCacheStatus(state: State): object,
-    getLinkedResources(state: State): string[],
+    getLinkedItems(state: State): string[],
     getLinkedScrollPosition(state: State): number,
 }
 const getters: GetterTree<State, State> & Getters = {
@@ -35,8 +36,8 @@ const getters: GetterTree<State, State> & Getters = {
     getCacheStatus: (state) => {
         return state.cacheStatus
     },
-    getLinkedResources: (state) => {
-        return state.linkedResources
+    getLinkedItems: (state) => {
+        return state.linkedItems
     },
     getLinkedScrollPosition: (state) => {
         return state.linkedScrollPosition
@@ -66,31 +67,47 @@ const actions = {
 }
 // Mutations (commits)
 enum MutationTypes {
-    ADD_LINKED_RESOURCE = 'add-linked-resource',
-    REMOVE_LINKED_RESOURCE = 'remove-linked-resource',
+    ADD_ACTIVE_ITEM = 'add-active-item',
+    ADD_LINKED_ITEM = 'add-linked-item',
+    REMOVE_ACTIVE_ITEM = 'remove-active-item',
+    REMOVE_LINKED_ITEM = 'remove-linked-item',
     SET_ACTIVE_TOOL = 'set-active-tool',
     SET_APP_NAME = 'set-app-name',
     SET_CACHE_STATUS = 'set-cache-status',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
 }
 type Mutations<S = State> = {
-    [MutationTypes.ADD_LINKED_RESOURCE] (state: S, payload: string): void,
-    [MutationTypes.REMOVE_LINKED_RESOURCE] (state: S, payload: string): void,
+    [MutationTypes.ADD_ACTIVE_ITEM] (state: S, payload: string): void,
+    [MutationTypes.ADD_LINKED_ITEM] (state: S, payload: string): void,
+    [MutationTypes.REMOVE_ACTIVE_ITEM] (state: S, payload: string): void,
+    [MutationTypes.REMOVE_LINKED_ITEM] (state: S, payload: string): void,
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
 }
 const mutations: MutationTree<State> & Mutations = {
-    [MutationTypes.ADD_LINKED_RESOURCE] (state, payload: string) {
-        if (state.linkedResources.indexOf(payload) === -1) {
-            state.linkedResources.push(payload)
+    [MutationTypes.ADD_ACTIVE_ITEM] (state, payload: string) {
+        if (state.activeItems.indexOf(payload) === -1) {
+            state.activeItems.push(payload)
         }
     },
-    [MutationTypes.REMOVE_LINKED_RESOURCE] (state, payload: string) {
-        if (state.linkedResources.indexOf(payload) !== -1) {
-            state.linkedResources.splice(
-                state.linkedResources.indexOf(payload), 1
+    [MutationTypes.ADD_LINKED_ITEM] (state, payload: string) {
+        if (state.linkedItems.indexOf(payload) === -1) {
+            state.linkedItems.push(payload)
+        }
+    },
+    [MutationTypes.REMOVE_ACTIVE_ITEM] (state, payload: string) {
+        if (state.activeItems.indexOf(payload) !== -1) {
+            state.activeItems.splice(
+                state.activeItems.indexOf(payload), 1
+            )
+        }
+    },
+    [MutationTypes.REMOVE_LINKED_ITEM] (state, payload: string) {
+        if (state.linkedItems.indexOf(payload) !== -1) {
+            state.linkedItems.splice(
+                state.linkedItems.indexOf(payload), 1
             )
         }
     },
