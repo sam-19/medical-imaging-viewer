@@ -21,6 +21,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import cornerstoneTools from 'cornerstone-tools'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import { MOUSE_BUTTON } from '../types/viewer'
@@ -334,6 +335,19 @@ export default Vue.extend({
             }
         },
         /**
+         * Call when stack scroll tool displays a new image
+         */
+        stackScrolled (e: any, silent?: boolean) {
+            const newStackIndex = this.resource.getIndexByUrl(e.detail.image.imageId)
+            if (this.isLinked && !silent) {
+                // Calculate current position relative to linked position, and add master link position
+                const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
+                               + (this.masterLinkPos || 0)
+                this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
+            }
+            this.resource.lastPosition = newStackIndex
+        },
+        /**
          * Unlink this image stack.
         unlinkImageStack: function () {
             this.linkedOffset = null
@@ -351,9 +365,11 @@ export default Vue.extend({
     mounted () {
         this.dicomWrapper = this.$refs[`wrapper-${this.id}`] as HTMLDivElement
         this.dicomEl = this.$refs[`container-${this.id}`] as HTMLDivElement
+        console.log("mounted")
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
+            //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
             // Bind mouse interaction listeners
             this.dicomEl.addEventListener('mousedown', (event) => {
                 // Do not handle events until viewport has been set up
@@ -419,11 +435,24 @@ export default Vue.extend({
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
+                // Add stack state manager to loaded images
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     if (success) {
-                        // Fetch last position from the stack
+                        const StackScrollTool = cornerstoneTools.StackScrollTool
+                        const imageIds = this.resource.images.map((img: ImageResource) => img.url)
+                        const stack = {
+                            currentImageIdIndex: this.resource.lastPosition,
+                            imageIds
+                        }
+                        console.log(stack)
+                        cornerstoneTools.addStackStateManager(this.dicomEl, ['stack'])
+                        cornerstoneTools.addToolState(this.dicomEl, 'stack', stack)
+                        cornerstoneTools.addTool(StackScrollTool)
+                        cornerstoneTools.setToolActive('StackScroll', { mouseButtonMask: 1, synchronizationContext: this.$root.synchronizer })
+                        this.$root.synchronizer.add(this.dicomEl)
                         this.stackPos = this.resource.lastPosition
                         this.displayImage(true)
+                        // Fetch last position from the stack
                     }
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true

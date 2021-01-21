@@ -60,6 +60,7 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
+            synchronizer: null as any,
             // Loaded elements
             activeElements: [] as number[],
             dicomElements: [] as ImageResource[] | ImageStackResource[],
@@ -223,12 +224,11 @@ export default Vue.extend({
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
-        /* Set up DICOM file dropzone
-        const dropZone = document.getElementById(`${this.appName}-medigi-viewer-dropzone2`)
-        if (dropZone) {
-            dropZone.addEventListener('dragover', this.handleFileDrag, false)
-            dropZone.addEventListener('drop', this.handleFileDrop, false)
-        } */
+        this.synchronizer = new cornerstoneTools.Synchronizer(
+            'cornerstonenewimage',
+            (e: any, s: any, t: any) => {
+            }
+        )
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
     },

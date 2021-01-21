@@ -49,6 +49,22 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
         // Alias for push()
         this.push(image)
     }
+    public getIndexById (id: string): number {
+        for (let i=0; i<this._images.length; i++) {
+            if (this._images[i].id === id) {
+                return i
+            }
+        }
+        return -1
+    }
+    public getIndexByUrl (url: string): number {
+        for (let i=0; i<this._images.length; i++) {
+            if (this._images[i].url === url) {
+                return i
+            }
+        }
+        return -1
+    }
     public push (image: ImageResource) {
         if (!this._images.length) {
             // Add the first image as cover image
@@ -85,6 +101,15 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     }
     public setCoverImage (index: number) {
         this._coverImage = this._images[index].url
+    }
+    public setLastPositionById (id: string) {
+        const lastPos = this.getIndexById(id)
+        // Default to 0, or the last position cannot be found (if it ends up being -1)
+        this._lastPosition = lastPos >= 0 ? lastPos : 0
+    }
+    public setLastPositionByUrl (url: string) {
+        const lastPos = this.getIndexByUrl(url)
+        this._lastPosition = lastPos >= 0 ? lastPos : 0
     }
     /**
      * Sort images according to one of:
