@@ -37,6 +37,7 @@ export default Vue.extend({
     },
     data () {
         return {
+            dicomWrapper: null as unknown as HTMLDivElement, // DICOM image wrapper
             dicomEl: null as unknown as HTMLDivElement, // DICOM image element
             isFirstLoaded: false, // At least one image is loaded
             isLinked: false, // Whether this image is linked or not
@@ -232,26 +233,33 @@ export default Vue.extend({
          * @param {number[]} dimensions [width, height].
          */
         resizeImage: function (dimensions: number[]) {
-            if (!this.dicomEl) {
+            if (!this.dicomEl || !this.dicomWrapper) {
                 return
             }
+            // Remove 20 px for padding
+            let hPad = 20
+            let vPad = 20
             if (this.listPosition[1] === 1) {
                 // Only one item in the list, we can take up the whole space
                 this.dicomEl.style.display = 'block'
-                this.dicomEl.style.width = `${dimensions[0]}px`
-                this.dicomEl.style.height = `${dimensions[1]}px`
+                this.dicomWrapper.style.borderLeft = 'none'
+                this.dicomWrapper.style.borderBottom = 'none'
+                this.dicomEl.style.width = `${dimensions[0] - 20}px`
+                this.dicomEl.style.height = `${dimensions[1] - 20}px`
             } else if ((this.listPosition[1] as number) < 4) {
                 // Place items side by side
                 this.dicomEl.style.display = 'inline-block'
-                const maxWidth = dimensions[0]/(this.listPosition[1] as number)
-                const relWidth = (this.resource.dimensions[0]/this.resource.dimensions[1])*dimensions[1]
-                // Don't crop the image container
-                if (relWidth < maxWidth) {
-                    this.dicomEl.style.width = `${relWidth}px`
+                // Add a left border to all but the first element
+                if (this.listPosition[0]) {
+                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
+                    hPad++ // Add border to padding
                 } else {
-                    this.dicomEl.style.width = `${maxWidth}px`
+                    this.dicomWrapper.style.borderLeft = 'none'
                 }
-                this.dicomEl.style.height = `${dimensions[1]}px`
+                this.dicomWrapper.style.borderBottom = 'none'
+                const width = dimensions[0]/(this.listPosition[1] as number) - hPad
+                this.dicomEl.style.width = `${width}px`
+                this.dicomEl.style.height = `${dimensions[1] - vPad}px`
             }
             this.$root.cornerstone.resize(this.dicomEl, false)
             // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
@@ -341,6 +349,7 @@ export default Vue.extend({
         }
     },
     mounted () {
+        this.dicomWrapper = this.$refs[`wrapper-${this.id}`] as HTMLDivElement
         this.dicomEl = this.$refs[`container-${this.id}`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
@@ -473,6 +482,7 @@ export default Vue.extend({
 .medigi-viewer-image-wrapper {
     position: relative;
     display: inline-block;
+    padding: 10px;
 }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;

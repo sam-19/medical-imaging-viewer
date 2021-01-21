@@ -15,8 +15,7 @@
             </ViewerSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="!dicomElements.length" :id="`${appName}-medigi-viewer-dropzone2`" class="medigi-viewer-dropzone"></div>
-            <div v-else class="medigi-viewer-images">
+            <div v-if="activeElements.length" class="medigi-viewer-images">
                 <DICOMImageDisplay v-for="(resource, idx) in activeElements"
                     :key="`${appName}-medigi-viewer-element-${dicomElements[resource].id}`"
                     ref="dicom-element"
@@ -27,6 +26,7 @@
                 >
                 </DICOMImageDisplay>
             </div>
+            <div v-else><!-- TODO: Placeholder div --></div>
         </div>
     </div>
 
@@ -169,9 +169,10 @@ export default Vue.extend({
             })
         },
         mediaResized: function () {
+            // Deduct padding and borders from element dimensions
             this.mediaContainerSize = [
-                (this.$refs['media'] as HTMLElement).offsetWidth,
-                (this.$refs['media'] as HTMLElement).offsetHeight
+                (this.$refs['media'] as HTMLElement).offsetWidth - 2,
+                (this.$refs['media'] as HTMLElement).offsetHeight - 2
             ]
         },
         toggleColorTheme: function (light?: boolean) {
@@ -296,12 +297,10 @@ export default Vue.extend({
     .medigi-viewer-media {
         grid-column-start: divider;
         grid-row-start: divider;
+        margin: 0 10px 10px 0;
+        border: 1px solid var(--medigi-viewer-border-faint);
         overflow: hidden; /* Without this DICOM elements do not scale down */
     }
-        .medigi-viewer-dropzone {
-            width: 100%;
-            height: 100%;
-        }
         .medigi-viewer-images {
         }
 </style>

@@ -114,7 +114,7 @@ export default Vue.extend({
 <style scoped>
 .medigi-viewer-sidebar > div {
     position: relative;
-    padding: 10px;
+    padding: 0 10px 10px 10px;
     width: 300px;
     height: calc(100% - 70px);
     margin-top: 70px;
