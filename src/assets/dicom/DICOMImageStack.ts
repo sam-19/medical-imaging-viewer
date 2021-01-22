@@ -11,7 +11,9 @@ import { ImageResource, ImageStackResource } from '../../types/assets'
 class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: string
     private _images: ImageResource[]
-    private _lastPosition: number = 0
+    private _currentPosition: number = 0
+    private _linkedPosition: number = 0
+    private _masterLinkPosition: number = 0
     private _preloaded: number = 0
 
     constructor (size: number, name: string) {
@@ -30,13 +32,27 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     get images () {
         return this._images
     }
-    get lastPosition () {
-        return this._lastPosition
+    get currentPosition () {
+        return this._currentPosition
     }
-    set lastPosition (pos: number) {
+    set currentPosition (pos: number) {
         if (pos >= 0 && pos < this._images.length) {
-            this._lastPosition = pos
+            this._currentPosition = pos
         }
+    }
+    get linkedPosition () {
+        return this._linkedPosition
+    }
+    set linkedPosition (pos: number) {
+        if (pos >= 0 && pos < this._images.length) {
+            this._linkedPosition = pos
+        }
+    }
+    get masterLinkPosition () {
+        return this._masterLinkPosition
+    }
+    set masterLinkPosition (pos: number) {
+        this._masterLinkPosition = pos
     }
     get length () {
         return this._images.length
@@ -102,14 +118,14 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     public setCoverImage (index: number) {
         this._coverImage = this._images[index].url
     }
-    public setLastPositionById (id: string) {
-        const lastPos = this.getIndexById(id)
+    public setCurrentPositionById (id: string) {
+        const curPos = this.getIndexById(id)
         // Default to 0, or the last position cannot be found (if it ends up being -1)
-        this._lastPosition = lastPos >= 0 ? lastPos : 0
+        this._currentPosition = curPos >= 0 ? curPos : 0
     }
-    public setLastPositionByUrl (url: string) {
-        const lastPos = this.getIndexByUrl(url)
-        this._lastPosition = lastPos >= 0 ? lastPos : 0
+    public setCurrentPositionByUrl (url: string) {
+        const curPos = this.getIndexByUrl(url)
+        this._currentPosition = curPos >= 0 ? curPos : 0
     }
     /**
      * Sort images according to one of:

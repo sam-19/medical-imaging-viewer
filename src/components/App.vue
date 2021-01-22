@@ -66,6 +66,8 @@ export default Vue.extend({
             activeElements: [] as number[],
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             // Other properties
+            ctrlDown: false,
+            ctrlRegistered: false,
             mediaContainerSize: [0, 0],
             themeChange: 0,
             wadoImageLoader: null,
@@ -234,26 +236,31 @@ export default Vue.extend({
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
         this.synchronizer = new cornerstoneTools.Synchronizer(
-            'cornerstonenewimage',
+            'cornerstonetoolsstackscroll',
             (synchronizer: any, source: any, target: any, event: any) => {
                 // Get the item id from element id
-                const itemId = source.id.split('-').pop()
-                let dicomEl = null
+                const srcId = source.id.split('-').pop()
+                const tgtId = target.id.split('-').pop()
+                let srcEl, tgtEl = null
                 for (let i=0; i<this.dicomElements.length; i++) {
-                    if (this.dicomElements[i].id === itemId) {
-                        dicomEl = this.dicomElements[i]
+                    if (this.dicomElements[i].id === srcId) {
+                        srcEl = this.dicomElements[i]
+                    } else if (this.dicomElements[i].id === tgtId) {
+                        tgtEl = this.dicomElements[i]
                     }
                 }
                 // Make sure that this is an actual active element and an actual scroll event
-                if (dicomEl === null || this.$store.state.activeItems.indexOf(itemId) === -1 || !event) {
+                if (srcEl === null || this.$store.state.activeItems.indexOf(srcId) === -1 || !event) {
                     return
                 }
                 // Synchronize stack position
-                if (dicomEl.isStack) {
-                    (dicomEl as DICOMImageStack).setLastPositionByUrl(event.image.imageId)
-                }
-                if (event.oldImage === undefined) {
-                    // A new stack was just loaded
+                srcEl = (srcEl as DICOMImageStack)
+                srcEl.currentPosition = event.newImageIdIndex
+                // Check if control key is down (force scroll)
+                if (this.ctrlDown) {
+                    const relPos = (srcEl.currentPosition - (srcEl.linkedPosition || 0))/srcEl.images.length
+                            + (srcEl.masterLinkPosition || 0)
+                    this.$store.commit('set-linked-scroll-position', { origin: srcId, position: relPos })
                     return
                 }
                 // Determine if target element should be synchronized with source element
@@ -297,6 +304,26 @@ export default Vue.extend({
         )
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
+        // Monitor control key down state
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Control' && !this.ctrlRegistered) {
+                // Refresh linked position and master stack position in each active stack element
+                for (let i=0; i<this.dicomElements.length; i++) {
+                    if (this.$store.state.activeItems.indexOf(this.dicomElements[i].id) !== -1 && this.dicomElements[i].isStack) {
+                        ;(this.dicomElements[i] as ImageStackResource).linkedPosition = (this.dicomElements[i] as ImageStackResource).currentPosition
+                        ;(this.dicomElements[i] as ImageStackResource).masterLinkPosition = this.$store.state.linkedScrollPosition
+                    }
+                }
+                this.ctrlDown = true
+                this.ctrlRegistered = true // Prevent event from registering repeatedly
+            }
+        })
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Control') {
+                this.ctrlDown = false
+                this.ctrlRegistered = false
+            }
+        })
     },
 })
 
@@ -333,6 +360,13 @@ export default Vue.extend({
     --medigi-viewer-text-faint: #808080;
 }
 /* Main app view component styles */
+.medigi-viewer * {
+    /* Don't allow selecting text by default */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 .medigi-viewer div {
     box-sizing: border-box;
 }

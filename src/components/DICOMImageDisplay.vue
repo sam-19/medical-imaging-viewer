@@ -14,7 +14,7 @@
         />
         <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
-        >{{ this.resource.lastPosition + 1 }}/{{ this.resource.images.length }}</span>
+        >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
     </div>
 
 </template>
@@ -63,11 +63,16 @@ export default Vue.extend({
         isLinked (value: boolean, old: boolean) {
             // Set linkedPos when isLinked changes
             if (value) {
-                this.masterLinkPos = this.$store.state.linkedScrollPosition
-                this.linkedPos = this.resource.lastPosition
+                if (this.resource.isStack) {
+                    this.resource.masterLinkPosition = this.$store.state.linkedScrollPosition
+                    this.resource.linkedPosition = this.resource.currentPosition
+                }
                 this.$store.commit('add-linked-item', this.dicomEl)
             } else {
-                this.linkedPos = null
+                if (this.resource.isStack) {
+                    this.resource.masterLinkPosition = null
+                    this.resource.linkedPosition = null
+                }
                 this.$store.commit('remove-linked-item', this.dicomEl)
             }
         },
@@ -95,12 +100,12 @@ export default Vue.extend({
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
-         * Display the single image from this.resource or current image (this.resource.lastPosition) from image stack.
+         * Display the single image from this.resource or current image (this.resource.currentPosition) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<boolean> {
             const imageUrl = this.resource.isStack
-                             ? this.resource.images[this.resource.lastPosition].url
+                             ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
             this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP) {
@@ -126,7 +131,7 @@ export default Vue.extend({
         /**
          * Trigger the desired effect from mouse move according to the active toolbar tool.
          * @param {MouseEvent} event
-         */
+
         handleMouseMove: function (event: MouseEvent) {
             event.stopPropagation()
             event.preventDefault()
@@ -191,7 +196,7 @@ export default Vue.extend({
             } else if (this.mouseRBtnDown) {
                 this.adjustLevels(deltaX, deltaY)
             }
-        },
+        },*/
         /**
          * Invert the image colors values.
          */
@@ -334,19 +339,30 @@ export default Vue.extend({
                 return
             }
             // Position must be computed relative to linking point and master linking position
-            const locPos = (this.linkedPos || 0)/this.resource.images.length
-                           + relPos - (this.masterLinkPos || 0)
+            const locPos = (this.resource.linkedPosition || 0)/this.resource.images.length
+                           + relPos - (this.resource.masterLinkPosition || 0)
             // Corrected local position must be between 0 and 1 (= 0 and 100% of image stack)
             if (locPos >= 0 && locPos <= 1) {
                 // Check if we're already at the position.
                 // This is very likely if the origin stack has more images than this stack
                 // -> several origin stack images will map to the same local image
                 const absPos = Math.round(locPos*this.resource.images.length)
-                if (absPos !== this.resource.lastPosition) {
-                    // Don't announce this position, since it was triggered by another linked stack
-                    this.scrollStack(absPos, true, false)
+                if (absPos !== this.resource.currentPosition) {
+                    // Don't scroll out of bounds
+                    if (absPos < 0 ) {
+                        this.resource.currentPosition = 0
+                    } else if (absPos >= this.resource.images.length) {
+                        this.resource.currentPosition = this.resource.images.length - 1
+                    } else {
+                        this.resource.currentPosition = absPos
+                    }
+                    await this.displayImage(false)
+                    // Fetch the current tool state properties and update current image index
+                    const opts = cornerstoneTools.getToolState(this.dicomEl, 'stack').data[0]
+                    opts.currentImageIdIndex = this.resource.currentPosition
+                    cornerstoneTools.clearToolState(this.dicomEl, 'stack') // Remove old and add new
+                    cornerstoneTools.addToolState(this.dicomEl, 'stack', opts)
                 }
-
             }
             return true
         },
@@ -355,48 +371,34 @@ export default Vue.extend({
          * @param {number} delta positive or negative number (if absolute is false), or the absolute stack position.
          * @param {boolean} absolute use delta as absolute stack position (default false).
          * @param {boolean} announce announce new position to synchronize linked stacks (default true).
-         */
+
         scrollStack: async function (delta: number, absolute: boolean = false, announce: boolean = true) {
             if (!this.resource.isStack) {
                 return
             }
-            // Don't scroll out of bounds
-            if ((!absolute && this.resource.lastPosition + delta < 0) ||
-                (absolute && delta < 0)
-            ) {
-                this.resource.lastPosition = 0
-            } else if ((!absolute && this.resource.lastPosition + delta >= this.resource.images.length) ||
-                       (absolute && delta >= this.resource.images.length)
-            ) {
-                this.resource.lastPosition = this.resource.images.length - 1
-            } else if (!absolute) {
-                this.resource.lastPosition += delta
-            } else {
-                this.resource.lastPosition = delta
-            }
-            this.resource.lastPosition = this.resource.lastPosition
-            await this.displayImage(false)
+
             // Check if this stack is linked and trigger an event if it is
             if (this.isLinked && announce) {
                 // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.resource.lastPosition - (this.linkedPos || 0))/this.resource.images.length
+                const relPos = (this.resource.currentPosition - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
                 this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
+                // Update stack scroll tool position
             }
-        },
+        },*/
         /**
          * Call when stack scroll tool displays a new image
-         */
+
         stackScrolled (e: any, silent?: boolean) {
             const newStackIndex = this.resource.getIndexByUrl(e.detail.image.imageId)
             if (this.isLinked && !silent) {
                 // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.resource.lastPosition - (this.linkedPos || 0))/this.resource.images.length
+                const relPos = (this.resource.currentPosition - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
                 this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
             }
-            this.resource.lastPosition = newStackIndex
-        },
+            this.resource.currentPosition = newStackIndex
+        },*/
         /**
          * Unlink this image stack.
         unlinkImageStack: function () {
@@ -456,7 +458,6 @@ export default Vue.extend({
                 }
                 this.dicomEl.removeEventListener('mousemove', this.handleMouseMove)
             })
-            */
             // Bind default mouse wheel event
             this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
                 // Do not handle events until viewport has been set up
@@ -482,6 +483,7 @@ export default Vue.extend({
                     }
                 }
             })
+            */
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             // Conerstone tool options
@@ -503,7 +505,7 @@ export default Vue.extend({
                         // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
                         const stackOpts = {
-                            currentImageIdIndex: this.resource.lastPosition,
+                            currentImageIdIndex: this.resource.currentPosition,
                             imageIds
                         }
                         cornerstoneTools.addStackStateManager(this.dicomEl, ['stack'])
@@ -515,7 +517,7 @@ export default Vue.extend({
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizer
                         this.$root.synchronizer.add(this.dicomEl)
-                        this.resource.lastPosition = this.resource.lastPosition
+                        this.resource.currentPosition = this.resource.currentPosition
                         // Re-enable the active tool to include this stack
                         this.$store.dispatch('tools:re-enable-active')
                         this.displayImage(true)
@@ -523,6 +525,10 @@ export default Vue.extend({
                     }
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true
+                    // Save new position
+                    this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
+                        this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
+                    })
                 })
             } else {
                 // Display first image with default settings

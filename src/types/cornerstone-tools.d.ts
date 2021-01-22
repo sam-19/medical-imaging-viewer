@@ -20,6 +20,8 @@ declare module 'cornerstone-tools' {
     function addTool (tool: any, options?: any): void
     function addToolForElement (element: any, tool: any, options?: any): void
     function addToolState (element: any, tool: string, options: any): void
+    function clearToolState (element: any, tool: string): void
+    function getToolState (element: any, tool: string): any
     function init (): void
     function removeTool (tool: any): void
     function removeToolForElement (element: any, tool: any): void
