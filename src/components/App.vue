@@ -249,23 +249,21 @@ export default Vue.extend({
                     console.log("Image")
                     return
                 }
-                const sourceOrt: any = (cornerstone.metaData.get('imagePlaneModule', enabledSrc.image.imageId) as any).imageOrientationPatient
-                const targetOrt: any = (cornerstone.metaData.get('imagePlaneModule', enabledTgt.image.imageId) as any).imageOrientationPatient
-                if (!sourceOrt || !targetOrt || sourceOrt.length !== 6 || targetOrt.length !== 6) {
+                const sourcePlane: any = (cornerstone.metaData.get('imagePlaneModule', enabledSrc.image.imageId) as any)
+                const targetPlane: any = (cornerstone.metaData.get('imagePlaneModule', enabledTgt.image.imageId) as any)
+                if (!sourcePlane || !sourcePlane.columnCosines || !sourcePlane.rowCosines ||
+                    !targetPlane || !targetPlane.columnCosines || !targetPlane.rowCosines
+                ) {
                     return
                 }
-                // The built-in synchronizer may attemp to synchronize images in different planes, which may lead to weird results.
-                // Calculate a sort of total difference of the image plane vectors.
-                const diff = [
-                    sourceOrt[0] - targetOrt[0],
-                    sourceOrt[1] - targetOrt[1],
-                    sourceOrt[2] - targetOrt[2],
-                    sourceOrt[3] - targetOrt[3],
-                    sourceOrt[4] - targetOrt[4],
-                    sourceOrt[5] - targetOrt[5]
-                ].reduce((a, b) => Math.abs(a) + Math.abs(b), 0)
-                if (diff > 1/(2*Math.PI)) {
-                    // TODO: This is a very simplistic check, should calculate the actual vectors and compare them
+                // The built-in synchronizer may attemp to synchronize images in different orientations, which may lead to weird results.
+                // Check for compatible orientations by calculating the angle between the two image plane vectors.
+                const sourceCross = (new cornerstoneMath.Vector3(...sourcePlane.columnCosines))
+                                    .cross(new cornerstoneMath.Vector3(...sourcePlane.rowCosines))
+                const targetCross = (new cornerstoneMath.Vector3(...targetPlane.columnCosines))
+                                    .cross(new cornerstoneMath.Vector3(...targetPlane.rowCosines))
+                // Tolerance of Pi/12 = 15 degrees
+                if (sourceCross.angleTo(targetCross) > Math.PI/12) {
                     return
                 }
                 // We can use the built-in synchronizer for images that have nearly or examptly the same orientation

@@ -6,5 +6,5 @@
 
 
 declare module 'cornerstone-math' {
-
+    var Vector3: any
 }
