@@ -131,8 +131,16 @@ export default Vue.extend({
                     // Next, check if this is a single file dir or several dirs
                     if (!rootDir.directories?.length && rootDir.files?.length) {
                         if (rootDir.files.length > 1) {
-                            // Add multiple files as an image stack
-                            this.addFilesAsImageStack(rootDir.files.map(f => f.file as File), rootDir.name)
+                            if (!rootDir.path) {
+                                // If this is the "pseudo" root directory, add files as separate images
+                                // (as they were dragged as separate files into the viewer)
+                                for (let i=0; i<rootDir.files.length; i++) {
+                                    this.addFileAsImage(rootDir.files[i].file as File)
+                                }
+                            } else {
+                                // Add multiple files as an image stack
+                                this.addFilesAsImageStack(rootDir.files.map(f => f.file as File), rootDir.name)
+                            }
                         } else {
                             // Single file as an image
                             this.addFileAsImage(rootDir.files[0].file as File)

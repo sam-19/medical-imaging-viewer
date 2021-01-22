@@ -240,27 +240,78 @@ export default Vue.extend({
             // Remove 20 px for padding
             let hPad = 20
             let vPad = 20
+            this.dicomWrapper.style.borderLeft = 'none'
+            this.dicomWrapper.style.borderRight = 'none'
+            this.dicomWrapper.style.borderBottom = 'none'
             if (this.$store.state.activeItems.length === 1) {
                 // Only one item in the list, we can take up the whole space
-                this.dicomEl.style.display = 'block'
-                this.dicomWrapper.style.borderLeft = 'none'
-                this.dicomWrapper.style.borderBottom = 'none'
                 this.dicomEl.style.width = `${dimensions[0] - 20}px`
                 this.dicomEl.style.height = `${dimensions[1] - 20}px`
-            } else if (this.$store.state.activeItems.length < 4) {
+            } else if (this.$store.state.activeItems.length === 2) {
                 // Place items side by side
-                this.dicomEl.style.display = 'inline-block'
-                // Add a left border to all but the first element
+                // Add a left border to the second element
                 if (this.listPosition) {
                     this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
                     hPad++ // Add border to padding
-                } else {
-                    this.dicomWrapper.style.borderLeft = 'none'
                 }
-                this.dicomWrapper.style.borderBottom = 'none'
-                const width = dimensions[0]/this.$store.state.activeItems.length - hPad
-                this.dicomEl.style.width = `${width}px`
+                this.dicomEl.style.width = `${dimensions[0]/2 - hPad}px`
                 this.dicomEl.style.height = `${dimensions[1] - vPad}px`
+            } else if (this.$store.state.activeItems.length < 5) {
+                // A matrix of 2x2
+                // Add a left border to right side elements
+                if (this.listPosition%2) {
+                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
+                    hPad++ // Add border to padding
+                }
+                // Add bottom border to top elements
+                if (this.listPosition < 2) {
+                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
+                    vPad++
+                }
+                // If the bottom row is left missing one item, add right border to last element
+                if (this.$store.state.activeItems.length === 3 && this.listPosition === 2) {
+                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
+                }
+                this.dicomEl.style.width = `${dimensions[0]/2 - hPad}px`
+                this.dicomEl.style.height = `${dimensions[1]/2 - vPad}px`
+            } else if (this.$store.state.activeItems.length < 7) {
+                // A matrix of 3x2
+                // Add a left border to middle and right side elements
+                if (this.listPosition%3) {
+                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
+                    hPad++ // Add border to padding
+                }
+                // Add bottom border to top elements
+                if (this.listPosition < 3) {
+                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
+                    vPad++
+                }
+                // If the bottom row is left missing one item, add right border to last element
+                if (this.$store.state.activeItems.length === 5 && this.listPosition === 4) {
+                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
+                }
+                this.dicomEl.style.width = `${dimensions[0]/3 - hPad}px`
+                this.dicomEl.style.height = `${dimensions[1]/2 - vPad}px`
+            } else if (this.$store.state.activeItems.length < 10) {
+                // A matrix of 3x3
+                // Add a left border to middle and right side elements
+                if (this.listPosition%3) {
+                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
+                    hPad++ // Add border to padding
+                }
+                // Add bottom border to top and mid row elements
+                if (this.listPosition < 6) {
+                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
+                    vPad++
+                }
+                // If the bottom row is left missing the last item(s), add right border to final element
+                if (this.$store.state.activeItems.length === 7 && this.listPosition === 6 ||
+                    this.$store.state.activeItems.length === 8 && this.listPosition === 7
+                ) {
+                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
+                }
+                this.dicomEl.style.width = `${dimensions[0]/3 - hPad}px`
+                this.dicomEl.style.height = `${dimensions[1]/3 - vPad}px`
             }
             this.$root.cornerstone.resize(this.dicomEl, false)
             // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
