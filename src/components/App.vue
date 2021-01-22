@@ -255,14 +255,14 @@ export default Vue.extend({
                     return
                 }
                 // The built-in synchronizer may attemp to synchronize images in different planes, which may lead to weird results.
-                // Calculate a sort of total difference of the image planes. An angle of Pi means one of the images is inverted.
+                // Calculate a sort of total difference of the image plane vectors.
                 const diff = [
-                    sourceOrt[0] - targetOrt[0] === Math.PI ? 0 : sourceOrt[0] - targetOrt[0],
-                    sourceOrt[1] - targetOrt[1] === Math.PI ? 0 : sourceOrt[1] - targetOrt[1],
-                    sourceOrt[2] - targetOrt[2] === Math.PI ? 0 : sourceOrt[2] - targetOrt[2],
-                    sourceOrt[3] - targetOrt[3] === Math.PI ? 0 : sourceOrt[3] - targetOrt[3],
-                    sourceOrt[4] - targetOrt[4] === Math.PI ? 0 : sourceOrt[4] - targetOrt[4],
-                    sourceOrt[5] - targetOrt[5] === Math.PI ? 0 : sourceOrt[5] - targetOrt[5]
+                    sourceOrt[0] - targetOrt[0],
+                    sourceOrt[1] - targetOrt[1],
+                    sourceOrt[2] - targetOrt[2],
+                    sourceOrt[3] - targetOrt[3],
+                    sourceOrt[4] - targetOrt[4],
+                    sourceOrt[5] - targetOrt[5]
                 ].reduce((a, b) => Math.abs(a) + Math.abs(b), 0)
                 if (diff > 1/(2*Math.PI)) {
                     // TODO: This is a very simplistic check, should calculate the actual vectors and compare them
