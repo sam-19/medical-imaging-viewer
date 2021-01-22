@@ -264,7 +264,7 @@ export default Vue.extend({
                     sourceOrt[4] - targetOrt[4] === Math.PI ? 0 : sourceOrt[4] - targetOrt[4],
                     sourceOrt[5] - targetOrt[5] === Math.PI ? 0 : sourceOrt[5] - targetOrt[5]
                 ].reduce((a, b) => Math.abs(a) + Math.abs(b), 0)
-                if (diff > 1) {
+                if (diff > 1/(2*Math.PI)) {
                     // TODO: This is a very simplistic check, should calculate the actual vectors and compare them
                     return
                 }
