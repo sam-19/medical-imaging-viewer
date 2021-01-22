@@ -236,6 +236,22 @@ export default Vue.extend({
         this.synchronizer = new cornerstoneTools.Synchronizer(
             'cornerstonenewimage',
             (synchronizer: any, source: any, target: any, event: any) => {
+                // Get the item id from element id
+                const itemId = source.id.split('-').pop()
+                let dicomEl = null
+                for (let i=0; i<this.dicomElements.length; i++) {
+                    if (this.dicomElements[i].id === itemId) {
+                        dicomEl = this.dicomElements[i]
+                    }
+                }
+                // Make sure that this is an actual active element and an actual scroll event
+                if (dicomEl === null || this.$store.state.activeItems.indexOf(itemId) === -1 || !event) {
+                    return
+                }
+                // Synchronize stack position
+                if (dicomEl.isStack) {
+                    (dicomEl as DICOMImageStack).setLastPositionByUrl(event.image.imageId)
+                }
                 if (event.oldImage === undefined) {
                     // A new stack was just loaded
                     return

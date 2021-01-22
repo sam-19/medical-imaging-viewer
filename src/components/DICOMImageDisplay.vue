@@ -14,7 +14,7 @@
         />
         <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
-        >{{ this.stackPos + 1 }}/{{ this.resource.images.length }}</span>
+        >{{ this.resource.lastPosition + 1 }}/{{ this.resource.images.length }}</span>
     </div>
 
 </template>
@@ -49,7 +49,6 @@ export default Vue.extend({
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
             scrollProgress: 0, // Progress towards a scroll step
-            stackPos: 0, // Position in an image stack
             viewport: null as any, // Save viewport settings for image stacks
         }
     },
@@ -65,7 +64,7 @@ export default Vue.extend({
             // Set linkedPos when isLinked changes
             if (value) {
                 this.masterLinkPos = this.$store.state.linkedScrollPosition
-                this.linkedPos = this.stackPos
+                this.linkedPos = this.resource.lastPosition
                 this.$store.commit('add-linked-item', this.dicomEl)
             } else {
                 this.linkedPos = null
@@ -96,12 +95,12 @@ export default Vue.extend({
             this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
-         * Display the single image from this.resource or current image (this.stackPos) from image stack.
+         * Display the single image from this.resource or current image (this.resource.lastPosition) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<boolean> {
             const imageUrl = this.resource.isStack
-                             ? this.resource.images[this.stackPos].url
+                             ? this.resource.images[this.resource.lastPosition].url
                              : this.resource.url
             this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP) {
@@ -343,7 +342,7 @@ export default Vue.extend({
                 // This is very likely if the origin stack has more images than this stack
                 // -> several origin stack images will map to the same local image
                 const absPos = Math.round(locPos*this.resource.images.length)
-                if (absPos !== this.stackPos) {
+                if (absPos !== this.resource.lastPosition) {
                     // Don't announce this position, since it was triggered by another linked stack
                     this.scrollStack(absPos, true, false)
                 }
@@ -362,25 +361,25 @@ export default Vue.extend({
                 return
             }
             // Don't scroll out of bounds
-            if ((!absolute && this.stackPos + delta < 0) ||
+            if ((!absolute && this.resource.lastPosition + delta < 0) ||
                 (absolute && delta < 0)
             ) {
-                this.stackPos = 0
-            } else if ((!absolute && this.stackPos + delta >= this.resource.images.length) ||
+                this.resource.lastPosition = 0
+            } else if ((!absolute && this.resource.lastPosition + delta >= this.resource.images.length) ||
                        (absolute && delta >= this.resource.images.length)
             ) {
-                this.stackPos = this.resource.images.length - 1
+                this.resource.lastPosition = this.resource.images.length - 1
             } else if (!absolute) {
-                this.stackPos += delta
+                this.resource.lastPosition += delta
             } else {
-                this.stackPos = delta
+                this.resource.lastPosition = delta
             }
-            this.resource.lastPosition = this.stackPos
+            this.resource.lastPosition = this.resource.lastPosition
             await this.displayImage(false)
             // Check if this stack is linked and trigger an event if it is
             if (this.isLinked && announce) {
                 // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
+                const relPos = (this.resource.lastPosition - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
                 this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
             }
@@ -392,7 +391,7 @@ export default Vue.extend({
             const newStackIndex = this.resource.getIndexByUrl(e.detail.image.imageId)
             if (this.isLinked && !silent) {
                 // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.stackPos - (this.linkedPos || 0))/this.resource.images.length
+                const relPos = (this.resource.lastPosition - (this.linkedPos || 0))/this.resource.images.length
                                + (this.masterLinkPos || 0)
                 this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
             }
@@ -416,7 +415,6 @@ export default Vue.extend({
     mounted () {
         this.dicomWrapper = this.$refs[`wrapper-${this.id}`] as HTMLDivElement
         this.dicomEl = this.$refs[`container-${this.id}`] as HTMLDivElement
-        console.log("mounted")
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
@@ -517,7 +515,7 @@ export default Vue.extend({
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizer
                         this.$root.synchronizer.add(this.dicomEl)
-                        this.stackPos = this.resource.lastPosition
+                        this.resource.lastPosition = this.resource.lastPosition
                         // Re-enable the active tool to include this stack
                         this.$store.dispatch('tools:re-enable-active')
                         this.displayImage(true)
