@@ -20,27 +20,12 @@ const state = {
 type State = typeof state
 // Getters
 type Getters = {
-    getActiveTool(state: State): null | string,
-    getAppName(state: State): string,
-    getCacheStatus(state: State): object,
-    getLinkedItems(state: State): string[],
-    getLinkedScrollPosition(state: State): number,
+    linkedItemIds (state: State): string[],
 }
 const getters: GetterTree<State, State> & Getters = {
-    getActiveTool: (state) => {
-        return state.activeTool
-    },
-    getAppName: (state) => {
-        return state.appName
-    },
-    getCacheStatus: (state) => {
-        return state.cacheStatus
-    },
-    getLinkedItems: (state) => {
-        return state.linkedItems
-    },
-    getLinkedScrollPosition: (state) => {
-        return state.linkedScrollPosition
+    linkedItemIds: (state) => {
+        // Resource id is the last of dash-delimited fields in the element id
+        return state.linkedItems.map((el: any) => el.id.split('-').pop())
     },
 }
 // Actions (method calls)
@@ -50,6 +35,7 @@ enum ActionTypes {
     IMAGE_LINK_STACKS = 'image:link-stacks',
     IMAGE_RESTORE_DEFAULT_SETTINGS = 'image:restore-default-settings',
     IMAGE_ROTATE_BY = 'image:rotate-by',
+    TOOLS_REENABLE_ACTIVE = 'tools:re-enable-active',
 }
 type Actions = {
     [ActionTypes.IMAGE_FLIP_HORIZONTALLY] (): void,
@@ -57,13 +43,15 @@ type Actions = {
     [ActionTypes.IMAGE_LINK_STACKS] (value: boolean): void,
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS] (): void,
     [ActionTypes.IMAGE_ROTATE_BY] (angle: number): void,
+    [ActionTypes.TOOLS_REENABLE_ACTIVE] (): void,
 }
 const actions = {
-    [ActionTypes.IMAGE_FLIP_HORIZONTALLY]() { },
-    [ActionTypes.IMAGE_INVERT_COLORS]() { },
-    [ActionTypes.IMAGE_LINK_STACKS]() { },
-    [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS]() { },
-    [ActionTypes.IMAGE_ROTATE_BY]() { },
+    [ActionTypes.IMAGE_FLIP_HORIZONTALLY]() {},
+    [ActionTypes.IMAGE_INVERT_COLORS]() {},
+    [ActionTypes.IMAGE_LINK_STACKS]() {},
+    [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS]() {},
+    [ActionTypes.IMAGE_ROTATE_BY]() {},
+    [ActionTypes.TOOLS_REENABLE_ACTIVE]() {},
 }
 // Mutations (commits)
 enum MutationTypes {
@@ -79,8 +67,8 @@ enum MutationTypes {
 type Mutations<S = State> = {
     [MutationTypes.ADD_ACTIVE_ITEM] (state: S, payload: string): void,
     [MutationTypes.ADD_LINKED_ITEM] (state: S, payload: string): void,
-    [MutationTypes.REMOVE_ACTIVE_ITEM] (state: S, payload: string): void,
-    [MutationTypes.REMOVE_LINKED_ITEM] (state: S, payload: string): void,
+    [MutationTypes.REMOVE_ACTIVE_ITEM] (state: S, payload: any): void,
+    [MutationTypes.REMOVE_LINKED_ITEM] (state: S, payload: any): void,
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
@@ -92,7 +80,7 @@ const mutations: MutationTree<State> & Mutations = {
             state.activeItems.push(payload)
         }
     },
-    [MutationTypes.ADD_LINKED_ITEM] (state, payload: string) {
+    [MutationTypes.ADD_LINKED_ITEM] (state, payload: any) {
         if (state.linkedItems.indexOf(payload) === -1) {
             state.linkedItems.push(payload)
         }
@@ -104,7 +92,7 @@ const mutations: MutationTree<State> & Mutations = {
             )
         }
     },
-    [MutationTypes.REMOVE_LINKED_ITEM] (state, payload: string) {
+    [MutationTypes.REMOVE_LINKED_ITEM] (state, payload: any) {
         if (state.linkedItems.indexOf(payload) !== -1) {
             state.linkedItems.splice(
                 state.linkedItems.indexOf(payload), 1

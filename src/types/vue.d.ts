@@ -9,5 +9,6 @@ declare module "vue/types/vue" {
     interface Vue {
         cornerstone: any
         synchronizer: any
+        tools: any
     }
 }

@@ -66,10 +66,10 @@ export default Vue.extend({
             if (value) {
                 this.masterLinkPos = this.$store.state.linkedScrollPosition
                 this.linkedPos = this.stackPos
-                this.$store.commit('add-linked-item', this.id)
+                this.$store.commit('add-linked-item', this.dicomEl)
             } else {
                 this.linkedPos = null
-                this.$store.commit('remove-linked-item', this.id)
+                this.$store.commit('remove-linked-item', this.dicomEl)
             }
         },
         listPosition (value: Array<number>, old: Array<number>) {
@@ -371,6 +371,7 @@ export default Vue.extend({
             this.$root.cornerstone.enable(this.dicomEl)
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
             // Bind mouse interaction listeners
+            /*
             this.dicomEl.addEventListener('mousedown', (event) => {
                 // Do not handle events until viewport has been set up
                 if (!this.viewport) {
@@ -406,6 +407,7 @@ export default Vue.extend({
                 }
                 this.dicomEl.removeEventListener('mousemove', this.handleMouseMove)
             })
+            */
             // Bind default mouse wheel event
             this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
                 // Do not handle events until viewport has been set up
@@ -433,24 +435,40 @@ export default Vue.extend({
             })
             // Save viewport
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            // Conerstone tool options
+            const zoomOpts = {
+                configuration: {
+                    invert: true,
+                    preventZoomOutsideImage: false,
+                    minScale: .1,
+                    maxScale: 20.0,
+                }
+            }
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
                 // Add stack state manager to loaded images
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     if (success) {
-                        const StackScrollTool = cornerstoneTools.StackScrollTool
+                        // Set up pan tool
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
+                        // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
-                        const stack = {
+                        const stackOpts = {
                             currentImageIdIndex: this.resource.lastPosition,
                             imageIds
                         }
-                        console.log(stack)
                         cornerstoneTools.addStackStateManager(this.dicomEl, ['stack'])
-                        cornerstoneTools.addToolState(this.dicomEl, 'stack', stack)
-                        cornerstoneTools.addTool(StackScrollTool)
-                        cornerstoneTools.setToolActive('StackScroll', { mouseButtonMask: 1, synchronizationContext: this.$root.synchronizer })
+                        cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
+                        // Set up wwwc tool
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+                        // Set up zoom tool
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
+                        // Register element to synchronizer
                         this.$root.synchronizer.add(this.dicomEl)
                         this.stackPos = this.resource.lastPosition
+                        // Re-enable the active tool to include this stack
+                        this.$store.dispatch('tools:re-enable-active')
                         this.displayImage(true)
                         // Fetch last position from the stack
                     }
@@ -460,6 +478,12 @@ export default Vue.extend({
             } else {
                 // Display first image with default settings
                 this.displayImage(true).then((success: boolean) => {
+                    if (success) {
+                        // Set up wwwc tool
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+                        // Set up zoom tool
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
+                    }
                     this.isFirstLoaded = true
                 })
             }
@@ -502,10 +526,24 @@ export default Vue.extend({
         })
     },
     beforeDestroy () {
-        // Break linking
-        this.isLinked = false
-        this.linkedPos = null
-        this.$store.commit('remove-linked-item', this.id)
+        if (this.isLinked) {
+            // Break linking
+            this.isLinked = false
+            this.linkedPos = null
+            this.$store.commit('remove-linked-item', this.id)
+        }
+        // Remove pan tool
+        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
+        // Remove wwwc tool
+        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+        // Remove zoom tool
+        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
+        if (this.resource.isStack) {
+            // Remove stack scroll tool
+            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
+            // Unregister synchronizer
+            this.$root.synchronizer.remove(this.dicomEl)
+        }
     },
 })
 

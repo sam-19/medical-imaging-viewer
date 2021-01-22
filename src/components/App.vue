@@ -47,6 +47,7 @@ import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 import { MutationTypes } from '../store'
 import DICOMMedia from '../assets/dicom/DICOMMedia'
+import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 
 export default Vue.extend({
     components: {
@@ -226,7 +227,49 @@ export default Vue.extend({
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
         this.synchronizer = new cornerstoneTools.Synchronizer(
             'cornerstonenewimage',
-            (e: any, s: any, t: any) => {
+            (synchronizer: any, source: any, target: any, event: any) => {
+                if (event.oldImage === undefined) {
+                    // A new stack was just loaded
+                    return
+                }
+                // Determine if target element should be synchronized with source element
+                if (this.$store.state.linkedItems.indexOf(source) === -1 ||
+                    this.$store.state.linkedItems.indexOf(target) === -1 ||
+                    source === target
+                ) {
+                    // Source or target is not linked, or they are the same element
+                    return
+                }
+                const enabledSrc: any = cornerstone.getEnabledElement(source)
+                const enabledTgt: any = cornerstone.getEnabledElement(target)
+                // Check that all required metadata is available
+                if (!enabledSrc.image || !enabledTgt.image ||
+                    !enabledSrc.image.imageId || !enabledTgt.image.imageId
+                ) {
+                    console.log("Image")
+                    return
+                }
+                const sourceOrt: any = (cornerstone.metaData.get('imagePlaneModule', enabledSrc.image.imageId) as any).imageOrientationPatient
+                const targetOrt: any = (cornerstone.metaData.get('imagePlaneModule', enabledTgt.image.imageId) as any).imageOrientationPatient
+                if (!sourceOrt || !targetOrt || sourceOrt.length !== 6 || targetOrt.length !== 6) {
+                    return
+                }
+                // The built-in synchronizer may attemp to synchronize images in different planes, which may lead to weird results.
+                // Calculate a sort of total difference of the image planes. An angle of Pi means one of the images is inverted.
+                const diff = [
+                    sourceOrt[0] - targetOrt[0] === Math.PI ? 0 : sourceOrt[0] - targetOrt[0],
+                    sourceOrt[1] - targetOrt[1] === Math.PI ? 0 : sourceOrt[1] - targetOrt[1],
+                    sourceOrt[2] - targetOrt[2] === Math.PI ? 0 : sourceOrt[2] - targetOrt[2],
+                    sourceOrt[3] - targetOrt[3] === Math.PI ? 0 : sourceOrt[3] - targetOrt[3],
+                    sourceOrt[4] - targetOrt[4] === Math.PI ? 0 : sourceOrt[4] - targetOrt[4],
+                    sourceOrt[5] - targetOrt[5] === Math.PI ? 0 : sourceOrt[5] - targetOrt[5]
+                ].reduce((a, b) => Math.abs(a) + Math.abs(b), 0)
+                if (diff > 1) {
+                    // TODO: This is a very simplistic check, should calculate the actual vectors and compare them
+                    return
+                }
+                // We can use the built-in synchronizer for images that have nearly or examptly the same orientation
+                cornerstoneTools.stackImagePositionSynchronizer(synchronizer, source, target, event)
             }
         )
         // Set up resize observer for the media container

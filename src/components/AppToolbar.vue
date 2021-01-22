@@ -22,7 +22,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { MEDigiI18n } from '../i18n'
+import cornerstoneTools from 'cornerstone-tools'
 import { ToolbarButton } from '../types/viewer'
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
@@ -31,15 +31,19 @@ interface ButtonState {
     enabled: boolean,
 }
 interface ButtonRow {
-    adjust: ButtonState
-    area: ButtonState
-    distance: ButtonState
-    link: ButtonState
-    pan: ButtonState
-    reset: ButtonState
-    scroll: ButtonState
-    undo: ButtonState
-    zoom: ButtonState
+    'Wwwc': ButtonState
+    'area': ButtonState
+    'distance': ButtonState
+    'flip': ButtonState
+    'invert': ButtonState
+    'left': ButtonState
+    'link': ButtonState
+    'Pan': ButtonState
+    'reset': ButtonState
+    'right': ButtonState
+    'StackScroll': ButtonState
+    'undo': ButtonState
+    'Zoom': ButtonState
 }
 export default Vue.extend({
     components: {
@@ -51,7 +55,7 @@ export default Vue.extend({
             buttons: [
                 {
                     // A unique identifier for the button. Must match a key in the ButtonRow interface.
-                    id: 'scroll',
+                    id: 'StackScroll',
                     // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
                     set: 0,
                     // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
@@ -63,14 +67,14 @@ export default Vue.extend({
                     tooltip:[ this.$t('Scroll image stack') ]
                 },
                 {
-                    id: 'pan',
+                    id: 'Pan',
                     set: 0,
                     groups: ['interact'],
                     icon: [ ['fal', 'arrows'] ],
                     tooltip: [ this.$t('Pan image') ]
                 },
                 {
-                    id: 'zoom',
+                    id: 'Zoom',
                     set: 0,
                     groups: ['interact'],
                     icon: [ ['fal', 'search'] ],
@@ -84,7 +88,7 @@ export default Vue.extend({
                     tooltip: [ this.$t('Invert image') ],
                 },
                 {
-                    id: 'adjust',
+                    id: 'Wwwc',
                     set: 1,
                     groups: ['interact'],
                     icon: [ ['fad', 'adjust'] ],
@@ -129,7 +133,7 @@ export default Vue.extend({
                 {
                     id: 'link',
                     set: 4,
-                    groups: ['interact'],
+                    groups: [],
                     icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
                     tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
                 },
@@ -150,23 +154,50 @@ export default Vue.extend({
             ],
             // Button states
             buttonStates: {
-                adjust:   { active: false, visible: true, enabled: true } as ButtonState,
-                area:     { active: false, visible: true, enabled: true } as ButtonState,
-                distance: { active: false, visible: true, enabled: true } as ButtonState,
-                flip:     { active: false, visible: true, enabled: true } as ButtonState,
-                invert:   { active: false, visible: true, enabled: true } as ButtonState,
-                left:     { active: false, visible: true, enabled: true } as ButtonState,
-                link:     { active: false, visible: true, enabled: true } as ButtonState,
-                pan:      { active: false, visible: true, enabled: true } as ButtonState,
-                reset:    { active: false, visible: true, enabled: true } as ButtonState,
-                right:    { active: false, visible: true, enabled: true } as ButtonState,
-                scroll:   { active: false, visible: true, enabled: true } as ButtonState,
-                undo:     { active: false, visible: true, enabled: true } as ButtonState,
-                zoom:     { active: false, visible: true, enabled: true } as ButtonState,
+                'Wwwc':         { active: false, visible: true, enabled: true } as ButtonState,
+                'area':         { active: false, visible: true, enabled: true } as ButtonState,
+                'distance':     { active: false, visible: true, enabled: true } as ButtonState,
+                'flip':         { active: false, visible: true, enabled: true } as ButtonState,
+                'invert':       { active: false, visible: true, enabled: true } as ButtonState,
+                'left':         { active: false, visible: true, enabled: true } as ButtonState,
+                'link':         { active: false, visible: true, enabled: true } as ButtonState,
+                'Pan':          { active: false, visible: true, enabled: true } as ButtonState,
+                'reset':        { active: false, visible: true, enabled: true } as ButtonState,
+                'right':        { active: false, visible: true, enabled: true } as ButtonState,
+                'StackScroll':  { active: false, visible: true, enabled: true } as ButtonState,
+                'undo':         { active: false, visible: true, enabled: true } as ButtonState,
+                'Zoom':         { active: false, visible: true, enabled: true } as ButtonState,
             } as ButtonRow,
             imageLink: null as number[] | null,
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
+            // Default options for different tool types
+            toolOptions: {
+                'Wwwc': {
+                    active: { mouseButtonMask: 1 },
+                    default: { mouseButtonMask: 2 },
+                },
+                'area': {
+                    active: { mouseButtonMask: 1 },
+                    default: {},
+                },
+                'distance': {
+                    active: { mouseButtonMask: 1 },
+                    default: {},
+                },
+                'Pan': {
+                    active: { mouseButtonMask: 1 },
+                    default: { mouseButtonMask: 1 },
+                },
+                'StackScroll': {
+                    active: { mouseButtonMask: 1, synchronizationContext: this.$root.synchronizer },
+                    default: {},
+                },
+                'Zoom': {
+                    active: { mouseButtonMask: 1 },
+                    default: { mouseButtonMask: 4 },
+                },
+            }
         }
     },
     computed: {
@@ -203,7 +234,7 @@ export default Vue.extend({
          * @param buttonId string ID of the button
          */
         buttonClicked: function (buttonId: string) {
-            if (buttonId === 'adjust') {
+            if (buttonId === 'Wwwc') {
                 this.toggleAdjust()
             } else if (buttonId === 'area') {
                 this.toggleArea()
@@ -217,17 +248,17 @@ export default Vue.extend({
                 this.rotate(-90)
             } else if (buttonId === 'link') {
                 this.toggleLink()
-            } else if (buttonId === 'pan') {
+            } else if (buttonId === 'Pan') {
                 this.togglePan()
             } else if (buttonId === 'reset') {
                 this.resetAll()
             } else if (buttonId === 'right') {
                 this.rotate(90)
-            } else if (buttonId === 'scroll') {
+            } else if (buttonId === 'StackScroll') {
                 this.toggleScroll()
             } else if (buttonId === 'undo') {
                 this.undoLast()
-            } else if (buttonId === 'zoom') {
+            } else if (buttonId === 'Zoom') {
                 this.toggleZoom()
             }
             // Deactivate other buttons that share a group with this button
@@ -300,7 +331,7 @@ export default Vue.extend({
                         return false
                     }
                     for (let i=0; i<this.$store.state.activeItems.length; i++) {
-                        if (this.$store.state.linkedItems.indexOf(this.$store.state.activeItems[i]) == -1) {
+                        if (this.$store.getters.linkedItemIds.indexOf(this.$store.state.activeItems[i]) == -1) {
                             // Return true if even one active item is not linked
                             return false
                         }
@@ -357,8 +388,14 @@ export default Vue.extend({
             this.buttonsUpdated = Date.now()
         },
         toggleAdjust: function () {
-            this.buttonStates.adjust.active = !this.buttonStates.adjust.active
-            this.$store.commit('set-active-tool', 'adjust')
+            this.buttonStates['Wwwc'].active = !this.buttonStates['Wwwc'].active
+            cornerstoneTools.setToolDisabled('StackScroll')
+            if (this.buttonStates['Wwwc'].active) {
+                cornerstoneTools.setToolActive('Wwwc', this.toolOptions['Wwwc'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('Wwwc')
+            }
+            this.$store.commit('set-active-tool', 'Wwwc')
         },
         toggleArea: function () {
             this.buttonStates.area.active = !this.buttonStates.area.active
@@ -378,22 +415,53 @@ export default Vue.extend({
             }
         },
         togglePan: function () {
-            this.buttonStates.pan.active = !this.buttonStates.pan.active
-            this.$store.commit('set-active-tool', 'pan')
+            this.buttonStates['Pan'].active = !this.buttonStates['Pan'].active
+            if (this.buttonStates['Pan'].active) {
+                cornerstoneTools.setToolActive('Pan', this.toolOptions['Pan'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('Pan')
+            }
+            this.$store.commit('set-active-tool', 'Pan')
         },
         toggleScroll: function () {
-            this.buttonStates.scroll.active = !this.buttonStates.scroll.active
-            this.$store.commit('set-active-tool', 'scroll')
+            this.buttonStates['StackScroll'].active = !this.buttonStates['StackScroll'].active
+            if (this.buttonStates['StackScroll'].active) {
+                cornerstoneTools.setToolActive('StackScroll', this.toolOptions['StackScroll'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('StackScroll')
+            }
+            this.$store.commit('set-active-tool', 'StackScroll')
         },
         toggleZoom: function () {
-            this.buttonStates.zoom.active = !this.buttonStates.zoom.active
-            this.$store.commit('set-active-tool', 'zoom')
+            this.buttonStates['Zoom'].active = !this.buttonStates['Zoom'].active
+            if (this.buttonStates['Zoom'].active) {
+                cornerstoneTools.setToolActive('Zoom', this.toolOptions['Zoom'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('Zoom')
+            }
+            this.$store.commit('set-active-tool', 'Zoom')
         },
         undoLast: function () {
 
         },
     },
     mounted () {
+        // Subscribe to store dispatches
+        this.$store.subscribeAction((action) => {
+                switch (action.type) {
+                    case 'tools:re-enable-active':
+                        if (this.$store.state.activeTool) {
+                            // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
+                            const toolOpts = this.toolOptions
+                            type optType = typeof toolOpts; // Typescript gimmics
+                            cornerstoneTools.setToolActive(
+                                this.$store.state.activeTool,
+                                this.toolOptions[this.$store.state.activeTool as keyof optType].active
+                            )
+                        }
+                        break
+                }
+        })
         // Start listening to some global hooks
         this.$root.$on('setDisabledButtons', (buttonIds: string[]) => {
             this.setDisabledButtons(buttonIds)
