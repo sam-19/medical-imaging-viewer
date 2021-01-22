@@ -246,7 +246,6 @@ export default Vue.extend({
                 if (!enabledSrc.image || !enabledTgt.image ||
                     !enabledSrc.image.imageId || !enabledTgt.image.imageId
                 ) {
-                    console.log("Image")
                     return
                 }
                 const sourcePlane: any = (cornerstone.metaData.get('imagePlaneModule', enabledSrc.image.imageId) as any)
@@ -258,12 +257,14 @@ export default Vue.extend({
                 }
                 // The built-in synchronizer may attemp to synchronize images in different orientations, which may lead to weird results.
                 // Check for compatible orientations by calculating the angle between the two image plane vectors.
-                const sourceCross = (new cornerstoneMath.Vector3(...sourcePlane.columnCosines))
-                                    .cross(new cornerstoneMath.Vector3(...sourcePlane.rowCosines))
-                const targetCross = (new cornerstoneMath.Vector3(...targetPlane.columnCosines))
-                                    .cross(new cornerstoneMath.Vector3(...targetPlane.rowCosines))
-                // Tolerance of Pi/12 = 15 degrees
-                if (sourceCross.angleTo(targetCross) > Math.PI/12) {
+                const sourceV = (new cornerstoneMath.Vector3(...sourcePlane.columnCosines))
+                                .cross(new cornerstoneMath.Vector3(...sourcePlane.rowCosines))
+                const targetV = (new cornerstoneMath.Vector3(...targetPlane.columnCosines))
+                                .cross(new cornerstoneMath.Vector3(...targetPlane.rowCosines))
+                // Tolerance of Pi/12 = 15 degrees.
+                // A difference of 1*Pi means the vectors are inverted, but at least flipping the view doesn't result in this.
+                // Will have to consider adding a special case if such examples turn up later.
+                if (sourceV.angleTo(targetV) > Math.PI/12) {
                     return
                 }
                 // We can use the built-in synchronizer for images that have nearly or examptly the same orientation
