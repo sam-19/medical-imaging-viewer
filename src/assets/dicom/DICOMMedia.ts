@@ -6,8 +6,10 @@
  */
 import { MediaResource } from '../../types/assets'
 class DICOMMedia implements MediaResource {
+    protected _active: boolean = false
     protected _dimensions: number[] = [0, 0]
     protected _id: string
+    protected _linked: boolean = false
     protected _modality?: string
     protected _name: string
     protected _size: number
@@ -28,6 +30,18 @@ class DICOMMedia implements MediaResource {
     }
     get id () {
         return this._id
+    }
+    get isActive () {
+        return this._active
+    }
+    set isActive (val: boolean) {
+        this._active = val
+    }
+    get isLinked () {
+        return this._linked
+    }
+    set isLinked (val: boolean) {
+        this._linked = val
     }
     get isStack () {
         return this._type.endsWith(':stack')

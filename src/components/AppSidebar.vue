@@ -11,10 +11,12 @@
                 :count="item.size"
                 :cover="item.coverImage"
                 :id="item.id"
+                :index="idx"
                 :label="item.modality"
                 :stack="item.isStack"
                 :title="item.name"
                 :type="item.type"
+                v-on:toggle-active-item="toggleActiveItem"
             />
             <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
@@ -40,11 +42,11 @@ export default Vue.extend({
     props: {
         appName: String,
         items: Array,
-        activeItems: Array,
     },
     data () {
         return {
             dropZone: null as HTMLElement | null,
+            lastActivated: null as number | null,
             mediaItems: [] as MediaResource[],
         }
     },
@@ -95,6 +97,29 @@ export default Vue.extend({
             this.clearDropZoneHighlight()
             // Pass file drop event to parent component
             this.$emit('file-dropped', event)
+        },
+        toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
+            (this.items[itemIdx] as MediaResource).isActive = !(this.items[itemIdx] as MediaResource).isActive
+            // If the element was activated, check if this is a shift-click to activate a range of elements
+            if ((this.items[itemIdx] as MediaResource).isActive && this.lastActivated !== null
+                && this.lastActivated !== itemIdx && event.shiftKey)
+            {
+                const diff = this.lastActivated - itemIdx
+                for (let i=1; i<=Math.abs(diff); i++) {
+                    // Either add or substract i from starting index
+                    const curIdx = itemIdx + (diff < 0 ? -i : i)
+                    if (!(this.items[curIdx] as MediaResource).isActive) {
+                        (this.items[curIdx] as MediaResource).isActive = true
+                    }
+                }
+            }
+            if ((this.items[itemIdx] as MediaResource).isActive) {
+                // Mark as last activated
+                this.lastActivated = itemIdx
+            } else {
+                // Unset last activated
+                this.lastActivated = null
+            }
         },
     },
     mounted () {

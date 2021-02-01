@@ -18,6 +18,8 @@ interface FileLoader {
 interface MediaResource {
     dimensions: number[]
     id: string
+    isActive: boolean
+    isLinked: boolean
     isStack: boolean
     modality?: string
     name: string       // Display name for the media element
@@ -27,20 +29,20 @@ interface MediaResource {
 }
 
 interface ImageResource extends MediaResource {
-    modality?: string
+    columns?: number
     instanceNumber?: number
-    sopClassUID?: string
-    sopInstanceUID?: string
+    modality?: string
     numberOfFrames?: number
     rows?: number
-    columns?: number
+    sopClassUID?: string
+    sopInstanceUID?: string
     readMetadataFromImage(image: any): void
     setCoverImage(index?: number): void
 }
 interface ImageStackResource extends MediaResource {
     coverImage?: string
-    images: ImageResource[]
     currentPosition: number
+    images: ImageResource[]
     linkedPosition: number
     masterLinkPosition: number
 }

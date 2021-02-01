@@ -10,8 +10,8 @@ import { ImageResource, ImageStackResource } from '../../types/assets'
 
 class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: string
-    private _images: ImageResource[]
     private _currentPosition: number = 0
+    private _images: ImageResource[]
     private _linkedPosition: number = 0
     private _masterLinkPosition: number = 0
     private _preloaded: number = 0
@@ -29,9 +29,6 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     set coverImage (image: string | undefined) {
         this._coverImage = image
     }
-    get images () {
-        return this._images
-    }
     get currentPosition () {
         return this._currentPosition
     }
@@ -39,6 +36,9 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
         if (pos >= 0 && pos < this._images.length) {
             this._currentPosition = pos
         }
+    }
+    get images () {
+        return this._images
     }
     get linkedPosition () {
         return this._linkedPosition

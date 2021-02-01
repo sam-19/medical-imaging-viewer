@@ -1,5 +1,5 @@
 <template>
-    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="toggleActive()">
+    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="$emit('toggle-active-item', index, $event)">
         <div class="medigi-viewer-sidebar-icon">
             <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type" />
         </div>
@@ -23,6 +23,7 @@ export default Vue.extend({
         count: Number,
         cover: String,
         id: String,
+        index: Number,
         label: String,
         stack: Boolean,
         title: String,

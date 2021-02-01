@@ -10,7 +10,6 @@
                 :items="dicomElements"
                 :activeItems="activeElements"
                 v-on:file-dropped="handleFileDrop($event)"
-                v-on:toggle-item="toggleSidebarItem($event)"
             >
             </ViewerSidebar>
         </div>
@@ -41,7 +40,7 @@ import Hammer from 'hammerjs'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { ImageResource, ImageStackResource }from '../types/assets'
+import { ImageResource, ImageStackResource, MediaResource }from '../types/assets'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
@@ -63,7 +62,6 @@ export default Vue.extend({
             cornerstone: cornerstone,
             synchronizer: null as any,
             // Loaded elements
-            activeElements: [] as number[],
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             // Other properties
             ctrlDown: false,
@@ -210,19 +208,6 @@ export default Vue.extend({
                 this.themeChange = window.setTimeout(() => {
                     appEl.classList.remove('medigi-viewer-theme-change')
                 }, 2100)
-            }
-        },
-        toggleSidebarItem: function (itemIdx: number) {
-            // Add or remove intemIdx from active items
-            const actIdx = this.activeElements.indexOf(itemIdx)
-            if (actIdx !== -1) {
-                this.activeElements.splice(actIdx, 1)
-            } else {
-                this.activeElements.push(itemIdx)
-                // Sort the items in the correct order
-                this.activeElements.sort((a, b) => {
-                    return a - b
-                })
             }
         },
     },
