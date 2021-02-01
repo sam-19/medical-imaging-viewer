@@ -17,13 +17,13 @@
                 :type="item.type"
             />
             <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
-            <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
-                <span>{{ $t('Cache status') }}</span>
-                <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
-                <span v-if="cacheSize">
-                    - {{ cacheUtil }}% {{ $t('usage') }}
-                </span>
-            </div>
+        </div>
+        <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
+            <span>{{ $t('Cache status') }}</span>
+            <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
+            <span v-if="cacheSize">
+                - {{ cacheUtil }}% {{ $t('usage') }}
+            </span>
         </div>
     </div>
 </template>
@@ -113,14 +113,14 @@ export default Vue.extend({
 <style scoped>
 .medigi-viewer-sidebar > div {
     position: relative;
-    padding: 0 10px 10px 10px;
+    padding: 0 0 10px 10px;
     width: 300px;
-    height: calc(100% - 70px);
-    margin-top: 70px;
+    height: calc(100% - 80px - 50px);
+    margin-top: 80px;
 }
 .medigi-viewer-sidebar-dropdown {
     position: absolute;
-    top: -60px;
+    top: -70px;
     min-height: 60px;
     width: 280px;
     border: solid 2px var(--medigi-viewer-border);
@@ -162,10 +162,12 @@ export default Vue.extend({
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow-y: scroll;
 }
 .medigi-viewer-dropzone {
     flex-grow: 1;
-    margin: 10px 0;
+    margin-bottom: 10px;
+    min-height: 140px;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
         background-color: var(--medigi-viewer-background-highlight);

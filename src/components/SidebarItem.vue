@@ -56,7 +56,7 @@ export default Vue.extend({
     height: 139px;
     width: 100%;
     padding: 5px;
-    margin-top: 10px;
+    margin-bottom: 10px;
     cursor: pointer;
     border: 2px solid var(--medigi-viewer-border-faint);
     border-radius: 10px;
