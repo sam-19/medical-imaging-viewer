@@ -20,6 +20,7 @@ export default Vue.extend({
         DICOMMediaIcon: () => import('./DICOMMediaIcon.vue'),
     },
     props: {
+        active: Boolean,
         count: Number,
         cover: String,
         id: String,
@@ -32,18 +33,9 @@ export default Vue.extend({
     },
     data () {
         return {
-            active: false,
         }
     },
     methods: {
-        toggleActive: function () {
-            if (!this.active) {
-                this.$store.commit('add-active-item', this.id)
-            } else {
-                this.$store.commit('remove-active-item', this.id)
-            }
-            this.active = !this.active
-        }
     },
     mounted () {
     },

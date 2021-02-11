@@ -8,6 +8,7 @@
         </div>
         <div class="medigi-viewer-sidebar-items">
             <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
+                :active="item.isActive"
                 :count="item.size"
                 :cover="item.coverImage"
                 :id="item.id"
@@ -33,7 +34,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { MediaResource } from '../types/assets'
+import { MediaResource, ImageStackResource } from '../types/assets'
 
 export default Vue.extend({
     components: {
@@ -99,27 +100,31 @@ export default Vue.extend({
             this.$emit('file-dropped', event)
         },
         toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
-            (this.items[itemIdx] as MediaResource).isActive = !(this.items[itemIdx] as MediaResource).isActive
-            // If the element was activated, check if this is a shift-click to activate a range of elements
-            if ((this.items[itemIdx] as MediaResource).isActive && this.lastActivated !== null
-                && this.lastActivated !== itemIdx && event.shiftKey)
-            {
-                const diff = this.lastActivated - itemIdx
-                for (let i=1; i<=Math.abs(diff); i++) {
-                    // Either add or substract i from starting index
-                    const curIdx = itemIdx + (diff < 0 ? -i : i)
-                    if (!(this.items[curIdx] as MediaResource).isActive) {
-                        (this.items[curIdx] as MediaResource).isActive = true
+            const item = this.items[itemIdx] as MediaResource
+            item.isActive = !item.isActive
+            if (item.isActive) {
+                // If the element was activated, check if this is a shift-click to activate a range of elements
+                if (this.lastActivated !== null  && this.lastActivated !== itemIdx && event.shiftKey) {
+                    const diff = this.lastActivated - itemIdx
+                    for (let i=1; i<=Math.abs(diff); i++) {
+                        // Either add or substract i from starting index
+                        const curIdx = itemIdx + (diff < 0 ? -i : i)
+                        if (!(this.items[curIdx] as MediaResource).isActive) {
+                            (this.items[curIdx] as MediaResource).isActive = true
+                        }
                     }
                 }
-            }
-            if ((this.items[itemIdx] as MediaResource).isActive) {
                 // Mark as last activated
                 this.lastActivated = itemIdx
             } else {
                 // Unset last activated
                 this.lastActivated = null
+                if (item.isStack && item.isLinked) {
+                    // Unlink deactivated items
+                    (this.items[itemIdx] as ImageStackResource).unlink()
+                }
             }
+            this.$emit('element-status-changed')
         },
     },
     mounted () {

@@ -49,6 +49,12 @@ export default Vue.extend({
     components: {
         ToolbarButton: () => import('./ToolbarButton.vue'),
     },
+    props: {
+        allLinked: {
+            type: Boolean,
+            default: false
+        },
+    },
     data () {
         return {
             // This array is used to build the button row
@@ -292,7 +298,7 @@ export default Vue.extend({
             if (typeof button !== undefined) {
                 return button.icon[
                     button.icon.length === 1 ||
-                    !(this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active) ? 0 : 1
+                    !this.isActive(button.id) ? 0 : 1
                 ]
             }
             return []
@@ -309,7 +315,7 @@ export default Vue.extend({
             if (typeof button !== undefined) {
                 return button.tooltip[
                     button.tooltip.length === 1 ||
-                    !(this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active) ? 0 : 1
+                    !this.isActive(button.id) ? 0 : 1
                 ].toString()
             }
             return ''
@@ -326,19 +332,9 @@ export default Vue.extend({
         isActive (button: string): boolean {
             switch (button) {
                 case 'link':
-                    // Display link icon if no items are selected
-                    if (!this.$store.state.activeItems.length) {
-                        return false
-                    }
-                    for (let i=0; i<this.$store.state.activeItems.length; i++) {
-                        if (this.$store.getters.linkedItemIds.indexOf(this.$store.state.activeItems[i]) == -1) {
-                            // Return true if even one active item is not linked
-                            return false
-                        }
-                    }
-                    return true
+                    return this.allLinked
                 default:
-                    return false
+                    return this.buttonStates[button as keyof ButtonRow].active
             }
         },
         /**
@@ -408,10 +404,10 @@ export default Vue.extend({
         toggleLink: function () {
             if (this.isActive('link')) {
                 // Unlink stacks
-                this.$store.dispatch('image:link-stacks', false)
+                this.$emit('link-all-resources', false)
             } else {
                 // Link stacks
-                this.$store.dispatch('image:link-stacks', true)
+                this.$emit('link-all-resources', true)
             }
         },
         togglePan: function () {

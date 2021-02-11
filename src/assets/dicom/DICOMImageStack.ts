@@ -12,8 +12,10 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     private _coverImage?: string
     private _currentPosition: number = 0
     private _images: ImageResource[]
-    private _linkedPosition: number = 0
-    private _masterLinkPosition: number = 0
+    private _linkedPosition: number = -1
+    // We need to save the position where the stack is linked if we want
+    // to allow scrolling relative to that starting point.
+    private _masterLinkPosition: number = -1
     private _preloaded: number = 0
 
     constructor (size: number, name: string) {
@@ -39,6 +41,9 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     }
     get images () {
         return this._images
+    }
+    get isLinked () {
+        return this._linkedPosition !== -1
     }
     get linkedPosition () {
         return this._linkedPosition
@@ -80,6 +85,18 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
             }
         }
         return -1
+    }
+    /**
+     * Link this image stack at the given master link and local positions.
+     * @param masterLinkPos master link position
+     * @param localPos local position (stack image index); default current position
+     */
+    public linkPosition (masterLinkPos: number, localPos?: number) {
+        if (localPos === undefined) {
+            localPos = this._currentPosition
+        }
+        this._linkedPosition = localPos
+        this._masterLinkPosition = masterLinkPos
     }
     public push (image: ImageResource) {
         if (!this._images.length) {
@@ -144,6 +161,13 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
                 return 0
             }
         })
+    }
+    /**
+     * Unlink this image stack.
+     */
+    public unlink () {
+        this._linkedPosition = -1
+        this._masterLinkPosition = -1
     }
 }
 

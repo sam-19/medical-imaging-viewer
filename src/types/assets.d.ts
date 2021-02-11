@@ -4,6 +4,8 @@
  * @license    MIT
  */
 
+import { Image } from "cornerstone-core";
+
 interface FileSystemItem {
     name: string
     path: string
@@ -45,6 +47,16 @@ interface ImageStackResource extends MediaResource {
     images: ImageResource[]
     linkedPosition: number
     masterLinkPosition: number
+    add(image: ImageResource): void
+    getIndexById(id: string): number
+    getIndexByUrl(url: string): number
+    linkPosition(masterLinkPos: number, localPos?: number): void
+    push(image: ImageResource): void
+    preloadAndSortImages?(): Promise<boolean>
+    setCurrentPositionById(id: string): void
+    setCurrentPositionByUrl(url: string): void
+    sortImages(key: 'i' | 'n'): void
+    unlink(): void
 }
 
 export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource }

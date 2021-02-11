@@ -2,25 +2,29 @@
 
     <div :id="`${appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
         <div class="medigi-viewer-toolbar">
-            <ViewerToolbar></ViewerToolbar>
+            <AppToolbar
+                :allLinked="allResourcesLinked"
+                v-on:link-all-resources="linkAllResources"
+            >
+            </AppToolbar>
         </div>
         <div class="medigi-viewer-sidebar">
-            <ViewerSidebar
+            <AppSidebar
                 :appName="appName"
                 :items="dicomElements"
-                :activeItems="activeElements"
-                v-on:file-dropped="handleFileDrop($event)"
+                v-on:element-status-changed="updateElements"
+                v-on:file-dropped="handleFileDrop"
             >
-            </ViewerSidebar>
+            </AppSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="this.$store.state.activeItems.length" class="medigi-viewer-images">
-                <DICOMImageDisplay v-for="(resource, idx) in this.$store.state.activeItems"
-                    :key="`${appName}-medigi-viewer-element-${resource}`"
+            <div v-if="activeItems.length" class="medigi-viewer-images">
+                <DICOMImageDisplay v-for="(resource, idx) in activeItems"
+                    :key="`${appName}-medigi-viewer-element-${resource.id}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
-                    :listPosition="idx"
-                    :resource="getItemById(resource)"
+                    :listPosition="[idx, activeItems.length]"
+                    :resource="resource"
                 >
                 </DICOMImageDisplay>
             </div>
@@ -50,9 +54,9 @@ import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 
 export default Vue.extend({
     components: {
+        AppSidebar: () => import('./AppSidebar.vue'),
+        AppToolbar: () => import('./AppToolbar.vue'),
         DICOMImageDisplay: () => import('./DICOMImageDisplay.vue'),
-        ViewerSidebar: () => import('./AppSidebar.vue'),
-        ViewerToolbar: () => import('./AppToolbar.vue'),
     },
     props: {
         appName: String,
@@ -69,15 +73,46 @@ export default Vue.extend({
             mediaContainerSize: [0, 0],
             themeChange: 0,
             wadoImageLoader: null,
+            // React to some property changes
+            elementsChanged: 0,
         }
     },
     computed: {
+        activeItems (): (ImageResource | ImageStackResource)[] {
+            this.elementsChanged
+            // Array.filter is a pain to make work in TypeScript
+            const items = []
+            for (let i=0; i<this.dicomElements.length; i++) {
+                if (this.dicomElements[i].isActive) {
+                    items.push(this.dicomElements[i])
+                }
+            }
+            return items
+        },
+        allResourcesLinked (): boolean {
+            this.elementsChanged
+            if (!this.dicomElements.length) {
+                // Show link icon if there are no elements
+                return false
+            }
+            let someLinkable = false
+            const items = this.activeItems
+            for (let i=0; i<items.length; i++) {
+                if (items[i].isStack && !items[i].isLinked) {
+                    return false
+                } else if (!someLinkable && items[i].isStack) {
+                    someLinkable = true
+                }
+            }
+            return someLinkable // Show link icon if no linkable elements exist
+        },
     },
     methods: {
         addFileAsImage: function (file: File) {
             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
             if (imageId) {
                 (this.dicomElements as ImageResource[]).push(new DICOMImage(file.name, file.size, imageId))
+                this.updateElements()
             }
         },
         addFilesAsImageStack: function (files: File[], name: string) {
@@ -98,6 +133,7 @@ export default Vue.extend({
                 // Add cover image
                 (this.dicomElements as ImageStackResource[]).push(imgStack)
             }
+            this.updateElements()
         },
         getItemById: function (id: string): ImageResource | ImageStackResource | undefined {
             for (let i=0; i<this.dicomElements.length; i++) {
@@ -116,7 +152,10 @@ export default Vue.extend({
                 event.dataTransfer.dropEffect = 'copy'
             }
         },
-
+        /**
+         * Handle a file or directory dropped in the dropzone
+         * @param event
+         */
         handleFileDrop: async function (event: DragEvent) {
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
@@ -170,6 +209,39 @@ export default Vue.extend({
                 // TODO: Implement errors in the file loader
             })
         },
+        isElementActive: function (id: string): boolean {
+            const items = this.activeItems
+            for (let i=0; i<items.length; i++) {
+                if (items[i].id === id) {
+                    return true
+                }
+            }
+            return false
+        },
+        isElementLinked: function (id: string): boolean {
+            const items = this.activeItems
+            for (let i=0; i<items.length; i++) {
+                if (items[i].id === id) {
+                    return items[i].isStack ? items[i].isLinked : false
+                }
+            }
+            return false
+        },
+        linkAllResources: function (value: boolean) {
+            for (let i=0; i<this.dicomElements.length; i++) {
+                if (this.dicomElements[i].isActive && this.dicomElements[i].isStack
+                    && this.dicomElements[i].isLinked !== value
+                ) {
+                    if (value) {
+                        (this.dicomElements[i] as ImageStackResource)
+                        .linkPosition(this.$store.state.linkedScrollPosition)
+                    } else {
+                        (this.dicomElements[i] as ImageStackResource).unlink()
+                    }
+                    this.updateElements()
+                }
+            }
+        },
         mediaResized: function () {
             // Deduct padding and borders from element dimensions
             this.mediaContainerSize = [
@@ -210,6 +282,12 @@ export default Vue.extend({
                 }, 2100)
             }
         },
+        /**
+         * Force a reactive update on the element list.
+         */
+        updateElements: function () {
+            this.elementsChanged++
+        }
     },
     mounted () {
         // Set up Cornerstone Tools
@@ -235,7 +313,7 @@ export default Vue.extend({
                     }
                 }
                 // Make sure that this is an actual active element and an actual scroll event
-                if (srcEl === null || this.$store.state.activeItems.indexOf(srcId) === -1 || !event) {
+                if (srcEl === null || !this.isElementActive(srcId) || !event) {
                     return
                 }
                 // Synchronize stack position
@@ -249,10 +327,7 @@ export default Vue.extend({
                     return
                 }
                 // Determine if target element should be synchronized with source element
-                if (this.$store.state.linkedItems.indexOf(source) === -1 ||
-                    this.$store.state.linkedItems.indexOf(target) === -1 ||
-                    source === target
-                ) {
+                if (!this.isElementLinked(srcId) || !this.isElementLinked(tgtId) || source === target) {
                     // Source or target is not linked, or they are the same element
                     return
                 }
@@ -293,10 +368,10 @@ export default Vue.extend({
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Control' && !this.ctrlRegistered) {
                 // Refresh linked position and master stack position in each active stack element
-                for (let i=0; i<this.dicomElements.length; i++) {
-                    if (this.$store.state.activeItems.indexOf(this.dicomElements[i].id) !== -1 && this.dicomElements[i].isStack) {
-                        ;(this.dicomElements[i] as ImageStackResource).linkedPosition = (this.dicomElements[i] as ImageStackResource).currentPosition
-                        ;(this.dicomElements[i] as ImageStackResource).masterLinkPosition = this.$store.state.linkedScrollPosition
+                const items = this.activeItems
+                for (let i=0; i<items.length; i++) {
+                    if (items[i].isStack) {
+                        (items[i] as ImageStackResource).linkPosition(this.$store.state.linkedScrollPosition)
                     }
                 }
                 this.ctrlDown = true
