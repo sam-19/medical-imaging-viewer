@@ -34,8 +34,8 @@ export default Vue.extend({
     },
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
+        layoutPosition: Array, // Element position in layout grid [[colPos, cols], [rowPos, rows]]
         linkedStackPos: Number, // Linked stack position
-        listPosition: Array, // Position of this image in the image list as [index, list length]
         resource: Object, // DICOMResource or DICOMImageStack
     },
     data () {
@@ -64,8 +64,8 @@ export default Vue.extend({
         containerSize (value: Array<number>, old: Array<number>) {
             this.resizeImage(value)
         },
-        listPosition (value: Array<number>, old: Array<number>) {
-            this.resizeImage(this.containerSize as number[])
+        layoutPosition (value: Array<number>, old: Array<number>) {
+            this.resizeImage()
         },
     },
     computed: {
@@ -230,86 +230,24 @@ export default Vue.extend({
          * Resize the displayed image into given dimensions.
          * @param {number[]} dimensions [width, height].
          */
-        resizeImage: function (dimensions: number[]) {
+        resizeImage: function (dimensions?: number[]) {
             if (!this.dicomEl || !this.dicomWrapper) {
                 return
             }
+            dimensions = dimensions || this.containerSize as number[]
+            const colPos = this.layoutPosition[0] as number[]
+            const rowPos = this.layoutPosition[1] as number[]
+            const isRowFirst = (colPos[0] === 0)
+            const isColLast = (rowPos[0] === rowPos[1] - 1)
             // Remove 20 px for padding
-            let hPad = 20
-            let vPad = 20
-            this.dicomWrapper.style.borderLeft = 'none'
-            this.dicomWrapper.style.borderRight = 'none'
-            this.dicomWrapper.style.borderBottom = 'none'
-            const pos = this.listPosition[0] as number
-            const elCount = this.listPosition[1] as number
-            if (elCount === 1) {
-                // Only one item in the list, we can take up the whole space
-                this.dicomEl.style.width = `${dimensions[0] - 20}px`
-                this.dicomEl.style.height = `${dimensions[1] - 20}px`
-            } else if (elCount === 2) {
-                // Place items side by side
-                // Add a left border to the second element
-                if (pos) {
-                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
-                    hPad++ // Add border to padding
-                }
-                this.dicomEl.style.width = `${dimensions[0]/2 - hPad}px`
-                this.dicomEl.style.height = `${dimensions[1] - vPad}px`
-            } else if (elCount < 5) {
-                // A matrix of 2x2
-                // Add a left border to right side elements
-                if (pos%2) {
-                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
-                    hPad++ // Add border to padding
-                }
-                // Add bottom border to top elements
-                if (pos < 2) {
-                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
-                    vPad++
-                }
-                // If the bottom row is left missing one item, add right border to last element
-                if (elCount === 3 && pos === 2) {
-                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
-                }
-                this.dicomEl.style.width = `${dimensions[0]/2 - hPad}px`
-                this.dicomEl.style.height = `${dimensions[1]/2 - vPad}px`
-            } else if (elCount < 7) {
-                // A matrix of 3x2
-                // Add a left border to middle and right side elements
-                if (pos%3) {
-                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
-                    hPad++ // Add border to padding
-                }
-                // Add bottom border to top elements
-                if (pos < 3) {
-                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
-                    vPad++
-                }
-                // If the bottom row is left missing one item, add right border to last element
-                if (elCount === 5 && pos === 4) {
-                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
-                }
-                this.dicomEl.style.width = `${dimensions[0]/3 - hPad}px`
-                this.dicomEl.style.height = `${dimensions[1]/2 - vPad}px`
-            } else if (elCount < 10) {
-                // A matrix of 3x3
-                // Add a left border to middle and right side elements
-                if (pos%3) {
-                    this.dicomWrapper.style.borderLeft = '1px solid var(--medigi-viewer-border-faint)'
-                    hPad++ // Add border to padding
-                }
-                // Add bottom border to top and mid row elements
-                if (pos < 6) {
-                    this.dicomWrapper.style.borderBottom = '1px solid var(--medigi-viewer-border-faint)'
-                    vPad++
-                }
-                // If the bottom row is left missing the last item(s), add right border to final element
-                if (elCount === 7 && pos === 6 || elCount === 8 && pos === 7) {
-                    this.dicomWrapper.style.borderRight = '1px solid var(--medigi-viewer-border-faint)'
-                }
-                this.dicomEl.style.width = `${dimensions[0]/3 - hPad}px`
-                this.dicomEl.style.height = `${dimensions[1]/3 - vPad}px`
-            }
+            let hPad = isRowFirst ? 20 : 21
+            let vPad = isColLast ? 20 : 21
+            this.dicomEl.style.width = `${dimensions[0]/colPos[1] - hPad}px`
+            this.dicomEl.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
+            this.dicomWrapper.style.borderLeft
+                = isRowFirst? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+            this.dicomWrapper.style.borderBottom
+                = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
             this.$root.cornerstone.resize(this.dicomEl, false)
             // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
@@ -604,7 +542,7 @@ export default Vue.extend({
 <style scoped>
 .medigi-viewer-image-wrapper {
     position: relative;
-    display: inline-block;
+    float: left;
     padding: 10px;
 }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {

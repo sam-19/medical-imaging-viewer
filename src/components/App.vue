@@ -5,6 +5,7 @@
             <AppToolbar
                 :allLinked="allResourcesLinked"
                 v-on:link-all-resources="linkAllResources"
+                v-on:set-element-layout="setElementLayout"
             >
             </AppToolbar>
         </div>
@@ -18,17 +19,24 @@
             </AppSidebar>
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div v-if="activeItems.length" class="medigi-viewer-images">
+            <div class="medigi-viewer-images">
+                <!-- Add active DICOM images -->
                 <DICOMImageDisplay v-for="(resource, idx) in activeItems"
                     :key="`${appName}-medigi-viewer-element-${resource.id}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
-                    :listPosition="[idx, activeItems.length]"
+                    :layoutPosition="getElementLayoutPosition(idx)"
                     :resource="resource"
                 >
                 </DICOMImageDisplay>
+                <!-- Add a necessary amount of placeholder elements -->
+                <DICOMImagePlaceholder v-for="idx in getEmptyLayoutCells()"
+                    :key="`${appName}-medigi-viewer-placeholder-${idx}`"
+                    :containerSize="mediaContainerSize"
+                    :layoutPosition="getElementLayoutPosition(idx)"
+                >
+                </DICOMImagePlaceholder>
             </div>
-            <div v-else><!-- TODO: Placeholder div --></div>
         </div>
     </div>
 
@@ -57,6 +65,7 @@ export default Vue.extend({
         AppSidebar: () => import('./AppSidebar.vue'),
         AppToolbar: () => import('./AppToolbar.vue'),
         DICOMImageDisplay: () => import('./DICOMImageDisplay.vue'),
+        DICOMImagePlaceholder: () => import('./DICOMImagePlaceholder.vue'),
     },
     props: {
         appName: String,
@@ -67,6 +76,7 @@ export default Vue.extend({
             synchronizer: null as any,
             // Loaded elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
+            elementLayout: null as null | number[],
             // Other properties
             ctrlDown: false,
             ctrlRegistered: false,
@@ -85,6 +95,12 @@ export default Vue.extend({
             for (let i=0; i<this.dicomElements.length; i++) {
                 if (this.dicomElements[i].isActive) {
                     items.push(this.dicomElements[i])
+                }
+                // Make sure we don't exceed predefined grid dimensions
+                if (this.elementLayout && this.elementLayout[0] && this.elementLayout[1]
+                    && i === this.elementLayout[0]*this.elementLayout[1]
+                ) {
+                    return items
                 }
             }
             return items
@@ -134,6 +150,48 @@ export default Vue.extend({
                 (this.dicomElements as ImageStackResource[]).push(imgStack)
             }
             this.updateElements()
+        },
+        getElementLayoutPosition: function (idx: number): number[][] {
+            const activeNum = this.activeItems.length
+            const layout = this.elementLayout || [0, 0]
+            if (!layout[0] && !layout[1]) {
+                // Calculate grid dimensions automatically.
+                // Number of colums >= number of rows, i.e. expand columns before rows.
+                layout[0] = Math.ceil(Math.sqrt(activeNum))
+            } else if (!layout[0]) {
+                // Only cols are undefined
+                layout[0] = Math.ceil(activeNum/layout[1])
+            }
+            if (!layout[1]) {
+                // Calculate grid rows
+                layout[1] = Math.ceil(activeNum/layout[0])
+            }
+            // Calculate element position within the layout grid
+            const colPos = Math.floor(idx/layout[0])
+            const rowPos = idx%layout[0]
+            return [[rowPos, layout[0]], [colPos, layout[1]]]
+        },
+        getEmptyLayoutCells: function (): number[] {
+            const activeNum = this.activeItems.length
+            const layout = this.elementLayout || [0, 0]
+            if (!layout[0] && !layout[1]) {
+                // Calculate grid dimensions automatically.
+                // Number of colums >= number of rows, i.e. expand columns before rows.
+                layout[0] = Math.ceil(Math.sqrt(activeNum))
+            } else if (!layout[0]) {
+                // Only cols are undefined
+                layout[0] = Math.ceil(activeNum/layout[1])
+            }
+            if (!layout[1]) {
+                // Calculate grid rows
+                layout[1] = Math.ceil(activeNum/layout[0])
+            }
+            const totalCells = layout[0]*layout[1]
+            const indices = []
+            for (let i=activeNum; i<totalCells; i++) {
+                indices.push(i)
+            }
+            return indices
         },
         getItemById: function (id: string): ImageResource | ImageStackResource | undefined {
             for (let i=0; i<this.dicomElements.length; i++) {
@@ -248,6 +306,9 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetWidth - 2,
                 (this.$refs['media'] as HTMLElement).offsetHeight - 2
             ]
+        },
+        setElementLayout: function (layout: number[] | null) {
+            this.elementLayout = layout
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.appName}-medigi-viewer`)

@@ -13,6 +13,7 @@ import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
 import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
 import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows'
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
+import { faBorderAll } from '@fortawesome/pro-light-svg-icons/faBorderAll'
 import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
 import { faCompress } from '@fortawesome/pro-duotone-svg-icons/faCompress'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
@@ -39,6 +40,7 @@ library.add(faAdjust)
 library.add(faArrowsAltH)
 library.add(faArrowsL)
 library.add(faArrowsR)
+library.add(faBorderAll)
 library.add(faClone)
 library.add(faCompress)
 library.add(faDrawCircleL)
