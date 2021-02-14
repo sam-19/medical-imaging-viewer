@@ -10,6 +10,9 @@
             :title="tooltip"
             fixed-width
         />
+        <div v-if="overlay" class="medigi-viewer-toolbar-button-overlay">
+            {{ overlay }}
+        </div>
     </div>
 
 </template>
@@ -25,6 +28,7 @@ export default Vue.extend({
         id: String,
         enabled: Boolean,
         icon: Array,
+        overlay: String,
         tooltip: String,
     },
 })
@@ -33,6 +37,7 @@ export default Vue.extend({
 
 <style scoped>
 .medigi-viewer-toolbar-button {
+    position: relative;
     height: 60px;
     width: 60px;
     border: solid 2px var(--medigi-viewer-border);
@@ -60,5 +65,15 @@ export default Vue.extend({
     }
     .medigi-viewer-toolbar-button > svg {
         margin: 10px 5.5px;
+    }
+    .medigi-viewer-toolbar-button-overlay {
+        display: inline-block;
+        position: absolute;
+        right: 8px;
+        bottom: 7px;
+        padding: 2px 4px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 5px;
+        font-size: 40%;
     }
 </style>

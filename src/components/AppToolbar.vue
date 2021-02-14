@@ -3,9 +3,10 @@
     <div :id="`${$root.appName}-medigi-viewer-toolbar`">
         <ToolbarButton v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
+            :emit="button.emit"
             :enabled="button.enabled"
             :icon="button.icon"
-            :emit="button.emit"
+            :overlay="button.overlay"
             :tooltip="button.tooltip"
             :class="{
                 'medigi-viewer-disabled': !button.enabled,
@@ -36,6 +37,7 @@ interface ButtonRow {
     'distance': ButtonState
     'flip': ButtonState
     'invert': ButtonState
+    'layout': ButtonState
     'left': ButtonState
     'link': ButtonState
     'Pan': ButtonState
@@ -53,6 +55,10 @@ export default Vue.extend({
         allLinked: {
             type: Boolean,
             default: false
+        },
+        gridLayout: {
+            type: Array,
+            default: null
         },
     },
     data () {
@@ -137,6 +143,13 @@ export default Vue.extend({
                     tooltip: [ this.$t('Flip horizontally') ],
                 },
                 {
+                    id: 'layout',
+                    set: 4,
+                    groups: [],
+                    icon: [ ['fal', 'border-all'] ],
+                    tooltip: [ this.$t('Change layout') ],
+                },
+                {
                     id: 'link',
                     set: 4,
                     groups: [],
@@ -155,6 +168,7 @@ export default Vue.extend({
                     set: 5,
                     groups: ['undo'],
                     icon: [ ['fal', 'reply-all'] ],
+                    overlay: null,
                     tooltip: [ this.$t('Reset all adjustments'), this.$t('Reapply all adjustment') ],
                 },
             ],
@@ -165,6 +179,7 @@ export default Vue.extend({
                 'distance':     { active: false, visible: true, enabled: true } as ButtonState,
                 'flip':         { active: false, visible: true, enabled: true } as ButtonState,
                 'invert':       { active: false, visible: true, enabled: true } as ButtonState,
+                'layout':       { active: false, visible: true, enabled: true } as ButtonState,
                 'left':         { active: false, visible: true, enabled: true } as ButtonState,
                 'link':         { active: false, visible: true, enabled: true } as ButtonState,
                 'Pan':          { active: false, visible: true, enabled: true } as ButtonState,
@@ -177,6 +192,8 @@ export default Vue.extend({
             imageLink: null as number[] | null,
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
+            // Current grid layout
+            currentLayout: 0,
             // Default options for different tool types
             toolOptions: {
                 'Wwwc': {
@@ -227,6 +244,7 @@ export default Vue.extend({
                         enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
                         setFirst: newSet,
                         icon: this.getButtonIcon(button),
+                        overlay: this.getButtonOverlay(button),
                         tooltip: this.getButtonTooltip(button),
                     })
                 }
@@ -250,6 +268,8 @@ export default Vue.extend({
                 this.invertColors()
             } else if (buttonId === 'flip') {
                 this.flip('x')
+            } else if (buttonId === 'layout') {
+                this.toggleGridLayout()
             } else if (buttonId === 'left') {
                 this.rotate(-90)
             } else if (buttonId === 'link') {
@@ -304,9 +324,25 @@ export default Vue.extend({
             return []
         },
         /**
+         * Get the appropriate overlay for the given button.
+         * @param button this.buttons array member or button ID string
+         * @return string
+         */
+        getButtonOverlay: function (button: any): string {
+            if (typeof button === 'string') {
+                button = this.buttons.find((btn) => { return btn.id === button })
+            }
+            switch (button.id) {
+                case 'layout':
+                    return this.gridLayout ?
+                        `${this.gridLayout[0]}x${this.gridLayout[1]}`.replace('0', '?') : 'A'
+            }
+            return ''
+        },
+        /**
          * Get the button tooltip appropriate for button state.
          * @param button this.buttons array member or button ID string
-         * @return [] | undefined
+         * @return string
          */
         getButtonTooltip: function (button: any): string {
             if (typeof button === 'string') {
@@ -400,6 +436,11 @@ export default Vue.extend({
         toggleDistance: function () {
             this.buttonStates.distance.active = !this.buttonStates.distance.active
             this.$store.commit('set-active-tool', 'distance')
+        },
+        toggleGridLayout: function () {
+            const layouts = [null, [1, 0], [0, 1]]
+            this.currentLayout = this.currentLayout < layouts.length - 1 ? this.currentLayout + 1 : 0
+            this.$emit('update:gridLayout', layouts[this.currentLayout])
         },
         toggleLink: function () {
             if (this.isActive('link')) {

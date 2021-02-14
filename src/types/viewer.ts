@@ -24,6 +24,7 @@ type AnyModality = BiosignalModality | ImageModality
     setFirst?: boolean  // Does this button start a new set?
     groups?: string[],  // Tool groups this button belongs to
     icon: string[] | string[][]
+    overlay?: string
     tooltip: string
 }
 

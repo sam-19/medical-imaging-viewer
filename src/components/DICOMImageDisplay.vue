@@ -453,9 +453,6 @@ export default Vue.extend({
                         // Re-enable the active tool to include this stack
                         this.$store.dispatch('tools:re-enable-active')
                         this.displayImage(true)
-                        window.setTimeout(() => {
-                            console.log(cornerstoneTools.getElementToolStateManager(this.dicomEl))
-                        }, 1000)
                     }
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true

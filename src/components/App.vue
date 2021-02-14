@@ -4,8 +4,8 @@
         <div class="medigi-viewer-toolbar">
             <AppToolbar
                 :allLinked="allResourcesLinked"
+                :gridLayout.sync="gridLayout"
                 v-on:link-all-resources="linkAllResources"
-                v-on:set-element-layout="setElementLayout"
             >
             </AppToolbar>
         </div>
@@ -76,7 +76,7 @@ export default Vue.extend({
             synchronizer: null as any,
             // Loaded elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
-            elementLayout: null as null | number[],
+            gridLayout: null as null | number[],
             // Other properties
             ctrlDown: false,
             ctrlRegistered: false,
@@ -97,9 +97,10 @@ export default Vue.extend({
                     items.push(this.dicomElements[i])
                 }
                 // Make sure we don't exceed predefined grid dimensions
-                if (this.elementLayout && this.elementLayout[0] && this.elementLayout[1]
-                    && i === this.elementLayout[0]*this.elementLayout[1]
+                if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
+                    && i === this.gridLayout[0]*this.gridLayout[1]
                 ) {
+                    console.log("break")
                     return items
                 }
             }
@@ -153,7 +154,7 @@ export default Vue.extend({
         },
         getElementLayoutPosition: function (idx: number): number[][] {
             const activeNum = this.activeItems.length
-            const layout = this.elementLayout || [0, 0]
+            const layout = this.gridLayout ? [...this.gridLayout] : [0, 0]
             if (!layout[0] && !layout[1]) {
                 // Calculate grid dimensions automatically.
                 // Number of colums >= number of rows, i.e. expand columns before rows.
@@ -173,7 +174,7 @@ export default Vue.extend({
         },
         getEmptyLayoutCells: function (): number[] {
             const activeNum = this.activeItems.length
-            const layout = this.elementLayout || [0, 0]
+            const layout = this.gridLayout ? [...this.gridLayout] : [0, 0]
             if (!layout[0] && !layout[1]) {
                 // Calculate grid dimensions automatically.
                 // Number of colums >= number of rows, i.e. expand columns before rows.
@@ -307,8 +308,8 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetHeight - 2
             ]
         },
-        setElementLayout: function (layout: number[] | null) {
-            this.elementLayout = layout
+        setGridLayout: function (layout: number[] | null) {
+            this.gridLayout = layout
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.appName}-medigi-viewer`)
