@@ -302,8 +302,8 @@ export default Vue.extend({
             'cornerstonetoolsstackscroll',
             (synchronizer: any, source: any, target: any, event: any) => {
                 // Get the item id from element id
-                const srcId = source.id.split('-').pop()
-                const tgtId = target.id.split('-').pop()
+                const srcId = source.id.split('-')[1] // ID is the middle element
+                const tgtId = target.id.split('-')[1]
                 let srcEl, tgtEl = null
                 for (let i=0; i<this.dicomElements.length; i++) {
                     if (this.dicomElements[i].id === srcId) {
@@ -474,6 +474,4 @@ export default Vue.extend({
         border: 1px solid var(--medigi-viewer-border-faint);
         overflow: hidden; /* Without this DICOM elements do not scale down */
     }
-        .medigi-viewer-images {
-        }
 </style>

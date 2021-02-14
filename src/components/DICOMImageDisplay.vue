@@ -1,7 +1,7 @@
 <template>
 
-    <div :ref="`wrapper-${resource.id}`" class="medigi-viewer-image-wrapper">
-        <div :ref="`container-${resource.id}`" :id="`container-${resource.id}`"
+    <div ref="wrapper" class="medigi-viewer-image-wrapper">
+        <div ref="container" :id="`container-${id}-${instanceNum}`"
             oncontextmenu="return false // Prevent context menu pop-up on right click"
         ></div>
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
@@ -27,6 +27,8 @@ import DICOMImage from '../assets/dicom/DICOMImage'
 import { MOUSE_BUTTON } from '../types/viewer'
 import { ImageResource, ImageStackResource } from '../types/assets'
 
+let INSTANCE_NUM = 0
+
 export default Vue.extend({
     components: {
     },
@@ -50,6 +52,12 @@ export default Vue.extend({
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
             scrollProgress: 0, // Progress towards a scroll step
             viewport: null as any, // Save viewport settings for image stacks
+            // Store unsubscribe methods
+            unsubscribeActions: null as unknown as Function,
+            unsubscribeMutations: null as unknown as Function,
+            // We need a way to uniquely identify this component instance's elements
+            // from other iterations of the same resource
+            instanceNum: INSTANCE_NUM++,
         }
     },
     watch: {
@@ -87,7 +95,7 @@ export default Vue.extend({
             const imageUrl = this.resource.isStack
                              ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
-            this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
+            return await this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP) {
                     // Set this.viewport to default settings
                     this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
@@ -100,7 +108,6 @@ export default Vue.extend({
                 // TODO: Display error image
                 return false
             })
-            return false
         },
         flipHorizontally: function () {
             if (this.dicomEl && this.viewport) {
@@ -344,6 +351,7 @@ export default Vue.extend({
                     }
                     await this.displayImage(false)
                     // Fetch the current tool state properties and update current image index
+                    // to keep the scroll stack tool in sync with these changes
                     const opts = cornerstoneTools.getToolState(this.dicomEl, 'stack').data[0]
                     opts.currentImageIdIndex = this.resource.currentPosition
                     cornerstoneTools.clearToolState(this.dicomEl, 'stack') // Remove old and add new
@@ -401,8 +409,8 @@ export default Vue.extend({
         }
     },
     mounted () {
-        this.dicomWrapper = this.$refs[`wrapper-${this.id}`] as HTMLDivElement
-        this.dicomEl = this.$refs[`container-${this.id}`] as HTMLDivElement
+        this.dicomWrapper = this.$refs[`wrapper`] as HTMLDivElement
+        this.dicomEl = this.$refs[`container`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
@@ -507,7 +515,9 @@ export default Vue.extend({
                         // Re-enable the active tool to include this stack
                         this.$store.dispatch('tools:re-enable-active')
                         this.displayImage(true)
-                        // Fetch last position from the stack
+                        window.setTimeout(() => {
+                            console.log(cornerstoneTools.getElementToolStateManager(this.dicomEl))
+                        }, 1000)
                     }
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true
@@ -529,7 +539,7 @@ export default Vue.extend({
                 })
             }
             // Subscribe to store dispatch events
-            this.$store.subscribeAction((action) => {
+            this.unsubscribeActions = this.$store.subscribeAction((action) => {
                 switch (action.type) {
                     case 'image:flip-horizontally':
                         this.flipHorizontally()
@@ -549,7 +559,7 @@ export default Vue.extend({
                 }
             })
             // Subscribe to store commit events
-            this.$store.subscribe((mutation) => {
+            this.unsubscribeMutations = this.$store.subscribe((mutation) => {
                 switch (mutation.type) {
                     case 'set-linked-scroll-position':
                         this.scrollLinkedStack(mutation.payload.origin, mutation.payload.position)
@@ -575,11 +585,17 @@ export default Vue.extend({
         // Remove zoom tool
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
         if (this.resource.isStack) {
+            cornerstoneTools.clearToolState(this.dicomEl, 'stack')
             // Remove stack scroll tool
             cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
             // Unregister synchronizer
             this.$root.synchronizer.remove(this.dicomEl)
         }
+        // Disable the element
+        this.$root.cornerstone.disable(this.dicomEl)
+        // Ubsubscribe from store
+        this.unsubscribeActions()
+        this.unsubscribeMutations()
     },
 })
 
