@@ -7,9 +7,13 @@
 
 declare module 'cornerstone-tools' {
     var external: {
-        cornerstone: any,
-        cornerstoneMath: any,
-        Hammer: any,
+        cornerstone: any
+        cornerstoneMath: any
+        Hammer: any
+    }
+    var toolColors: {
+        setActiveColor (color: string): void
+        setToolColor (color: string): void
     }
     var PanTool: any
     var ReferenceLinesTool: any

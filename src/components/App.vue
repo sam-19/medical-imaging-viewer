@@ -387,6 +387,10 @@ export default Vue.extend({
         cornerstoneTools.external.cornerstoneMath = cornerstoneMath
         cornerstoneTools.external.Hammer = Hammer
         cornerstoneTools.init()
+        // Set a more neutral tool color
+        // TODO: Allow selecting the tool color?
+        cornerstoneTools.toolColors.setToolColor('#E0E0E0')
+        cornerstoneTools.toolColors.setActiveColor('#E0E0E0')
         localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
