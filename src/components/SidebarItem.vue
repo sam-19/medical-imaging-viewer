@@ -1,7 +1,12 @@
 <template>
-    <div class="medigi-viewer-sidebar-item" :class="{ 'medigi-viewer-sidebar-item-active': active }" @click="$emit('toggle-active-item', index, $event)">
+    <div class="medigi-viewer-sidebar-item"
+        :class="{ 'medigi-viewer-sidebar-item-active': active }"
+        @click="$emit('toggle-active-item', index, $event)"
+    >
         <div class="medigi-viewer-sidebar-icon">
-            <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type" />
+            <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type"
+                v-on:loading-cover-failed="loadingCoverFailed"
+             />
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
@@ -21,6 +26,7 @@ export default Vue.extend({
     },
     props: {
         active: Boolean,
+        collation: Boolean,
         count: Number,
         cover: String,
         id: String,
@@ -36,6 +42,12 @@ export default Vue.extend({
         }
     },
     methods: {
+        loadingCoverFailed: function () {
+            if (!this.stack && !this.collation) {
+                console.error(`Unable to load the resource ${this.title}, removing it from resource list.`)
+                this.$root.$emit('remove-dicom-resource', this.id)
+            }
+        },
     },
     mounted () {
     },

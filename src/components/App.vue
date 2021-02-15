@@ -52,7 +52,7 @@ import Hammer from 'hammerjs'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { ImageResource, ImageStackResource, MediaResource }from '../types/assets'
+import { FileSystemItem, ImageResource, ImageStackResource, MediaResource }from '../types/assets'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
@@ -253,12 +253,16 @@ export default Vue.extend({
                             } else if (!rootDir.directories[i].files?.length) {
                                 console.warn(`${rootDir.directories[i].path} was omitted because it was empty.`)
                                 continue
+                            } else if (rootDir.directories[i].files?.length === 1) {
+                                // Single file directory as single image
+                                this.addFileAsImage((rootDir.directories[i].files as FileSystemItem[])[0].file as File)
+                            } else {
+                                // Add several files in a directory as a separate image stack
+                                this.addFilesAsImageStack(
+                                    (rootDir.directories[i].files || []).map(f => f.file as File),
+                                    rootDir.directories[i].name
+                                )
                             }
-                            // Add the files of each directory as a separate image stack
-                            this.addFilesAsImageStack(
-                                (rootDir.directories[i].files || []).map(f => f.file as File),
-                                rootDir.directories[i].name
-                            )
                         }
                     } else {
                         console.warn("Dropped item had an empty root directory!")
@@ -293,7 +297,7 @@ export default Vue.extend({
                 ) {
                     if (value) {
                         (this.dicomElements[i] as ImageStackResource)
-                        .linkPosition(this.$store.state.linkedScrollPosition)
+                        .link(this.$store.state.linkedScrollPosition)
                     } else {
                         (this.dicomElements[i] as ImageStackResource).unlink()
                     }
@@ -307,6 +311,15 @@ export default Vue.extend({
                 (this.$refs['media'] as HTMLElement).offsetWidth - 2,
                 (this.$refs['media'] as HTMLElement).offsetHeight - 2
             ]
+        },
+        removeDICOMResource: function (id: string) {
+            for (let i=0; i<this.dicomElements.length; i++) {
+                if (this.dicomElements[i].id === id) {
+                    this.dicomElements[i].removeFromCache()
+                    this.dicomElements.splice(i, 1)
+                    this.updateElements()
+                }
+            }
         },
         setGridLayout: function (layout: number[] | null) {
             this.gridLayout = layout
@@ -433,13 +446,15 @@ export default Vue.extend({
                 const items = this.activeItems
                 for (let i=0; i<items.length; i++) {
                     if (items[i].isStack) {
-                        (items[i] as ImageStackResource).linkPosition(this.$store.state.linkedScrollPosition)
+                        (items[i] as ImageStackResource).link(this.$store.state.linkedScrollPosition)
                     }
                 }
                 this.ctrlDown = true
                 this.ctrlRegistered = true // Prevent event from registering repeatedly
             }
         })
+        // Listen to root emits
+        this.$root.$on('remove-dicom-resource', this.removeDICOMResource)
         document.addEventListener('keyup', (e) => {
             if (e.key === 'Control') {
                 this.ctrlDown = false

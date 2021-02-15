@@ -64,8 +64,8 @@ export default Vue.extend({
                     this.$root.cornerstone.displayImage(coverEl, image, viewport)
                     this.$root.cornerstone.resize(coverEl)
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
-                }).catch((error: Error) => {
-                    // TODO: Handle error
+                }).catch((error: any) => {
+                    this.$emit('loading-cover-failed')
                 })
             }
         },

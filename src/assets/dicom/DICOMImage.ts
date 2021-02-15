@@ -4,6 +4,7 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
+import cornerstone from 'cornerstone-core'
 import DICOMDataProperty from './DICOMDataProperty'
 import DICOMModality from './DICOMModality'
 import DICOMMedia from './DICOMMedia'
@@ -13,13 +14,22 @@ import { ImageResource } from '../../types/assets'
 class DICOMImage extends DICOMMedia implements ImageResource {
     private _columns?: number
     private _coverImage?: string
+    private _instanceLength?: number
     private _instanceNumber?: number
     private _numberOfFrames?: number
     private _rows?: number
     private _sopClassUID?: string
     private _sopInstanceUID?: string
+    private _studyID?: string
+    private _studyNumber?: number
     // Store tag values for metadata retrieval (remove the prefixed 0 for cornerstone)
     private TAGS = {
+        /** Study ID */
+        stID: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0010)?.getTagHex().substring(1),
+        /** Study Number */
+        sNum: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0011)?.getTagHex().substring(1),
+        /** Instance Length (number of items in the instance) */
+        iLen: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x1208)?.getTagHex().substring(1),
         /** Instance Number */
         iNum: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1),
         /** Number of Frames */
@@ -36,6 +46,7 @@ class DICOMImage extends DICOMMedia implements ImageResource {
 
     constructor (name: string, size: number, url: string) {
         super(name, size, 'image', url)
+        this._coverImage = url
     }
     // Getters and setters
     // Columns
@@ -44,6 +55,13 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     }
     set columns (columns: number | undefined) {
         this._columns = columns
+    }
+    // Instance length
+    get instanceLength () {
+        return this._instanceLength
+    }
+    set instanceLength (instanceLen: number | undefined) {
+        this._instanceLength = instanceLen
     }
     // Instance number
     get instanceNumber () {
@@ -110,20 +128,37 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     get url () {
         return this._url
     }
+    public async preloadAndCacheImage (): Promise<Object> {
+        return await cornerstone.loadAndCacheImage(this._url).then((image: any) => image)
+    }
     /**
-     * Reads and stores metadata from the supplied image. The image is not saved,
-     * use cornerstone cache to retrieve cached images.
-     * @param {Image} image cornerstone Image object
+     * Reads and stores metadata from the supplied image. If an image object is not
+     * supplied, the image from this object's URL is loaded and cached.
+     * @param {Image} image cornerstone Image object (optional)
      */
-    public readMetadataFromImage = (image: any) => {
+    public async readMetadataFromImage (image?: any): Promise<boolean> {
+        if (!image) {
+            // Load and cache the image if it wasn't given as a param
+            image = await this.preloadAndCacheImage()
+        }
         // Store image metadata
         this._dimensions = [image.width, image.height]
-        this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10)
+        this._studyID = image.data.string(this.TAGS.stID) || undefined
+        this._studyNumber = parseInt(image.data.string(this.TAGS.sNum), 10) || undefined
+        this._instanceLength = parseInt(image.data.string(this.TAGS.iLen), 10) || undefined
+        this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10) || undefined
         this._numberOfFrames = image.data.string(this.TAGS.fNum) || undefined
         this._sopClassUID = image.data.string(this.TAGS.sopC) || undefined
         this._sopInstanceUID = image.data.string(this.TAGS.sopI) || undefined
         this._rows = image.data.string(this.TAGS.rows) || undefined
         this._columns = image.data.string(this.TAGS.cols) || undefined
+        return true
+    }
+    public removeFromCache = () => {
+        try {
+            cornerstone.imageCache.removeImageLoadObject(this._url)
+        } catch (e) {
+        } finally {}
     }
     public setCoverImage = () => {
         this._coverImage = this._url

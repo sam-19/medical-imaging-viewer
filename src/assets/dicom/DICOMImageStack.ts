@@ -91,7 +91,7 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
      * @param masterLinkPos master link position
      * @param localPos local position (stack image index); default current position
      */
-    public linkPosition (masterLinkPos: number, localPos?: number) {
+    public link (masterLinkPos: number, localPos?: number) {
         if (localPos === undefined) {
             localPos = this._currentPosition
         }
@@ -106,9 +106,9 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
         this._images.push(image)
     }
     /**
-    * Preload the image stack images into cache and sort them by instance number.
-    * @param {Function} callback Will call true when ready, false if aborted
-    */
+     * Preload the image stack images into cache and sort them by instance number.
+     * @param {Function} callback Will call true when ready, false if aborted
+     */
     public async preloadAndSortImages (): Promise<boolean> {
         if (!this._images.length) {
            return false
@@ -131,6 +131,13 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
             }
         }
         return true
+    }
+    public removeFromCache = () => {
+        for (let i=0; i<this._images.length; i++) {
+            try {
+                this._images[i].removeFromCache()
+            } finally {}
+        }
     }
     public setCoverImage (index: number) {
         this._coverImage = this._images[index].url

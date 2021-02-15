@@ -37,6 +37,9 @@ class DICOMMedia implements MediaResource {
     set isActive (val: boolean) {
         this._active = val
     }
+    get isCollation () {
+        return this._type.endsWith(':collation')
+    }
     get isLinked () {
         return this._linked
     }

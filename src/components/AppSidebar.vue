@@ -7,8 +7,9 @@
             </ul>
         </div>
         <div class="medigi-viewer-sidebar-items">
-            <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}`"
+            <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
+                :collation="item.isCollation"
                 :count="item.size"
                 :cover="item.coverImage"
                 :id="item.id"

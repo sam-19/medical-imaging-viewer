@@ -139,8 +139,18 @@ DICOMDataProperty.getPropertyByTagPair = (group: number, element: number): DICOM
     return null
 }
 /**
- * List of all standard DICOM data properties.
+ * List of standard (even group number) DICOM data properties.
  * See https://www.dicomlibrary.com/dicom/dicom-tags/
+ * The following methods can be used to fetch data property contents:
+ * image.data.string() - all string types
+ * image.data.uint16() - Unsigned integers (US)
+ * image.data.int16() - Signed integers (SS)
+ * image.data.uint32() - Unsigned longs (UL)
+ * image.data.int32() - Signed longs (SL)
+ * image.data.float() - Floats (FL)
+ * image.data.double() - Doubles (FD)
+ * image.data.floatString() - Folat/double strings (DS)
+ * image.data.intString() - Integer strings (IS)
  */
 DICOMDataProperty.LIST = [
     { tag: ['0002','0000'], vr: DICOMVR.UL, name: "File Meta Information Group Length" },

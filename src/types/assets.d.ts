@@ -21,6 +21,7 @@ interface MediaResource {
     dimensions: number[]
     id: string
     isActive: boolean
+    isCollation: boolean
     isLinked: boolean
     isStack: boolean
     modality?: string
@@ -32,6 +33,7 @@ interface MediaResource {
 
 interface ImageResource extends MediaResource {
     columns?: number
+    instanceLength?: number
     instanceNumber?: number
     modality?: string
     numberOfFrames?: number
@@ -39,6 +41,7 @@ interface ImageResource extends MediaResource {
     sopClassUID?: string
     sopInstanceUID?: string
     readMetadataFromImage(image: any): void
+    removeFromCache(): void
     setCoverImage(index?: number): void
 }
 interface ImageStackResource extends MediaResource {
@@ -50,9 +53,10 @@ interface ImageStackResource extends MediaResource {
     add(image: ImageResource): void
     getIndexById(id: string): number
     getIndexByUrl(url: string): number
-    linkPosition(masterLinkPos: number, localPos?: number): void
+    link(masterLinkPos: number, localPos?: number): void
     push(image: ImageResource): void
     preloadAndSortImages?(): Promise<boolean>
+    removeFromCache(): void
     setCurrentPositionById(id: string): void
     setCurrentPositionByUrl(url: string): void
     sortImages(key: 'i' | 'n'): void

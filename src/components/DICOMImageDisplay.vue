@@ -204,7 +204,7 @@ export default Vue.extend({
             }
             if (this.resource.isLinked !== value) {
                 if (value) {
-                    this.resource.linkPosition(this.$store.state.linkedScrollPosition)
+                    this.resource.link(this.$store.state.linkedScrollPosition)
                 } else {
                     this.resource.unlink()
                 }
