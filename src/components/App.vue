@@ -61,6 +61,14 @@ import { MutationTypes } from '../store'
 import DICOMMedia from '../assets/dicom/DICOMMedia'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 
+const TOOL_COLOR = {
+    BLUE: '#C0DDF0',
+    GRAY: '#E0E0E0',
+    GREEN: '#C0FFC0',
+    ORANGE: '#F0DDC0',
+    RED: '#FFC0C0',
+    WHITE: '#FFFFFF',
+}
 const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
@@ -389,8 +397,8 @@ export default Vue.extend({
         cornerstoneTools.init()
         // Set a more neutral tool color
         // TODO: Allow selecting the tool color?
-        cornerstoneTools.toolColors.setToolColor('#E0E0E0')
-        cornerstoneTools.toolColors.setActiveColor('#E0E0E0')
+        cornerstoneTools.toolColors.setToolColor(TOOL_COLOR.WHITE)
+        cornerstoneTools.toolColors.setActiveColor(TOOL_COLOR.WHITE)
         localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
