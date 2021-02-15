@@ -25,6 +25,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
+import cornerstone from 'cornerstone-core'
 import { ImageModality, BiosignalModality } from '../types/viewer'
 
 export default Vue.extend({
@@ -44,8 +45,8 @@ export default Vue.extend({
         displayCoverImage: function () {
             const coverEl = this.$refs['cover-image'] as HTMLDivElement
             if (coverEl) {
-                this.$root.cornerstone.enable(coverEl)
-                this.$root.cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
+                cornerstone.enable(coverEl)
+                cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
                     // Get image dimensions and set the cover image dimensions to preserve the aspec ratio
                     /*
                     const maxDim = [150, 125] // Max width and height
@@ -58,12 +59,12 @@ export default Vue.extend({
                         } else {
                             coverEl.style.width = `${maxDim[0]}px`
                         }
-                        this.$root.cornerstone.resize(coverEl)
+                        cornerstone.resize(coverEl)
                     }*/
-                    const viewport = this.$root.cornerstone.getDefaultViewportForImage(coverEl, image)
-                    this.$root.cornerstone.displayImage(coverEl, image, viewport)
-                    this.$root.cornerstone.resize(coverEl)
-                    this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
+                    const viewport = cornerstone.getDefaultViewportForImage(coverEl, image)
+                    cornerstone.displayImage(coverEl, image, viewport)
+                    cornerstone.resize(coverEl)
+                    this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
                 }).catch((error: any) => {
                     this.$emit('loading-cover-failed')
                 })

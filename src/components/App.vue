@@ -83,7 +83,6 @@ export default Vue.extend({
     },
     data () {
         return {
-            cornerstone: cornerstone,
             synchronizers: {
                 stackScroll: null as unknown,
                 referenceLines: null as unknown,
@@ -391,7 +390,7 @@ export default Vue.extend({
     },
     mounted () {
         // Set up Cornerstone Tools
-        cornerstoneTools.external.cornerstone = this.cornerstone
+        cornerstoneTools.external.cornerstone = cornerstone
         cornerstoneTools.external.cornerstoneMath = cornerstoneMath
         cornerstoneTools.external.Hammer = Hammer
         cornerstoneTools.init()
@@ -401,7 +400,7 @@ export default Vue.extend({
         cornerstoneTools.toolColors.setActiveColor(TOOL_COLOR.WHITE)
         localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
-        cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
+        cornerstoneWADOImageLoader.external.cornerstone = cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
         // Stack scroll synchronizer
         this.synchronizers.stackScroll = new cornerstoneTools.Synchronizer(

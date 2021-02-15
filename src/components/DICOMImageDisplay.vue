@@ -26,6 +26,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 import DICOMImage from '../assets/dicom/DICOMImage'
@@ -92,7 +93,7 @@ export default Vue.extend({
         adjustLevels: function (x: number, y: number) {
             this.viewport.voi.windowWidth += (x / this.viewport.scale)
             this.viewport.voi.windowCenter += (y / this.viewport.scale)
-            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+            cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
          * Display the single image from this.resource or current image (this.resource.currentPosition) from image stack.
@@ -102,13 +103,13 @@ export default Vue.extend({
             const imageUrl = this.resource.isStack
                              ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
-            return await this.$root.cornerstone.loadImage(imageUrl).then((image: any) => {
+            return await cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP) {
                     // Set this.viewport to default settings
-                    this.viewport = this.$root.cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                    this.viewport = cornerstone.getDefaultViewportForImage(this.dicomEl, image)
                 }
                 if (this.viewport) {
-                    this.$root.cornerstone.displayImage(this.dicomEl, image, this.viewport)
+                    cornerstone.displayImage(this.dicomEl, image, this.viewport)
                 }
                 return true
             }).catch(() => {
@@ -225,7 +226,7 @@ export default Vue.extend({
         panImage: function (x: number, y: number) {
             this.viewport.translation.x -= (x / this.viewport.scale)
             this.viewport.translation.y -= (y / this.viewport.scale)
-            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+            cornerstone.setViewport(this.dicomEl, this.viewport)
         },
         /**
          * Reset the viewport to default state.
@@ -255,15 +256,15 @@ export default Vue.extend({
                 = isRowFirst? 'none' : '1px solid var(--medigi-viewer-border-faint)'
             this.dicomWrapper.style.borderBottom
                 = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
-            this.$root.cornerstone.resize(this.dicomEl, false)
+            cornerstone.resize(this.dicomEl, false)
             // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
-            this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
-            //this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+            this.viewport = cornerstone.getViewport(this.dicomEl)
+            //cornerstone.setViewport(this.dicomEl, this.viewport)
             // Resize possible topogram image
             if (this.topogram) {
                 this.topoEl.style.width = `${(dimensions[0]/colPos[1] - hPad)*0.25}px`
                 this.topoEl.style.height = `${(dimensions[1]/rowPos[1] - vPad)*0.25}px`
-                this.$root.cornerstone.resize(this.topoEl, false)
+                cornerstone.resize(this.topoEl, false)
             }
         },
         rotateBy: function (angle: number) {
@@ -356,7 +357,7 @@ export default Vue.extend({
          */
         zoomImage: function (z: number) {
             this.viewport.scale *= 1 + z*0.01
-            this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+            cornerstone.setViewport(this.dicomEl, this.viewport)
         }
     },
     mounted () {
@@ -365,7 +366,7 @@ export default Vue.extend({
         this.topoEl = this.$refs[`topogram`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
-            this.$root.cornerstone.enable(this.dicomEl)
+            cornerstone.enable(this.dicomEl)
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
             // Bind mouse interaction listeners
             /*
@@ -431,7 +432,7 @@ export default Vue.extend({
             })
             */
             // Save viewport
-            this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
+            this.viewport = cornerstone.getViewport(this.dicomEl)
             // Conerstone tool options
             const zoomOpts = {
                 configuration: {
@@ -478,9 +479,9 @@ export default Vue.extend({
                         }
                         // Display possible topogram
                         if (this.topogram) {
-                            this.$root.cornerstone.enable(this.topoEl)
-                            this.$root.cornerstone.loadImage(this.topogram.url).then((image: any) => {
-                                const vp = this.$root.cornerstone.getDefaultViewportForImage(this.topoEl, image)
+                            cornerstone.enable(this.topoEl)
+                            cornerstone.loadImage(this.topogram.url).then((image: any) => {
+                                const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
                                 // We need to pass stack tools even to single images to enable reference lines
                                 const stackOpts = {
                                     currentImageIdIndex: 0,
@@ -492,7 +493,7 @@ export default Vue.extend({
                                 this.$root.synchronizers.referenceLines.add(this.topoEl)
                                 // Add reference lines tool (must be done after setting up synchronizers!)
                                 cornerstoneTools.addToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
-                                this.$root.cornerstone.displayImage(this.topoEl, image, vp)
+                                cornerstone.displayImage(this.topoEl, image, vp)
                                 // Activate reference lines tool
                                 cornerstoneTools.setToolEnabled('ReferenceLines', {
                                     synchronizationContext: this.$root.synchronizers.referenceLines,
@@ -506,7 +507,7 @@ export default Vue.extend({
                             enableElement()
                         }
                     }
-                    this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
+                    this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true
                     // Save new position
                     this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
@@ -597,7 +598,7 @@ export default Vue.extend({
         this.$root.synchronizers.stackScroll.remove(this.dicomEl)
         this.$root.synchronizers.referenceLines.remove(this.dicomEl)
         // Disable the element
-        this.$root.cornerstone.disable(this.dicomEl)
+        cornerstone.disable(this.dicomEl)
         if (this.topogram) {
             // Same for topogram
             cornerstoneTools.clearToolState(this.topoEl, 'stack')
@@ -605,7 +606,7 @@ export default Vue.extend({
             cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
             this.$root.synchronizers.stackScroll.remove(this.topoEl)
             this.$root.synchronizers.referenceLines.remove(this.topoEl)
-            this.$root.cornerstone.disable(this.topoEl)
+            cornerstone.disable(this.topoEl)
         }
         // Ubsubscribe from store
         this.unsubscribeActions()

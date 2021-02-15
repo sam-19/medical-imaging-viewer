@@ -971,7 +971,7 @@ declare module 'cornerstone-core' {
      * @param options Options to be passed to the Image Loader
      * @returns Image Loader Object
      */
-    function loadAndCacheImage(imageId: string, options?: object): ImageLoadObject
+    function loadAndCacheImage(imageId: string, options?: object): Promise<ImageLoadObject>
 
     /**
      * Registers an imageLoader plugin with cornerstone for the specified scheme
