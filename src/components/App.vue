@@ -27,6 +27,7 @@
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
                     :resource="resource"
+                    :topogram="topogramElement"
                 >
                 </DICOMImageDisplay>
                 <!-- Add a necessary amount of placeholder elements -->
@@ -60,6 +61,8 @@ import { MutationTypes } from '../store'
 import DICOMMedia from '../assets/dicom/DICOMMedia'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 
+const TOPOGRAM_NAME = '_topogram'
+
 export default Vue.extend({
     components: {
         AppSidebar: () => import('./AppSidebar.vue'),
@@ -79,6 +82,7 @@ export default Vue.extend({
             },
             // Loaded elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
+            topogramElement: null as null | ImageResource,
             gridLayout: null as null | number[],
             // Other properties
             ctrlDown: false,
@@ -128,11 +132,20 @@ export default Vue.extend({
         },
     },
     methods: {
-        addFileAsImage: function (file: File) {
+        addFileAsImage: function (file: File, overrideName?: string) {
             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
             if (imageId) {
-                (this.dicomElements as ImageResource[]).push(new DICOMImage(file.name, file.size, imageId))
-                this.updateElements()
+                // Check if this image is a topogram
+                if (file.name === TOPOGRAM_NAME || overrideName === TOPOGRAM_NAME) {
+                    this.topogramElement = new DICOMImage(file.name, file.size, imageId)
+                } else {
+                    (this.dicomElements as ImageResource[]).push(new DICOMImage(
+                        overrideName ? overrideName : file.name,
+                        file.size,
+                        imageId
+                    ))
+                    this.updateElements()
+                }
             }
         },
         addFilesAsImageStack: function (files: File[], name: string) {
@@ -258,7 +271,8 @@ export default Vue.extend({
                                 continue
                             } else if (rootDir.directories[i].files?.length === 1) {
                                 // Single file directory as single image
-                                this.addFileAsImage((rootDir.directories[i].files as FileSystemItem[])[0].file as File)
+                                const overrideName = rootDir.directories[i].name === TOPOGRAM_NAME ? TOPOGRAM_NAME : undefined
+                                this.addFileAsImage((rootDir.directories[i].files as FileSystemItem[])[0].file as File, overrideName)
                             } else {
                                 // Add several files in a directory as a separate image stack
                                 this.addFilesAsImageStack(
@@ -447,6 +461,14 @@ export default Vue.extend({
             'cornerstonenewimage',
             (synchronizer: any, source: any, target: any, event: any) => {
                 if (source === target) {
+                    return
+                }
+                // Right new there seems to be now way to prevent the reference lines from any synchronized
+                // elements from showing up
+                // const srcId = source.id.split('-')
+                const tgtId = target.id.split('-')
+                // Only pass update events to topogram elements
+                if (tgtId[0] !== 'topogram') {
                     return
                 }
                 cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)

@@ -15,6 +15,11 @@
         <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
         >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
+        <div v-if="topogram && resource.isStack" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
+            class="medigi-viewer-topogram"
+            oncontextmenu="return false // Prevent context menu pop-up on right click"
+        >
+        </div>
     </div>
 
 </template>
@@ -37,11 +42,13 @@ export default Vue.extend({
         layoutPosition: Array, // Element position in layout grid [[colPos, cols], [rowPos, rows]]
         linkedStackPos: Number, // Linked stack position
         resource: Object, // DICOMResource or DICOMImageStack
+        topogram: Object, // DICOMImage
     },
     data () {
         return {
             dicomWrapper: null as unknown as HTMLDivElement, // DICOM image wrapper
             dicomEl: null as unknown as HTMLDivElement, // DICOM image element
+            topoEl: null as unknown as HTMLDivElement, // Topogram element
             isFirstLoaded: false, // At least one image is loaded
             isLinked: false, // Whether this image is linked or not
             lastMousePos: [0, 0], // Last mouse position on the screen
@@ -252,6 +259,12 @@ export default Vue.extend({
             // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
             this.viewport = this.$root.cornerstone.getViewport(this.dicomEl)
             //this.$root.cornerstone.setViewport(this.dicomEl, this.viewport)
+            // Resize possible topogram image
+            if (this.topogram) {
+                this.topoEl.style.width = `${(dimensions[0]/colPos[1] - hPad)*0.25}px`
+                this.topoEl.style.height = `${(dimensions[1]/rowPos[1] - vPad)*0.25}px`
+                this.$root.cornerstone.resize(this.topoEl, false)
+            }
         },
         rotateBy: function (angle: number) {
             if (this.dicomEl && this.viewport) {
@@ -349,6 +362,7 @@ export default Vue.extend({
     mounted () {
         this.dicomWrapper = this.$refs[`wrapper`] as HTMLDivElement
         this.dicomEl = this.$refs[`container`] as HTMLDivElement
+        this.topoEl = this.$refs[`topogram`] as HTMLDivElement
         if (this.dicomEl) {
             // Enable the element
             this.$root.cornerstone.enable(this.dicomEl)
@@ -452,11 +466,45 @@ export default Vue.extend({
                         this.$root.synchronizers.stackScroll.add(this.dicomEl)
                         this.$root.synchronizers.referenceLines.add(this.dicomEl)
                         // Add reference lines tool (must be done after setting up synchronizers!)
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+                        //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         this.resource.currentPosition = this.resource.currentPosition
-                        // Re-enable active tools to include this stack
-                        this.$store.dispatch('tools:re-enable-active')
-                        this.displayImage(true)
+                        const enableElement = () => {
+                            // Shorthand for these operations, as there are needed in a few (async) paths
+                            this.$store.dispatch('tools:re-enable-active')
+                            this.displayImage(true)
+                            Vue.nextTick(() => {
+                                this.resizeImage(this.containerSize as number[])
+                            })
+                        }
+                        // Display possible topogram
+                        if (this.topogram) {
+                            this.$root.cornerstone.enable(this.topoEl)
+                            this.$root.cornerstone.loadImage(this.topogram.url).then((image: any) => {
+                                const vp = this.$root.cornerstone.getDefaultViewportForImage(this.topoEl, image)
+                                // We need to pass stack tools even to single images to enable reference lines
+                                const stackOpts = {
+                                    currentImageIdIndex: 0,
+                                    imageIds: [this.resource.url]
+                                }
+                                cornerstoneTools.addStackStateManager(this.topoEl, ['stack', 'Crosshairs'])
+                                cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
+                                // Register element to synchronizers
+                                this.$root.synchronizers.referenceLines.add(this.topoEl)
+                                // Add reference lines tool (must be done after setting up synchronizers!)
+                                cornerstoneTools.addToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
+                                this.$root.cornerstone.displayImage(this.topoEl, image, vp)
+                                // Activate reference lines tool
+                                cornerstoneTools.setToolEnabled('ReferenceLines', {
+                                    synchronizationContext: this.$root.synchronizers.referenceLines,
+                                })
+                                enableElement()
+                            }).catch((e: any) => {
+                                console.error('Loading topogram failed!')
+                                enableElement()
+                            })
+                        } else {
+                            enableElement()
+                        }
                     }
                     this.$store.commit('set-cache-status', this.$root.cornerstone.imageCache.getCacheInfo())
                     this.isFirstLoaded = true
@@ -470,25 +518,28 @@ export default Vue.extend({
                 this.displayImage(true).then((success: boolean) => {
                     if (success) {
                         // We need to pass stack tools even to single images to enable reference lines
-                        const stackOpts = {
-                            currentImageIdIndex: 0,
-                            imageIds: [this.resource.url]
-                        }
-                        cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
-                        cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
+                        //const stackOpts = {
+                        //    currentImageIdIndex: 0,
+                        //    imageIds: [this.resource.url]
+                        //}
+                        //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
+                        //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
                         // Set up wwwc tool
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
                         // Set up zoom tool
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizers
-                        this.$root.synchronizers.stackScroll.add(this.dicomEl)
-                        this.$root.synchronizers.referenceLines.add(this.dicomEl)
+                        //this.$root.synchronizers.stackScroll.add(this.dicomEl)
+                        //this.$root.synchronizers.referenceLines.add(this.dicomEl)
                         // Add reference lines tool (must be done after setting up synchronizers!)
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+                        //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         // Re-enable the active tool to include this image
                         this.$store.dispatch('tools:re-enable-active')
                     }
                     this.isFirstLoaded = true
+                    Vue.nextTick(() => {
+                        this.resizeImage(this.containerSize as number[])
+                    })
                 })
             }
             // Subscribe to store dispatch events
@@ -520,9 +571,6 @@ export default Vue.extend({
                 }
             })
         }
-        Vue.nextTick(() => {
-            this.resizeImage(this.containerSize as number[])
-        })
     },
     beforeDestroy () {
         if (this.isLinked) {
@@ -550,6 +598,15 @@ export default Vue.extend({
         this.$root.synchronizers.referenceLines.remove(this.dicomEl)
         // Disable the element
         this.$root.cornerstone.disable(this.dicomEl)
+        if (this.topogram) {
+            // Same for topogram
+            cornerstoneTools.clearToolState(this.topoEl, 'stack')
+            cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
+            cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
+            this.$root.synchronizers.stackScroll.remove(this.topoEl)
+            this.$root.synchronizers.referenceLines.remove(this.topoEl)
+            this.$root.cornerstone.disable(this.topoEl)
+        }
         // Ubsubscribe from store
         this.unsubscribeActions()
         this.unsubscribeMutations()
@@ -581,5 +638,13 @@ export default Vue.extend({
         bottom: 10px;
         pointer-events: none;
         color: var(--medigi-viewer-text-faint);
+    }
+    .medigi-viewer-image-wrapper > .medigi-viewer-topogram {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+        height: 20%;
+        pointer-events: none;
+        background-color: #CCCCCC;
     }
 </style>

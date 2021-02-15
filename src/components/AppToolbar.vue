@@ -513,6 +513,7 @@ export default Vue.extend({
                     // Refresh reference lines tool
                     cornerstoneTools.setToolEnabled('ReferenceLines', {
                         synchronizationContext: this.$root.synchronizers.referenceLines,
+                        color: '#C0C0C0',
                     })
                     break
             }
