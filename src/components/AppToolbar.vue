@@ -301,8 +301,16 @@ export default Vue.extend({
                     }
                 })
             }
+            if (!this.$store.state.activeTool) {
+                this.enableDefaults()
+            }
             // Refresh button row
             this.buttonsUpdated = Date.now()
+        },
+        enableDefaults: function () {
+            cornerstoneTools.setToolActive('Pan', this.toolOptions['Pan'].default)
+            cornerstoneTools.setToolActive('Wwwc', this.toolOptions['Wwwc'].default)
+            cornerstoneTools.setToolActive('Zoom', this.toolOptions['Zoom'].default)
         },
         flip: function (axis: 'x' | 'y') {
             if (axis === 'x') {
@@ -488,19 +496,26 @@ export default Vue.extend({
     mounted () {
         // Subscribe to store dispatches
         this.$store.subscribeAction((action) => {
-                switch (action.type) {
-                    case 'tools:re-enable-active':
-                        if (this.$store.state.activeTool) {
-                            // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
-                            const toolOpts = this.toolOptions
-                            type optType = typeof toolOpts; // Typescript gimmics
-                            cornerstoneTools.setToolActive(
-                                this.$store.state.activeTool,
-                                this.toolOptions[this.$store.state.activeTool as keyof optType].active
-                            )
-                        }
-                        break
-                }
+            switch (action.type) {
+                case 'tools:re-enable-active':
+                    if (this.$store.state.activeTool) {
+                        // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
+                        const toolOpts = this.toolOptions
+                        type optType = typeof toolOpts; // Typescript gimmics
+                        cornerstoneTools.setToolActive(
+                            this.$store.state.activeTool,
+                            this.toolOptions[this.$store.state.activeTool as keyof optType].active
+                        )
+                    } else {
+                        this.enableDefaults()
+                    }
+                    cornerstoneTools.setToolActive('StackScrollMouseWheel', { })
+                    // Refresh reference lines tool
+                    cornerstoneTools.setToolEnabled('ReferenceLines', {
+                        synchronizationContext: this.$root.synchronizers.referenceLines,
+                    })
+                    break
+            }
         })
         // Start listening to some global hooks
         this.$root.$on('setDisabledButtons', (buttonIds: string[]) => {
@@ -512,8 +527,12 @@ export default Vue.extend({
         this.$root.$on('toggleButton', (buttonId: string) => {
             this.buttonClicked(buttonId)
         })
-    }
+        // Enable default tools
+        this.enableDefaults()
+    },
 })
+
+
 
 </script>
 

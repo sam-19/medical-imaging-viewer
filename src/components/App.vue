@@ -373,6 +373,7 @@ export default Vue.extend({
         cornerstoneTools.external.cornerstoneMath = cornerstoneMath
         cornerstoneTools.external.Hammer = Hammer
         cornerstoneTools.init()
+        localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
@@ -439,6 +440,16 @@ export default Vue.extend({
                 }
                 // We can use the built-in synchronizer for images that have nearly or examptly the same orientation
                 cornerstoneTools.stackImagePositionSynchronizer(synchronizer, source, target, event)
+            }
+        )
+        // Reference lines synchronizer
+        this.synchronizers.referenceLines = new cornerstoneTools.Synchronizer(
+            'cornerstonenewimage',
+            (synchronizer: any, source: any, target: any, event: any) => {
+                if (source === target) {
+                    return
+                }
+                cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)
             }
         )
         // Set up resize observer for the media container

@@ -12,8 +12,11 @@ declare module 'cornerstone-tools' {
         Hammer: any,
     }
     var PanTool: any
+    var ReferenceLinesTool: any
     var StackScrollTool: any
     var stackImagePositionSynchronizer: any
+    var StackScrollMouseWheelTool: any
+    var updateImageSynchronizer: any
     var WwwcTool: any
     var ZoomTool: any
     function addStackStateManager (element: any, array: any): void
@@ -28,6 +31,7 @@ declare module 'cornerstone-tools' {
     function removeToolForElement (element: any, tool: any): void
     function setToolActive (tool: string, options: any): void
     function setToolDisabled (tool: string): void
+    function setToolEnabled (tool: string, options: any): void
 
     class Synchronizer {
         constructor (tool: string, handler: any)
