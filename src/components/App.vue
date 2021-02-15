@@ -45,14 +45,14 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone, { imageCache } from 'cornerstone-core'
+import cornerstone from 'cornerstone-core'
 import cornerstoneMath from 'cornerstone-math'
 import cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { FileSystemItem, ImageResource, ImageStackResource, MediaResource }from '../types/assets'
+import { FileSystemItem, ImageResource, ImageStackResource }from '../types/assets'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
@@ -73,7 +73,10 @@ export default Vue.extend({
     data () {
         return {
             cornerstone: cornerstone,
-            synchronizer: null as any,
+            synchronizers: {
+                stackScroll: null as unknown,
+                referenceLines: null as unknown,
+            },
             // Loaded elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             gridLayout: null as null | number[],
@@ -373,7 +376,8 @@ export default Vue.extend({
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = this.cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
-        this.synchronizer = new cornerstoneTools.Synchronizer(
+        // Stack scroll synchronizer
+        this.synchronizers.stackScroll = new cornerstoneTools.Synchronizer(
             'cornerstonetoolsstackscroll',
             (synchronizer: any, source: any, target: any, event: any) => {
                 // Get the item id from element id

@@ -448,7 +448,7 @@ export default Vue.extend({
                         // Set up zoom tool
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizer
-                        this.$root.synchronizer.add(this.dicomEl)
+                        this.$root.synchronizers.stackScroll.add(this.dicomEl)
                         this.resource.currentPosition = this.resource.currentPosition
                         // Re-enable the active tool to include this stack
                         this.$store.dispatch('tools:re-enable-active')
@@ -524,7 +524,7 @@ export default Vue.extend({
             // Remove stack scroll tool
             cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
             // Unregister synchronizer
-            this.$root.synchronizer.remove(this.dicomEl)
+            this.$root.synchronizers.stackScroll.remove(this.dicomEl)
         }
         // Disable the element
         this.$root.cornerstone.disable(this.dicomEl)

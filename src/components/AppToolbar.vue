@@ -213,7 +213,10 @@ export default Vue.extend({
                     default: { mouseButtonMask: 1 },
                 },
                 'StackScroll': {
-                    active: { mouseButtonMask: 1, synchronizationContext: this.$root.synchronizer },
+                    active: {
+                        mouseButtonMask: 1,
+                        synchronizationContext: this.$root.synchronizers.stackScroll
+                    },
                     default: {},
                 },
                 'Zoom': {
