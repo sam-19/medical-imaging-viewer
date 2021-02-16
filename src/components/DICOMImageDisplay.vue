@@ -542,6 +542,7 @@ export default Vue.extend({
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     // Check that dicomEl still exists, in case the container has been destroyed during the load
                     if (success && !this.destroyed) {
+                        this.mainImageLoaded = true
                         // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
                         const stackOpts = {
@@ -569,12 +570,11 @@ export default Vue.extend({
                                 }
                             })
                         }
-                        // Main image is done loading
-                        this.mainImageLoaded = true
                         // Display possible topogram
                         if (this.topogram) {
                             cornerstone.enable(this.topoEl)
                             cornerstone.loadImage(this.topogram.url).then((image: any) => {
+                                this.topoImageLoaded = true
                                 const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
                                 // We need to pass stack tools even to single images to enable reference lines
                                 const stackOpts = {
@@ -592,8 +592,6 @@ export default Vue.extend({
                                 cornerstoneTools.setToolEnabled('ReferenceLines', {
                                     synchronizationContext: this.$root.synchronizers.referenceLines,
                                 })
-                                // Topogram image is done loading
-                                this.topoImageLoaded = true
                                 enableElement()
                             }).catch((e: any) => {
                                 console.error('Loading topogram failed!')
@@ -673,27 +671,29 @@ export default Vue.extend({
             this.$store.commit('remove-linked-item', this.id)
         }
         // Remove tools
-        try {
-            // If the component is destroyed before all of the setup is done, some of these may throw errors
-            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
-            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
-            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
-            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
-            if (this.resource.isStack) {
-                // Remove stack-specific tools
-                cornerstoneTools.clearToolState(this.dicomEl, 'stack')
-                cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
-                // Unregister synchronizers
-                this.$root.synchronizers.stackScroll.remove(this.dicomEl)
-                this.$root.synchronizers.referenceLines.remove(this.dicomEl)
-            }
-            // Disable the element
-            cornerstone.disable(this.dicomEl)
-        } catch (e) {}
+        if (this.mainImageLoaded) {
+            try {
+                // If the component is destroyed before all of the setup is done, some of these may throw errors
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
+                if (this.resource.isStack) {
+                    // Remove stack-specific tools
+                    cornerstoneTools.clearToolState(this.dicomEl, 'stack')
+                    cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
+                    cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
+                    cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
+                    cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+                    // Unregister synchronizers
+                    this.$root.synchronizers.stackScroll.remove(this.dicomEl)
+                    this.$root.synchronizers.referenceLines.remove(this.dicomEl)
+                }
+                // Disable the element
+                cornerstone.disable(this.dicomEl)
+            } catch (e) {}
+        }
         if (this.topogram && this.topoImageLoaded) {
             try {
                 // Same for topogram
@@ -705,7 +705,7 @@ export default Vue.extend({
                 cornerstone.disable(this.topoEl)
             } catch (e) {}
         }
-        // Ubsubscribe from store
+        // Unsubscribe from store
         this.unsubscribeActions()
         this.unsubscribeMutations()
     },
