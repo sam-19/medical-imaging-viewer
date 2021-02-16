@@ -339,7 +339,7 @@ export default Vue.extend({
             this.viewport = cornerstone.getViewport(this.dicomEl)
             //cornerstone.setViewport(this.dicomEl, this.viewport)
             // Resize possible topogram image
-            if (this.topogram) {
+            if (this.topogram && this.topoImageLoaded) {
                 this.topoEl.style.width = `${(dimensions[0]/colPos[1] - hPad)*0.25}px`
                 this.topoEl.style.height = `${(dimensions[1]/rowPos[1] - vPad)*0.25}px`
                 cornerstone.resize(this.topoEl, false)
