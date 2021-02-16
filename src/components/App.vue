@@ -86,6 +86,7 @@ export default Vue.extend({
             synchronizers: {
                 stackScroll: null as unknown,
                 referenceLines: null as unknown,
+                lastUpdatedTopo: null as any,
             },
             // Loaded elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
@@ -407,18 +408,18 @@ export default Vue.extend({
             'cornerstonetoolsstackscroll',
             (synchronizer: any, source: any, target: any, event: any) => {
                 // Get the item id from element id
-                const srcId = source.id.split('-')[1] // ID is the middle element
-                const tgtId = target.id.split('-')[1]
+                const srcId = source.id.split('-')
+                const tgtId = target.id.split('-')
                 let srcEl, tgtEl = null
                 for (let i=0; i<this.dicomElements.length; i++) {
-                    if (this.dicomElements[i].id === srcId) {
+                    if (this.dicomElements[i].id === srcId[1]) {
                         srcEl = this.dicomElements[i]
-                    } else if (this.dicomElements[i].id === tgtId) {
+                    } else if (this.dicomElements[i].id === tgtId[1]) {
                         tgtEl = this.dicomElements[i]
                     }
                 }
                 // Make sure that this is an actual active element and an actual scroll event
-                if (srcEl === null || !this.isElementActive(srcId) || !event) {
+                if (srcEl === null || !this.isElementActive(srcId[1]) || !event) {
                     return
                 }
                 // Synchronize stack position
@@ -428,11 +429,11 @@ export default Vue.extend({
                 if (this.ctrlDown) {
                     const relPos = (srcEl.currentPosition - (srcEl.linkedPosition || 0))/srcEl.images.length
                             + (srcEl.masterLinkPosition || 0)
-                    this.$store.commit('set-linked-scroll-position', { origin: srcId, position: relPos })
+                    this.$store.commit('set-linked-scroll-position', { origin: srcId[1], position: relPos })
                     return
                 }
                 // Determine if target element should be synchronized with source element
-                if (!this.isElementLinked(srcId) || !this.isElementLinked(tgtId) || source === target) {
+                if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1]) || source === target) {
                     // Source or target is not linked, or they are the same element
                     return
                 }
@@ -474,7 +475,7 @@ export default Vue.extend({
                 if (source === target) {
                     return
                 }
-                // Right new there seems to be now way to prevent the reference lines from any synchronized
+                // Right now there seems to be now way to prevent the reference lines from any synchronized
                 // elements from showing up
                 // const srcId = source.id.split('-')
                 const tgtId = target.id.split('-')

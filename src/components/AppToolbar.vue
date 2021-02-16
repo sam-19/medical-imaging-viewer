@@ -34,11 +34,11 @@ interface ButtonState {
 interface ButtonRow {
     'Wwwc': ButtonState
     'area': ButtonState
-    'distance': ButtonState
     'flip': ButtonState
     'invert': ButtonState
     'layout': ButtonState
     'left': ButtonState
+    'Length': ButtonState
     'link': ButtonState
     'Pan': ButtonState
     'reset': ButtonState
@@ -107,7 +107,7 @@ export default Vue.extend({
                     tooltip: [ this.$t('Adjust levels') ],
                 },
                 {
-                    id: 'distance',
+                    id: 'Length',
                     set: 2,
                     groups: ['interact'],
                     icon: [ ['fal', 'ruler'] ],
@@ -176,11 +176,11 @@ export default Vue.extend({
             buttonStates: {
                 'Wwwc':         { active: false, visible: true, enabled: true } as ButtonState,
                 'area':         { active: false, visible: true, enabled: true } as ButtonState,
-                'distance':     { active: false, visible: true, enabled: true } as ButtonState,
                 'flip':         { active: false, visible: true, enabled: true } as ButtonState,
                 'invert':       { active: false, visible: true, enabled: true } as ButtonState,
                 'layout':       { active: false, visible: true, enabled: true } as ButtonState,
                 'left':         { active: false, visible: true, enabled: true } as ButtonState,
+                'Length':       { active: false, visible: true, enabled: true } as ButtonState,
                 'link':         { active: false, visible: true, enabled: true } as ButtonState,
                 'Pan':          { active: false, visible: true, enabled: true } as ButtonState,
                 'reset':        { active: false, visible: true, enabled: true } as ButtonState,
@@ -204,7 +204,7 @@ export default Vue.extend({
                     active: { mouseButtonMask: 1 },
                     default: {},
                 },
-                'distance': {
+                'Length': {
                     active: { mouseButtonMask: 1 },
                     default: {},
                 },
@@ -265,8 +265,6 @@ export default Vue.extend({
                 this.toggleAdjust()
             } else if (buttonId === 'area') {
                 this.toggleArea()
-            } else if (buttonId === 'distance') {
-                this.toggleDistance()
             } else if (buttonId === 'invert') {
                 this.invertColors()
             } else if (buttonId === 'flip') {
@@ -275,6 +273,8 @@ export default Vue.extend({
                 this.toggleGridLayout()
             } else if (buttonId === 'left') {
                 this.rotate(-90)
+            } else if (buttonId === 'Length') {
+                this.toggleDistance()
             } else if (buttonId === 'link') {
                 this.toggleLink()
             } else if (buttonId === 'Pan') {
@@ -432,7 +432,6 @@ export default Vue.extend({
         },
         toggleAdjust: function () {
             this.buttonStates['Wwwc'].active = !this.buttonStates['Wwwc'].active
-            cornerstoneTools.setToolDisabled('StackScroll')
             if (this.buttonStates['Wwwc'].active) {
                 cornerstoneTools.setToolActive('Wwwc', this.toolOptions['Wwwc'].active)
             } else {
@@ -445,8 +444,13 @@ export default Vue.extend({
             this.$store.commit('set-active-tool', 'area')
         },
         toggleDistance: function () {
-            this.buttonStates.distance.active = !this.buttonStates.distance.active
-            this.$store.commit('set-active-tool', 'distance')
+            this.buttonStates.Length.active = !this.buttonStates.Length.active
+            if (this.buttonStates.Length.active) {
+                cornerstoneTools.setToolActive('Length', this.toolOptions.Length.active)
+            } else {
+                cornerstoneTools.setToolDisabled('Length')
+            }
+            this.$store.commit('set-active-tool', 'Length')
         },
         toggleGridLayout: function () {
             const layouts = [null, [1, 0], [0, 1]]

@@ -6,23 +6,24 @@
 
 
 declare module 'cornerstone-tools' {
-    var external: {
+    const external: {
         cornerstone: any
         cornerstoneMath: any
         Hammer: any
     }
-    var toolColors: {
+    const toolColors: {
         setActiveColor (color: string): void
         setToolColor (color: string): void
     }
-    var PanTool: any
-    var ReferenceLinesTool: any
-    var StackScrollTool: any
-    var stackImagePositionSynchronizer: any
-    var StackScrollMouseWheelTool: any
-    var updateImageSynchronizer: any
-    var WwwcTool: any
-    var ZoomTool: any
+    const LengthTool: any
+    const PanTool: any
+    const ReferenceLinesTool: any
+    const StackScrollTool: any
+    const stackImagePositionSynchronizer: any
+    const StackScrollMouseWheelTool: any
+    const updateImageSynchronizer: any
+    const WwwcTool: any
+    const ZoomTool: any
     function addStackStateManager (element: any, array: any): void
     function addTool (tool: any, options?: any): void
     function addToolForElement (element: any, tool: any, options?: any): void

@@ -442,13 +442,16 @@ export default Vue.extend({
                     maxScale: 20.0,
                 }
             }
+            // Set up basic tools
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
                 // Add stack state manager to loaded images
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     if (success) {
-                        // Set up pan tool
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
                         // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
                         const stackOpts = {
@@ -459,10 +462,6 @@ export default Vue.extend({
                         cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
-                        // Set up wwwc tool
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
-                        // Set up zoom tool
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizers
                         this.$root.synchronizers.stackScroll.add(this.dicomEl)
                         this.$root.synchronizers.referenceLines.add(this.dicomEl)
@@ -470,7 +469,7 @@ export default Vue.extend({
                         //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         this.resource.currentPosition = this.resource.currentPosition
                         const enableElement = () => {
-                            // Shorthand for these operations, as there are needed in a few (async) paths
+                            // Shorthand for these operations, as they are needed in a few (async) paths
                             this.$store.dispatch('tools:re-enable-active')
                             this.displayImage(true)
                             Vue.nextTick(() => {
@@ -506,13 +505,13 @@ export default Vue.extend({
                         } else {
                             enableElement()
                         }
+                        this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
+                        this.isFirstLoaded = true
+                        // Save new position
+                        this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
+                            this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
+                        })
                     }
-                    this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
-                    this.isFirstLoaded = true
-                    // Save new position
-                    this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
-                        this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
-                    })
                 })
             } else {
                 // Display first image with default settings
@@ -525,22 +524,17 @@ export default Vue.extend({
                         //}
                         //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
                         //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                        // Set up wwwc tool
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
-                        // Set up zoom tool
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
                         // Register element to synchronizers
-                        //this.$root.synchronizers.stackScroll.add(this.dicomEl)
                         //this.$root.synchronizers.referenceLines.add(this.dicomEl)
                         // Add reference lines tool (must be done after setting up synchronizers!)
                         //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         // Re-enable the active tool to include this image
                         this.$store.dispatch('tools:re-enable-active')
+                        this.isFirstLoaded = true
+                        Vue.nextTick(() => {
+                            this.resizeImage(this.containerSize as number[])
+                        })
                     }
-                    this.isFirstLoaded = true
-                    Vue.nextTick(() => {
-                        this.resizeImage(this.containerSize as number[])
-                    })
                 })
             }
             // Subscribe to store dispatch events
@@ -580,23 +574,22 @@ export default Vue.extend({
             this.linkedPos = null
             this.$store.commit('remove-linked-item', this.id)
         }
-        // Remove pan tool
+        // Remove tools
+        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
-        // Remove wwwc tool
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
-        // Remove zoom tool
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
-        // Remove stack scroll tool
-        cornerstoneTools.clearToolState(this.dicomEl, 'stack')
-        cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
-        // Remove stack scroll tool
-        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
-        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
-        // Remove reference lines tool
-        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
-        // Unregister synchronizers
-        this.$root.synchronizers.stackScroll.remove(this.dicomEl)
-        this.$root.synchronizers.referenceLines.remove(this.dicomEl)
+        if (this.resource.isStack) {
+            // Remove stack-specific tools
+            cornerstoneTools.clearToolState(this.dicomEl, 'stack')
+            cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
+            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
+            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
+            cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+            // Unregister synchronizers
+            this.$root.synchronizers.stackScroll.remove(this.dicomEl)
+            this.$root.synchronizers.referenceLines.remove(this.dicomEl)
+        }
         // Disable the element
         cornerstone.disable(this.dicomEl)
         if (this.topogram) {
