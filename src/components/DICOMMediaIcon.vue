@@ -26,7 +26,6 @@
 
 import Vue from 'vue'
 import cornerstone from 'cornerstone-core'
-import { ImageModality, BiosignalModality } from '../types/viewer'
 
 export default Vue.extend({
     components: {

@@ -57,9 +57,6 @@ import { FileSystemItem, ImageResource, ImageStackResource }from '../types/asset
 import DICOMImage from '../assets/dicom/DICOMImage'
 import DICOMImageStack from '../assets/dicom/DICOMImageStack'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
-import { MutationTypes } from '../store'
-import DICOMMedia from '../assets/dicom/DICOMMedia'
-import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 
 const TOOL_COLOR = {
     BLUE: '#C0DDF0',

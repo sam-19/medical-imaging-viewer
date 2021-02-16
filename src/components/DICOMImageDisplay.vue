@@ -39,10 +39,7 @@ import Vue from 'vue'
 import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneMath from 'cornerstone-math'
-import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
-import DICOMImage from '../assets/dicom/DICOMImage'
-import { MOUSE_BUTTON } from '../types/viewer'
-import { ImageResource, ImageStackResource } from '../types/assets'
+import { ImageResource } from '../types/assets'
 
 let INSTANCE_NUM = 0
 const CLICK_DISTANCE_THRESHOLD = 5
