@@ -10,23 +10,16 @@ import Vuex, { ActionTree, ActionContext, CommitOptions, DispatchOptions, Getter
 
 // State defines store properties
 const state = {
-    activeItems: [] as string[],
     activeTool: null as null | string,
     appName: '' as string,
     cacheStatus: { count: 0, max: 0, size: 0 },
-    linkedItems: [] as string[],
     linkedScrollPosition: 0,
 }
 type State = typeof state
 // Getters
 type Getters = {
-    linkedItemIds (state: State): string[],
 }
 const getters: GetterTree<State, State> & Getters = {
-    linkedItemIds: (state) => {
-        // Resource id is the last of dash-delimited fields in the element id
-        return state.linkedItems.map((el: any) => el.id.split('-').pop())
-    },
 }
 // Actions (method calls)
 enum ActionTypes {
@@ -55,59 +48,18 @@ const actions = {
 }
 // Mutations (commits)
 enum MutationTypes {
-    ADD_ACTIVE_ITEM = 'add-active-item',
-    ADD_LINKED_ITEM = 'add-linked-item',
-    REMOVE_ACTIVE_ITEM = 'remove-active-item',
-    REMOVE_LINKED_ITEM = 'remove-linked-item',
-    SET_ACTIVE_ITEMS = 'set-active-items',
     SET_ACTIVE_TOOL = 'set-active-tool',
     SET_APP_NAME = 'set-app-name',
     SET_CACHE_STATUS = 'set-cache-status',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
 }
 type Mutations<S = State> = {
-    [MutationTypes.ADD_ACTIVE_ITEM] (state: S, payload: string): void,
-    [MutationTypes.ADD_LINKED_ITEM] (state: S, payload: string): void,
-    [MutationTypes.REMOVE_ACTIVE_ITEM] (state: S, payload: any): void,
-    [MutationTypes.REMOVE_LINKED_ITEM] (state: S, payload: any): void,
-    [MutationTypes.SET_ACTIVE_ITEMS] (state: S, payload: string |string[]): void,
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
 }
 const mutations: MutationTree<State> & Mutations = {
-    [MutationTypes.ADD_ACTIVE_ITEM] (state, payload: string) {
-        if (state.activeItems.indexOf(payload) === -1) {
-            state.activeItems.push(payload)
-        }
-    },
-    [MutationTypes.ADD_LINKED_ITEM] (state, payload: any) {
-        if (state.linkedItems.indexOf(payload) === -1) {
-            state.linkedItems.push(payload)
-        }
-    },
-    [MutationTypes.REMOVE_ACTIVE_ITEM] (state, payload: string) {
-        if (state.activeItems.indexOf(payload) !== -1) {
-            state.activeItems.splice(
-                state.activeItems.indexOf(payload), 1
-            )
-        }
-    },
-    [MutationTypes.REMOVE_LINKED_ITEM] (state, payload: any) {
-        if (state.linkedItems.indexOf(payload) !== -1) {
-            state.linkedItems.splice(
-                state.linkedItems.indexOf(payload), 1
-            )
-        }
-    },
-    [MutationTypes.SET_ACTIVE_ITEMS] (state, payload: string | string[]) {
-        if (Array.isArray(payload)) {
-            state.activeItems = payload
-        } else {
-            state.activeItems = [payload]
-        }
-    },
     [MutationTypes.SET_ACTIVE_TOOL] (state, payload: string) {
         if (state.activeTool === payload) {
             state.activeTool = null
