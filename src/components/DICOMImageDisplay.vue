@@ -443,6 +443,7 @@ export default Vue.extend({
                 }
             }
             // Set up basic tools
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
@@ -575,6 +576,7 @@ export default Vue.extend({
             this.$store.commit('remove-linked-item', this.id)
         }
         // Remove tools
+        cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
         cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)

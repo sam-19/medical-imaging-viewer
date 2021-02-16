@@ -32,8 +32,7 @@ interface ButtonState {
     enabled: boolean,
 }
 interface ButtonRow {
-    'Wwwc': ButtonState
-    'area': ButtonState
+    'EllipticalRoi': ButtonState
     'flip': ButtonState
     'invert': ButtonState
     'layout': ButtonState
@@ -45,6 +44,7 @@ interface ButtonRow {
     'right': ButtonState
     'StackScroll': ButtonState
     'undo': ButtonState
+    'Wwwc': ButtonState
     'Zoom': ButtonState
 }
 export default Vue.extend({
@@ -114,7 +114,7 @@ export default Vue.extend({
                     tooltip: [ this.$t('Measure distance') ],
                 },
                 {
-                    id: 'area',
+                    id: 'EllipticalRoi',
                     set: 2,
                     groups: ['interact'],
                     icon: [ ['fal', 'draw-circle'] ],
@@ -174,20 +174,20 @@ export default Vue.extend({
             ],
             // Button states
             buttonStates: {
-                'Wwwc':         { active: false, visible: true, enabled: true } as ButtonState,
-                'area':         { active: false, visible: true, enabled: true } as ButtonState,
-                'flip':         { active: false, visible: true, enabled: true } as ButtonState,
-                'invert':       { active: false, visible: true, enabled: true } as ButtonState,
-                'layout':       { active: false, visible: true, enabled: true } as ButtonState,
-                'left':         { active: false, visible: true, enabled: true } as ButtonState,
-                'Length':       { active: false, visible: true, enabled: true } as ButtonState,
-                'link':         { active: false, visible: true, enabled: true } as ButtonState,
-                'Pan':          { active: false, visible: true, enabled: true } as ButtonState,
-                'reset':        { active: false, visible: true, enabled: true } as ButtonState,
-                'right':        { active: false, visible: true, enabled: true } as ButtonState,
-                'StackScroll':  { active: false, visible: true, enabled: true } as ButtonState,
-                'undo':         { active: false, visible: true, enabled: true } as ButtonState,
-                'Zoom':         { active: false, visible: true, enabled: true } as ButtonState,
+                'EllipticalRoi':    { active: false, visible: true, enabled: true } as ButtonState,
+                'flip':             { active: false, visible: true, enabled: true } as ButtonState,
+                'invert':           { active: false, visible: true, enabled: true } as ButtonState,
+                'layout':           { active: false, visible: true, enabled: true } as ButtonState,
+                'left':             { active: false, visible: true, enabled: true } as ButtonState,
+                'Length':           { active: false, visible: true, enabled: true } as ButtonState,
+                'link':             { active: false, visible: true, enabled: true } as ButtonState,
+                'Pan':              { active: false, visible: true, enabled: true } as ButtonState,
+                'reset':            { active: false, visible: true, enabled: true } as ButtonState,
+                'right':            { active: false, visible: true, enabled: true } as ButtonState,
+                'StackScroll':      { active: false, visible: true, enabled: true } as ButtonState,
+                'undo':             { active: false, visible: true, enabled: true } as ButtonState,
+                'Wwwc':             { active: false, visible: true, enabled: true } as ButtonState,
+                'Zoom':             { active: false, visible: true, enabled: true } as ButtonState,
             } as ButtonRow,
             imageLink: null as number[] | null,
             // This is needed to keep the button row up to date
@@ -196,11 +196,7 @@ export default Vue.extend({
             currentLayout: 0,
             // Default options for different tool types
             toolOptions: {
-                'Wwwc': {
-                    active: { mouseButtonMask: 1 },
-                    default: { mouseButtonMask: 2 },
-                },
-                'area': {
+                'EllipticalRoi': {
                     active: { mouseButtonMask: 1 },
                     default: {},
                 },
@@ -218,6 +214,10 @@ export default Vue.extend({
                         synchronizationContext: this.$root.synchronizers.stackScroll
                     },
                     default: {},
+                },
+                'Wwwc': {
+                    active: { mouseButtonMask: 1 },
+                    default: { mouseButtonMask: 2 },
                 },
                 'Zoom': {
                     active: { mouseButtonMask: 1 },
@@ -261,9 +261,7 @@ export default Vue.extend({
          * @param buttonId string ID of the button
          */
         buttonClicked: function (buttonId: string) {
-            if (buttonId === 'Wwwc') {
-                this.toggleAdjust()
-            } else if (buttonId === 'area') {
+            if (buttonId === 'EllipticalRoi') {
                 this.toggleArea()
             } else if (buttonId === 'invert') {
                 this.invertColors()
@@ -287,6 +285,8 @@ export default Vue.extend({
                 this.toggleScroll()
             } else if (buttonId === 'undo') {
                 this.undoLast()
+            } else if (buttonId === 'Wwwc') {
+                this.toggleAdjust()
             } else if (buttonId === 'Zoom') {
                 this.toggleZoom()
             }
@@ -301,9 +301,11 @@ export default Vue.extend({
                     }
                 })
             }
-            if (!this.$store.state.activeTool) {
-                this.enableDefaults()
-            }
+            this.$nextTick(() => {
+                if (!this.$store.state.activeTool) {
+                    this.enableDefaults()
+                }
+            })
             // Refresh button row
             this.buttonsUpdated = Date.now()
         },
@@ -440,13 +442,18 @@ export default Vue.extend({
             this.$store.commit('set-active-tool', 'Wwwc')
         },
         toggleArea: function () {
-            this.buttonStates.area.active = !this.buttonStates.area.active
-            this.$store.commit('set-active-tool', 'area')
+            this.buttonStates['EllipticalRoi'].active = !this.buttonStates['EllipticalRoi'].active
+            if (this.buttonStates['EllipticalRoi'].active) {
+                cornerstoneTools.setToolActive('EllipticalRoi', this.toolOptions['EllipticalRoi'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('EllipticalRoi')
+            }
+            this.$store.commit('set-active-tool', 'EllipticalRoi')
         },
         toggleDistance: function () {
-            this.buttonStates.Length.active = !this.buttonStates.Length.active
-            if (this.buttonStates.Length.active) {
-                cornerstoneTools.setToolActive('Length', this.toolOptions.Length.active)
+            this.buttonStates['Length'].active = !this.buttonStates['Length'].active
+            if (this.buttonStates['Length'].active) {
+                cornerstoneTools.setToolActive('Length', this.toolOptions['Length'].active)
             } else {
                 cornerstoneTools.setToolDisabled('Length')
             }

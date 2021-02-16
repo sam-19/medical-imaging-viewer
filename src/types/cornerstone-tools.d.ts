@@ -15,6 +15,7 @@ declare module 'cornerstone-tools' {
         setActiveColor (color: string): void
         setToolColor (color: string): void
     }
+    const EllipticalRoiTool: any
     const LengthTool: any
     const PanTool: any
     const ReferenceLinesTool: any
