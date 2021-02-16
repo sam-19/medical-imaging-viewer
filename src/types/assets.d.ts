@@ -4,8 +4,6 @@
  * @license    MIT
  */
 
-import { Image } from "cornerstone-core";
-
 interface FileSystemItem {
     name: string
     path: string
@@ -64,4 +62,13 @@ interface ImageStackResource extends MediaResource {
     unlink(): void
 }
 
-export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource }
+interface SignalResource {
+    channels: { label: string, signals: number[] }[]
+    resolution: number // Highest resolution in this resource
+    name: string
+    duration: number
+    type: string
+    url: string
+}
+
+export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource, SignalResource }
