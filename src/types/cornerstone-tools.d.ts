@@ -15,6 +15,10 @@ declare module 'cornerstone-tools' {
         setActiveColor (color: string): void
         setToolColor (color: string): void
     }
+    const globalImageIdSpecificToolStateManager: {
+        restoreToolState (toolState: any): void
+        saveToolState (): any
+    }
     const EllipticalRoiTool: any
     const LengthTool: any
     const PanTool: any
@@ -32,12 +36,14 @@ declare module 'cornerstone-tools' {
     function clearToolState (element: any, tool: string): void
     function getElementToolStateManager (element: any): void
     function getToolState (element: any, tool: string): any
+    function importInternal (module: string): any
     function init (): void
     function removeTool (tool: any): void
     function removeToolForElement (element: any, tool: any): void
     function setToolActive (tool: string, options: any): void
     function setToolDisabled (tool: string): void
     function setToolEnabled (tool: string, options: any): void
+    function setToolPassive (tool: string): void
 
     class Synchronizer {
         constructor (tool: string, handler: any)

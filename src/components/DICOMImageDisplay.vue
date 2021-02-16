@@ -1,8 +1,18 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-image-wrapper">
+    <div ref="wrapper" class="medigi-viewer-image-wrapper" @mouseleave="hideAnnotationMenu">
+        <div ref="annotation-menu"
+            :class="[
+                'medigi-viewer-delete-annotation',
+                { 'medigi-viewer-hidden': !annotationMenu },
+            ]"
+            @click="annotationMenu.remove()"
+            @contextmenu.prevent
+        >
+            {{ $t('Delete') }}
+        </div>
         <div ref="container" :id="`container-${id}-${instanceNum}`"
-            oncontextmenu="return false // Prevent context menu pop-up on right click"
+            @contextmenu.prevent
         ></div>
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
             :icon="resource.isLinked ? ['fal', 'unlink'] : ['fal', 'link']"
@@ -17,7 +27,7 @@
         >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
         <div v-if="topogram && resource.isStack" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
             class="medigi-viewer-topogram"
-            oncontextmenu="return false // Prevent context menu pop-up on right click"
+            @contextmenu.prevent
         >
         </div>
     </div>
@@ -28,12 +38,14 @@
 import Vue from 'vue'
 import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
+import cornerstoneMath from 'cornerstone-math'
 import DICOMDataProperty from '../assets/dicom/DICOMDataProperty'
 import DICOMImage from '../assets/dicom/DICOMImage'
 import { MOUSE_BUTTON } from '../types/viewer'
 import { ImageResource, ImageStackResource } from '../types/assets'
 
 let INSTANCE_NUM = 0
+const CLICK_DISTANCE_THRESHOLD = 5
 
 export default Vue.extend({
     components: {
@@ -59,6 +71,7 @@ export default Vue.extend({
             mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             mouseRBtnDown: false, // Is the right mouse button down (depressed)
             scrollProgress: 0, // Progress towards a scroll step
+            annotationMenu: null as object | null, // Annotation selected by the user
             viewport: null as any, // Save viewport settings for image stacks
             // Store unsubscribe methods
             unsubscribeActions: null as unknown as Function,
@@ -122,6 +135,66 @@ export default Vue.extend({
                 this.viewport.hflip = !this.viewport.hflip
                 this.displayImage(false)
             }
+        },
+        /**
+         * Handle right click (or context menu triggering) event on the image.
+         */
+        handleRightClick: function (e: any) {
+            //const getHandleNearImagePoint = cornerstoneTools.importInternal('manipulators/getHandleNearImagePoint')
+            const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
+            // Get tool state for currently displayed image
+            const localState = this.resource.isStack ?
+                               toolStates[this.resource.currentImage.url] : toolStates[this.resource.url]
+            // Clicked image coordinates
+            const coords = {...e.lastPoints.image}
+            if (localState) {
+                // Remove annotation method
+                const removeAnnotation = (type: string, index: number) => {
+                    if (type === 'roi') {
+                        localState.EllipticalRoi.data.splice(index, 1)
+                    } else if (type === 'len') {
+                        localState.Length.data.splice(index, 1)
+                    }
+                    cornerstoneTools.globalImageIdSpecificToolStateManager.restoreToolState(toolStates)
+                    cornerstone.updateImage(this.dicomEl, false)
+                    this.annotationMenu = null
+                }
+                // Check if there are eppieptical RoIs
+                if (localState.EllipticalRoi) {
+                    for (let i=0; i<localState.EllipticalRoi.data.length; i++) {
+                        const roi = localState.EllipticalRoi.data[i]
+                        if (cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
+                            cornerstoneMath.point.distance(roi.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
+                        ) {
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
+                            this.annotationMenu = { remove: () => {
+                                removeAnnotation('roi', i)
+                            } }
+                            return
+                        }
+                    }
+                }
+                if (localState.Length) {
+                    for (let i=0; i<localState.Length.data.length; i++) {
+                        const len = localState.Length.data[i]
+                        if (cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
+                            cornerstoneMath.point.distance(len.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
+                        ) {
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
+                            this.annotationMenu = { remove: () => {
+                                removeAnnotation('len', i)
+                            } }
+                            return
+                        }
+                    }
+                }
+            }
+            this.hideAnnotationMenu()
+        },
+        hideAnnotationMenu: function () {
+            this.annotationMenu = null
         },
         /**
          * Trigger the desired effect from mouse move according to the active toolbar tool.
@@ -365,6 +438,16 @@ export default Vue.extend({
         this.dicomEl = this.$refs[`container`] as HTMLDivElement
         this.topoEl = this.$refs[`topogram`] as HTMLDivElement
         if (this.dicomEl) {
+            // Add event listener
+            this.dicomEl.addEventListener('cornerstonetoolsmouseclick', (e: any) => {
+                if (e.detail.event.button === 2) {
+                    // Right mouse click
+                    this.handleRightClick(e.detail)
+                } else if (!e.detail.event.button && this.annotationMenu) {
+                    // Hide annotation menu on left mouse click
+                    this.annotationMenu = null
+                }
+            })
             // Enable the element
             cornerstone.enable(this.dicomEl)
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
@@ -617,6 +700,19 @@ export default Vue.extend({
     float: left;
     padding: 10px;
 }
+    .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation {
+        position: absolute;
+        display: inline-block;
+        border: 2px solid var(--medigi-viewer-border);
+        background-color: var(--medigi-viewer-background);
+        padding: 10px;
+        cursor: pointer;
+    }
+        .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation:hover {
+            background-color: var(--medigi-viewer-background-highlight);
+        }.medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation.medigi-viewer-hidden {
+            display: none;
+        }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;
         top: 10px;

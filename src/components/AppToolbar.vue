@@ -446,7 +446,7 @@ export default Vue.extend({
             if (this.buttonStates['EllipticalRoi'].active) {
                 cornerstoneTools.setToolActive('EllipticalRoi', this.toolOptions['EllipticalRoi'].active)
             } else {
-                cornerstoneTools.setToolDisabled('EllipticalRoi')
+                cornerstoneTools.setToolPassive('EllipticalRoi')
             }
             this.$store.commit('set-active-tool', 'EllipticalRoi')
         },
@@ -455,7 +455,7 @@ export default Vue.extend({
             if (this.buttonStates['Length'].active) {
                 cornerstoneTools.setToolActive('Length', this.toolOptions['Length'].active)
             } else {
-                cornerstoneTools.setToolDisabled('Length')
+                cornerstoneTools.setToolPassive('Length')
             }
             this.$store.commit('set-active-tool', 'Length')
         },

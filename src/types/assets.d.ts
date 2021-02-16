@@ -46,6 +46,7 @@ interface ImageResource extends MediaResource {
 }
 interface ImageStackResource extends MediaResource {
     coverImage?: string
+    currentImage: ImageResource | null
     currentPosition: number
     images: ImageResource[]
     linkedPosition: number

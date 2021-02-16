@@ -6,5 +6,8 @@
 
 
 declare module 'cornerstone-math' {
-    var Vector3: any
+    const Vector3: any
+    const point: {
+        distance (source: any, target: any): number
+    }
 }

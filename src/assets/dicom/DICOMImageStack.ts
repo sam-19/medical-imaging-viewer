@@ -31,6 +31,9 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     set coverImage (image: string | undefined) {
         this._coverImage = image
     }
+    get currentImage () {
+        return this._images[this._currentPosition] || null
+    }
     get currentPosition () {
         return this._currentPosition
     }
