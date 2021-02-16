@@ -494,7 +494,7 @@ export default Vue.extend({
                 // Refresh linked position and master stack position in each active stack element
                 const items = this.activeItems
                 for (let i=0; i<items.length; i++) {
-                    if (items[i].isStack) {
+                    if (items[i].isStack && items[i].isLinked) {
                         (items[i] as ImageStackResource).link(this.$store.state.linkedScrollPosition)
                     }
                 }

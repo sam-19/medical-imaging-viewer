@@ -612,6 +612,7 @@ export default Vue.extend({
                 // Display first image with default settings
                 this.displayImage(true).then((success: boolean) => {
                     if (success) {
+                        this.mainImageLoaded = true
                         // We need to pass stack tools even to single images to enable reference lines
                         //const stackOpts = {
                         //    currentImageIdIndex: 0,
