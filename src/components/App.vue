@@ -1,8 +1,16 @@
 <template>
 
     <div :id="`${$store.state.appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
-        <div class="medigi-viewer-interface-dropdown">
-            <span>DROP A FILE BELOW TO START</span>
+        <div :class="[
+            'medigi-viewer-interface-dropdown',
+            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+        ]">
+            <span>DROP A FILE BELOW</span>
+            <font-awesome-icon
+                :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
+                :title="sidebarOpen ? $t('Close sidebar') : $t('Open sidebar')"
+                @click="toggleSidebar"
+            />
             <ul>
                 <!--<li>LIST OF OPTIONS</li>-->
             </ul>
@@ -10,6 +18,7 @@
         <dicom-image-interface v-if="scope==='dicom-image'"
             ref="dicom-image-interface"
             :items="dicomElements"
+            :sidebarOpen="sidebarOpen"
         ></dicom-image-interface>
     </div>
 
@@ -38,6 +47,7 @@ export default Vue.extend({
     data () {
         return {
             scope: 'dicom-image',
+            sidebarOpen: true,
             // Loaded DICOM elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             // Theme change trigger
@@ -142,6 +152,9 @@ export default Vue.extend({
                 }, 2100)
             }
         },
+        toggleSidebar: function () {
+            this.sidebarOpen = !this.sidebarOpen
+        },
     },
 })
 
@@ -225,13 +238,28 @@ body {
         cursor: pointer;
         opacity: 0.8;
         z-index: 1;
+        transition: left 0.5s;
     }
         .medigi-viewer-interface-dropdown:hover {
             opacity: 1.0;
         }
+        .medigi-viewer-interface-dropdown.medigi-viewer-sidebar-closed {
+            left: -230px;
+        }
         .medigi-viewer-interface-dropdown > span {
             margin: 0 10px;
+            font-size: 18px;
         }
+        .medigi-viewer-interface-dropdown > svg {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 36px;
+            opacity: 0.5;
+        }
+            .medigi-viewer-interface-dropdown > svg:hover {
+                opacity: 0.75;
+            }
         .medigi-viewer-interface-dropdown > ul {
             display: none;
             width: 100%;

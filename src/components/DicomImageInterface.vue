@@ -1,7 +1,10 @@
 <template>
 
     <div :id="`${$store.state.appName}-medigi-dicom-image-interface`"
-        class="medigi-viewer-dicom-image-interface"
+        :class="[
+            'medigi-viewer-dicom-image-interface',
+            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+        ]"
     >
         <div class="medigi-viewer-toolbar">
             <dicom-image-toolbar
@@ -80,6 +83,7 @@ export default Vue.extend({
     },
     props: {
         items: Array,
+        sidebarOpen: Boolean,
     },
     data () {
         return {
@@ -516,16 +520,23 @@ export default Vue.extend({
 
 <style>
 .medigi-viewer-dicom-image-interface {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
     display: grid;
     grid-template-columns: [left-edge] 300px [divider] auto [right-edge];
     grid-template-rows: [top-edge] 80px [divider] auto [bottom-edge];
-    height: 100%;
-    width: 100%;
     color: var(--medigi-viewer-text-main);
     background-color: var(--medigi-viewer-background);
     font-family: sans-serif;
     overflow: auto;
+    transition: left 0.5s;
 }
+    .medigi-viewer-dicom-image-interface.medigi-viewer-sidebar-closed {
+        left: -240px;
+    }
     .medigi-viewer-dicom-image-interface > .medigi-viewer-sidebar {
         grid-column-start: left-edge;
         grid-column-end: divider;

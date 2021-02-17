@@ -16,6 +16,8 @@ import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
 import { faBorderAll } from '@fortawesome/pro-light-svg-icons/faBorderAll'
 import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
+import { faChevronSquareLeft } from '@fortawesome/pro-solid-svg-icons/faChevronSquareLeft'
+import { faChevronSquareRight } from '@fortawesome/pro-solid-svg-icons/faChevronSquareRight'
 import { faCompress } from '@fortawesome/pro-duotone-svg-icons/faCompress'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
 import { faDrawCircle as faDrawCircleR } from '@fortawesome/pro-regular-svg-icons/faDrawCircle'
@@ -43,6 +45,8 @@ library.add(faArrowsL)
 library.add(faArrowsR)
 library.add(faBorderAll)
 library.add(faClone)
+library.add(faChevronSquareLeft)
+library.add(faChevronSquareRight)
 library.add(faCompress)
 library.add(faDrawCircleL)
 library.add(faDrawCircleR)

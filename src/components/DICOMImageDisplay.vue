@@ -335,10 +335,13 @@ export default Vue.extend({
                 = isRowFirst? 'none' : '1px solid var(--medigi-viewer-border-faint)'
             this.dicomWrapper.style.borderBottom
                 = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
-            cornerstone.resize(this.dicomEl, false)
-            // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
-            this.viewport = cornerstone.getViewport(this.dicomEl)
-            //cornerstone.setViewport(this.dicomEl, this.viewport)
+            // Resize image if it is done loading
+            if (this.mainImageLoaded) {
+                cornerstone.resize(this.dicomEl, false)
+                // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
+                this.viewport = cornerstone.getViewport(this.dicomEl)
+                //cornerstone.setViewport(this.dicomEl, this.viewport)
+            }
             // Resize possible topogram image
             if (this.topogram && this.topoImageLoaded) {
                 this.topoEl.style.width = `${(dimensions[0]/colPos[1] - hPad)*0.25}px`
@@ -443,6 +446,7 @@ export default Vue.extend({
         this.dicomWrapper = this.$refs[`wrapper`] as HTMLDivElement
         this.dicomEl = this.$refs[`container`] as HTMLDivElement
         this.topoEl = this.$refs[`topogram`] as HTMLDivElement
+        this.resizeImage() // Trigger first component resize to show the borders
         if (this.dicomEl) {
             // Add event listener
             this.dicomEl.addEventListener('cornerstonetoolsmouseclick', (e: any) => {
