@@ -5,7 +5,13 @@ const ASSET_PATH = process.env.ASSET_PATH || '/dist/'
 
 module.exports = {
     entry: {
-        main: path.join(__dirname, 'src', 'index.ts'),
+        main: { import: path.join(__dirname, 'src', 'index.ts') },
+        /* These libraries will be very big if compiled independently
+        'cornerstone-core': 'cornerstone-core',
+        'cornerstone-math': 'cornerstone-math',
+        'cornerstone-tools': 'cornerstone-tools',
+        'plotly.js': 'plotly.js',
+        */
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -79,8 +85,6 @@ module.exports = {
             },
         ]
     },
-    externals: {
-    },
     plugins: [
         new VueLoaderPlugin(),
     ],
@@ -100,7 +104,9 @@ module.exports = {
         'vue$': 'vue/dist/vue.esm.js'
         },
         fallback: {
-            // Fixes can't resolve errors in cornerstone-wado-image-loader
+            // Fixes can't resolve errors in plotly.js cornerstone-wado-image-loader
+            assert: false,
+            buffer: false,
             fs: false,
             path: false,
         }

@@ -65,13 +65,12 @@ export default Vue.extend({
             topoEl: null as unknown as HTMLDivElement, // Topogram element
             isFirstLoaded: false, // At least one image is loaded
             isLinked: false, // Whether this image is linked or not
-            lastMousePos: [0, 0], // Last mouse position on the screen
-            linkedPos: null as number | null, // Position where this stack was linked
-            masterLinkPos: null as number | null, // Global "master" linked position
-            mouseLBtnDown: false, // Is the left mouse button down (depressed)
-            mouseMBtnDown: false, // Is the middle mouse button down (depressed)
-            mouseRBtnDown: false, // Is the right mouse button down (depressed)
-            scrollProgress: 0, // Progress towards a scroll step
+            //lastMousePos: [0, 0], // Last mouse position on the screen
+            //linkedPos: null as number | null, // Position where this stack was linked
+            //mouseLBtnDown: false, // Is the left mouse button down (depressed)
+            //mouseMBtnDown: false, // Is the middle mouse button down (depressed)
+            //mouseRBtnDown: false, // Is the right mouse button down (depressed)
+            //scrollProgress: 0, // Progress towards a scroll step
             annotationMenu: null as object | null, // Annotation selected by the user
             viewport: null as any, // Save viewport settings for image stacks
             // Keep track when the main and possible topogram images have loaded
@@ -670,11 +669,9 @@ export default Vue.extend({
     },
     beforeDestroy () {
         this.destroyed = true
-        if (this.isLinked) {
+        if (this.resource.isStack && this.resource.isLinked) {
             // Break linking
-            this.isLinked = false
-            this.linkedPos = null
-            this.$store.commit('remove-linked-item', this.id)
+            this.resource.unlink()
         }
         // Remove tools
         if (this.mainImageLoaded) {
