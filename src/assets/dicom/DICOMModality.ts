@@ -5,11 +5,11 @@
  * @license    MIT
  */
 
-class DICOMModality {
+class DicomModality {
     static LIST: object
 }
 
-DICOMModality.LIST = {
+DicomModality.LIST = {
     AR: "Autorefraction",
     AS: "Angioscopy (retired)",
     ASMT: "Content Assessment Results",
@@ -91,4 +91,4 @@ DICOMModality.LIST = {
     XA: "X-Ray Angiography",
     XC: "External-camera Photography",
 }
-export default DICOMModality
+export default DicomModality

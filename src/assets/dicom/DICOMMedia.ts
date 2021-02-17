@@ -5,7 +5,7 @@
  * @license    MIT
  */
 import { MediaResource } from '../../types/assets'
-class DICOMMedia implements MediaResource {
+class DicomMedia implements MediaResource {
     protected _active: boolean = false
     protected _dimensions: number[] = [0, 0]
     protected _id: string
@@ -75,5 +75,5 @@ class DICOMMedia implements MediaResource {
     }
 
 }
-export default DICOMMedia
+export default DicomMedia
 export { MediaResource }

@@ -5,6 +5,7 @@
  */
 
 import { MEDigiI18n, validLocale } from './i18n'
+import { Store } from 'vuex'
 import { MEDigiStore, MutationTypes } from './store'
 import { MediaResource } from './types/assets'
 
@@ -71,8 +72,10 @@ class MEDigiViewer {
     __webpack_public_path__ = './'
 
     containerId: string = '#medigi-viewer'
-    appName: string = 'app'
+    appName: string = 'app' // This variable is only used to store the name before the viewer is actually initialized
+    i18n: any
     locale: string
+    store: any
     viewer: Vue | undefined = undefined
 
     /**
@@ -151,15 +154,17 @@ class MEDigiViewer {
             const Fullscreen = imports[1].default
             const Viewer = imports[2].default
             Vue.use(Fullscreen)
-            const i18n = new MEDigiI18n().setup(Vue)
-            const store = new MEDigiStore().setup(Vue)
-            store.commit(MutationTypes.SET_APP_NAME, this.appName)
+            this.i18n = new MEDigiI18n().setup(Vue)
+            this.store = new MEDigiStore().setup(Vue)
+            this.store.commit(MutationTypes.SET_APP_NAME, this.appName)
             Vue.component('font-awesome-icon', FontAwesomeIcon)
+            // i18n and store need to be passed to Vue as constants
+            const i18n = this.i18n
+            const store = this.store
             const VM = Vue.extend(Viewer)
             this.viewer = new VM({
                 store,
                 i18n,
-                propsData: { appName: this.appName },
             }).$mount(this.containerId)
         })
     }

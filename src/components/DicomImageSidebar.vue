@@ -1,11 +1,5 @@
 <template>
-    <div :id="`${appName}-medigi-viewer-sidebar`">
-        <div class="medigi-viewer-sidebar-dropdown">
-            <span>DROP A FILE BELOW TO START</span>
-            <ul>
-                <!--<li>LIST OF OPTIONS</li>-->
-            </ul>
-        </div>
+    <div :id="`${$store.state.appName}-medigi-viewer-sidebar`">
         <div class="medigi-viewer-sidebar-items">
             <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
@@ -20,9 +14,9 @@
                 :type="item.type"
                 v-on:toggle-active-item="toggleActiveItem"
             />
-            <div :id="`${appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
+            <div :id="`${$store.state.appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
-        <div :id="`${$root.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
+        <div :id="`${$root.$store.state.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache status') }}</span>
             <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
             <span v-if="cacheSize">
@@ -42,7 +36,6 @@ export default Vue.extend({
         SidebarItem: () => import('./SidebarItem.vue'),
     },
     props: {
-        appName: String,
         items: Array,
     },
     data () {
@@ -130,7 +123,7 @@ export default Vue.extend({
     },
     mounted () {
         // Set up DICOM file dropzone
-        this.dropZone = document.getElementById(`${this.appName}-medigi-viewer-dropzone`)
+        this.dropZone = document.getElementById(`${this.$store.state.appName}-medigi-viewer-dropzone`)
         if (this.dropZone) {
             this.dropZone.addEventListener('dragover', this.handleFileDrag, false)
             this.dropZone.addEventListener('drop', this.handleFileDrop, false)
@@ -149,46 +142,6 @@ export default Vue.extend({
     height: calc(100% - 80px - 50px);
     margin-top: 80px;
 }
-.medigi-viewer-sidebar-dropdown {
-    position: absolute;
-    top: -70px;
-    min-height: 60px;
-    width: 280px;
-    border: solid 2px var(--medigi-viewer-border);
-    border-radius: 5px;
-    background-color: var(--medigi-viewer-background);
-    font-size: 24px;
-    line-height: 56px;
-    font-size: 16px;
-    cursor: pointer;
-    opacity: 0.8;
-    z-index: 1;
-}
-    .medigi-viewer-sidebar-dropdown:hover {
-        opacity: 1.0;
-    }
-    .medigi-viewer-sidebar-dropdown > span {
-        margin: 0 10px;
-    }
-    .medigi-viewer-sidebar-dropdown > ul {
-        display: none;
-        width: 100%;
-        list-style-type: none;
-        margin-block-start: 0;
-        margin-block-end: 0;
-        padding-inline-start: 0;
-    }
-        .medigi-viewer-sidebar-dropdown > ul > li {
-            height: 40px;
-            line-height: 40px;
-            padding: 0 10px;
-        }
-            .medigi-viewer-sidebar-dropdown > ul > li:hover {
-                background-color: var(--medigi-viewer-background-highlight);
-            }
-    .medigi-viewer-sidebar-dropdown:hover > ul {
-        display: block;
-    }
 .medigi-viewer-sidebar-items {
     display: flex;
     flex-direction: column;

@@ -5,7 +5,7 @@
  * @license    MIT
  */
 import { SignalResource, SignalChannel } from '../../types/assets'
-import DICOMDataProperty from './DICOMDataProperty'
+import DicomDataProperty from './DicomDataProperty'
 
 class DICOMWaveform implements SignalResource {
     protected _active: boolean = false
@@ -22,7 +22,7 @@ class DICOMWaveform implements SignalResource {
         this._id = Math.random().toString(36).substr(2, 8)
         this._name = name
         if (data) {
-            this.extractSignalsFromDICOMData(data)
+            this.extractSignalsFromDicomData(data)
         }
     }
     // Getters and setters
@@ -65,7 +65,7 @@ class DICOMWaveform implements SignalResource {
     }
     */
     // Methods
-    extractSignalsFromDICOMData (data: any) {
+    extractSignalsFromDicomData (data: any) {
         // Waveform sequence is stored in the 0x5400,0x0100 tag
         if (!data.hasOwnProperty('x54000100')) {
             console.error("Provided DICOM dataset did not contain a waveform sequence!")
@@ -77,27 +77,27 @@ class DICOMWaveform implements SignalResource {
         }
         console.log(data.x54000100)
         // Allocated bits
-        const baTag = DICOMDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
+        const baTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
         const ba = data.x54000100.items[0].dataSet.uint16(baTag)
         if (ba !== 16) {
             console.error(`Provided DICOM dataset has incompatible bit allocation (${ba} bits per sample)!`)
             return
         }
         // Sample interpretation (essentially sample data property type)
-        const siTag = DICOMDataProperty.getPropertyByTagPair(0x5400, 0x1006)?.getTagHex().substring(1)
+        const siTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1006)?.getTagHex().substring(1)
         const si = data.x54000100.items[0].dataSet.string(siTag)
         if (si !== 'SS') {
             console.error(`Provided DICOM dataset has incompatible sample interpretation (${si})!`)
             return
         }
         // Number of channels (uint)
-        const ncTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0005)?.getTagHex().substring(1)
+        const ncTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0005)?.getTagHex().substring(1)
         const numChans = data.x54000100.items[0].dataSet.uint16(ncTag)
         // Number of samples (uint)
-        const nsTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0010)?.getTagHex().substring(1)
+        const nsTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0010)?.getTagHex().substring(1)
         const numSmpl = data.x54000100.items[0].dataSet.uint16(nsTag)
         // Sampling frequency (number string)
-        const sfTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x001A)?.getTagHex().substring(1)
+        const sfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x001A)?.getTagHex().substring(1)
         const samplingFr = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
         if (!data.x54000100.items[0].dataSet.elements || !data.x54000100.items[0].dataSet.elements.x003a0200
             || !data.x54000100.items[0].dataSet.elements.x003a0200.items
@@ -107,25 +107,25 @@ class DICOMWaveform implements SignalResource {
         }
         // Get channel properties
         // Channel label
-        const clTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0203)?.getTagHex().substring(1)
+        const clTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0203)?.getTagHex().substring(1)
         // Alternate channel label in my dataset (these need better handling)
-        const alTag = DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0104)?.getTagHex().substring(1)
+        const alTag = DicomDataProperty.getPropertyByTagPair(0x0008, 0x0104)?.getTagHex().substring(1)
         // Channel sensitivity
-        const csTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0210)?.getTagHex().substring(1)
+        const csTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0210)?.getTagHex().substring(1)
         // Channel sensitivity unit sequence
-        const suTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0211)?.getTagHex().substring(1)
+        const suTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0211)?.getTagHex().substring(1)
         // Channel sensitivity correction factor
-        const scTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0212)?.getTagHex().substring(1)
+        const scTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0212)?.getTagHex().substring(1)
         // Channel baseline
-        const cbTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0213)?.getTagHex().substring(1)
+        const cbTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0213)?.getTagHex().substring(1)
         // Channel time skew
-        const tsTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0214)?.getTagHex().substring(1)
+        const tsTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0214)?.getTagHex().substring(1)
         // Channel filter low frequency
-        const flTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0220)?.getTagHex().substring(1)
+        const flTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0220)?.getTagHex().substring(1)
         // Channel filter high frequency
-        const fhTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
+        const fhTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
         // Channel notch filter frequency
-        const nfTag = DICOMDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
+        const nfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
         for (let i=0; i<data.x54000100.items[0].dataSet.elements.x003a0200.items.length; i++) {
             const chanItem = data.x54000100.items[0].dataSet.elements.x003a0200.items[i].dataSet
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
@@ -150,9 +150,9 @@ class DICOMWaveform implements SignalResource {
             console.log(chanData)
         }
         // The actual waveform data property tag
-        //const wdTag = DICOMDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
+        //const wdTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
         // Waveform padding (not sure if this is needed)
-        //const wpTag = DICOMDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
+        //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
     }
 
 }

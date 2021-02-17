@@ -5,13 +5,13 @@
  * @license    MIT
  */
 import cornerstone from 'cornerstone-core'
-import DICOMDataProperty from './DICOMDataProperty'
-import DICOMModality from './DICOMModality'
-import DICOMMedia from './DICOMMedia'
+import DicomDataProperty from './DicomDataProperty'
+import DicomModality from './DicomModality'
+import DicomMedia from './DicomMedia'
 import { ImageResource } from '../../types/assets'
 
 
-class DICOMImage extends DICOMMedia implements ImageResource {
+class DicomImage extends DicomMedia implements ImageResource {
     private _columns?: number
     private _coverImage?: string
     private _instanceLength?: number
@@ -25,23 +25,23 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     // Store tag values for metadata retrieval (remove the prefixed 0 for cornerstone)
     private TAGS = {
         /** Study ID */
-        stID: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0010)?.getTagHex().substring(1),
+        stID: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0010)?.getTagHex().substring(1),
         /** Study Number */
-        sNum: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0011)?.getTagHex().substring(1),
+        sNum: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0011)?.getTagHex().substring(1),
         /** Instance Length (number of items in the instance) */
-        iLen: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x1208)?.getTagHex().substring(1),
+        iLen: DicomDataProperty.getPropertyByTagPair(0x0020, 0x1208)?.getTagHex().substring(1),
         /** Instance Number */
-        iNum: DICOMDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1),
+        iNum: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1),
         /** Number of Frames */
-        fNum: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0008)?.getTagHex().substring(1),
+        fNum: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0008)?.getTagHex().substring(1),
         /** SOP Class UID */
-        sopC: DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0016)?.getTagHex().substring(1),
+        sopC: DicomDataProperty.getPropertyByTagPair(0x0008, 0x0016)?.getTagHex().substring(1),
         /** SOP Instance UID */
-        sopI: DICOMDataProperty.getPropertyByTagPair(0x0008, 0x0018)?.getTagHex().substring(1),
+        sopI: DicomDataProperty.getPropertyByTagPair(0x0008, 0x0018)?.getTagHex().substring(1),
         /** Rows */
-        rows: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0010)?.getTagHex().substring(1),
+        rows: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0010)?.getTagHex().substring(1),
         /** Columns */
-        cols: DICOMDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1),
+        cols: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1),
     }
 
     constructor (name: string, size: number, url: string) {
@@ -76,7 +76,7 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     }
     set modality (modality: string | undefined) {
         if (modality !== undefined &&
-            Object.keys(DICOMModality.LIST).indexOf(modality) !== -1
+            Object.keys(DicomModality.LIST).indexOf(modality) !== -1
         ) {
             this._modality = modality
         }
@@ -165,5 +165,5 @@ class DICOMImage extends DICOMMedia implements ImageResource {
     }
 }
 
-export default DICOMImage
+export default DicomImage
 export { ImageResource }

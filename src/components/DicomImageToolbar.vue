@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$root.appName}-medigi-viewer-toolbar`">
+    <div :id="`${$store.state.appName}-medigi-viewer-toolbar`">
         <ToolbarButton v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :emit="button.emit"
@@ -58,6 +58,10 @@ export default Vue.extend({
         },
         gridLayout: {
             type: Array,
+            default: null
+        },
+        synchronizers: {
+            type: Object,
             default: null
         },
     },
@@ -211,7 +215,7 @@ export default Vue.extend({
                 'StackScroll': {
                     active: {
                         mouseButtonMask: 1,
-                        synchronizationContext: this.$root.synchronizers.stackScroll
+                        synchronizationContext: this.synchronizers.stackScroll
                     },
                     default: {},
                 },
@@ -523,7 +527,7 @@ export default Vue.extend({
                     cornerstoneTools.setToolActive('StackScrollMouseWheel', { })
                     // Refresh reference lines tool
                     cornerstoneTools.setToolEnabled('ReferenceLines', {
-                        synchronizationContext: this.$root.synchronizers.referenceLines,
+                        synchronizationContext: this.synchronizers.referenceLines,
                         color: '#C0C0C0',
                     })
                     break

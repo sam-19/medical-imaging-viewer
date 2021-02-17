@@ -13,7 +13,7 @@
   * @param {number|undefined|(number|undefined)[]} length fixed length as a number/undefined; range as a an array [min, max].
   * @param {'b'|'c'} measure length measure as one of: 'b' (byte), 'c' (chars). Optional (default 'b').
   */
-class DICOMVR {
+class DicomVR {
     readonly name: string
     readonly types: string[]
     private length: number | undefined | (number | undefined)[]
@@ -23,27 +23,27 @@ class DICOMVR {
      * with leading and trailing spaces (20H) being non-significant.
      * A value consisting solely of spaces shall not be used.
      */
-    static AE: DICOMVR
+    static AE: DicomVR
     /**
      * Age String: A string of characters with one of the following formats
      * -- nnnD, nnnW, nnnM, nnnY; where nnn shall contain
      * the number of days for D, weeks for W, months for M, or years for Y.
      */
-    static AS: DICOMVR
+    static AS: DicomVR
     /**
      * Attribute Tag: Ordered pair of 16-bit unsigned integers that is the value of a Data Element Tag.
      */
-    static AT: DICOMVR
+    static AT: DicomVR
     /**
      * Code String: A string of characters with leading or trailing spaces (20H) being non-significant.
      */
-    static CS: DICOMVR
+    static CS: DicomVR
     /**
      * Date: A string of characters of the format YYYYMMDD; where
      * YYYY shall contain year, MM shall contain the month, and DD shall contain the day,
      * interpreted as a date of the Gregorian calendar system.
      */
-    static DA: DICOMVR
+    static DA: DicomVR
     /**
      * Decimal String: A string of characters representing either a fixed point number or
      * a floating point number. A fixed point number shall contain only the characters 0-9
@@ -52,7 +52,7 @@ class DICOMVR {
      * to indicate the start of the exponent. Decimal Strings may be padded with leading or trailing spaces.
      * Embedded spaces are not allowed.
      */
-    static DS: DICOMVR
+    static DS: DicomVR
     /**
      * Date Time: A concatenated date-time character string in the format:
      * YYYYMMDDHHMMSS.FFFFFF&ZZXX
@@ -66,30 +66,30 @@ class DICOMVR {
      * The year, month, and day shall be interpreted as a date of the Gregorian calendar system.
      * A 24-hour clock is used. Midnight shall be represented by only "0000".
      */
-    static DT: DICOMVR
+    static DT: DicomVR
     /**
      * FLoating Point Single: Single precision binary floating point number represented in
      * IEEE 754:1985 32-bit Floating Point Number Format.
      */
-    static FL: DICOMVR
+    static FL: DicomVR
     /**
      * Floating Point Double: Double precision binary floating point number represented in
      * IEEE 754:1985 64-bit Floating Point Number Format.
      */
-    static FD: DICOMVR
+    static FD: DicomVR
     /**
      * Integer String: A string of characters representing an Integer in base-10 (decimal),
      * shall contain only the characters 0 - 9, with an optional leading "+" or "-".
      * It may be padded with leading and/or trailing spaces. Embedded spaces are not allowed.
      */
-    static IS: DICOMVR
+    static IS: DicomVR
     /**
      * Long String: A character string that may be padded with leading and/or trailing spaces.
      * The character code 5CH (the BACKSLASH "\" in ISO-IR 6) shall not be present, as it is used
      * as the delimiter between values in multiple valued data elements.
      * The string shall not have Control Characters except for ESC.
      */
-    static LO: DICOMVR
+    static LO: DicomVR
     /**
      * Long Text: A character string that may contain one or more paragraphs. It may contain
      * the Graphic Character set and the Control Characters, CR, LF, FF, and ESC.
@@ -97,35 +97,35 @@ class DICOMVR {
      * to be significant. Data Elements with this VR shall not be multi-valued and therefore character code
      * 5CH (the BACKSLASH "\" in ISO-IR 6) may be used.
      */
-    static LT: DICOMVR
+    static LT: DicomVR
     /**
      * Other Byte String: A string of bytes where the encoding of the contents is specified by
      * the negotiated Transfer Syntax. OB is a VR that is insensitive to Little/Big Endian byte ordering.
      * The string of bytes shall be padded with a single trailing NULL byte value (00H) when necessary
      * to achieve even length.
      */
-    static OB: DICOMVR
+    static OB: DicomVR
     /**
      * Other Double String: A string of 64-bit IEEE 754:1985 floating point words. OD is a VR that requires
      * byte swapping within each 64-bit word when changing between Little Endian and Big Endian byte ordering.
      */
-    static OD: DICOMVR
+    static OD: DicomVR
     /**
      * Other Float String: A string of 32-bit IEEE 754:1985 floating point words. OF is a VR that requires
      * byte swapping within each 32-bit word when changing between Little Endian and Big Endian byte ordering.
      */
-    static OF: DICOMVR
+    static OF: DicomVR
     /**
      * Other Word String: A string of 16-bit words where the encoding of the contents is specified by the
      * negotiated Transfer Syntax. OW is a VR that requires byte swapping within each word when changing
      * between Little Endian and Big Endian byte ordering.
      */
-    static OL: DICOMVR
+    static OL: DicomVR
     /**
      * A stream of 32-bit words where the encoding of the contents is specified by the negotiated Transfer
      * Syntax. OL is a VR that requires byte swapping within each word when changing byte ordering.
      */
-    static OW: DICOMVR
+    static OW: DicomVR
     /**
      * Person Name: A character string encoded using a 5 component convention. The character code 5CH
      * (the BACKSLASH "\" in ISO-IR 6) shall not be present, as it is used as the delimiter between values
@@ -137,26 +137,26 @@ class DICOMVR {
      * character (5EH). Delimiters are required for interior null components.
      * Each of the 5 components has a maximum length of 64 bytes.
      */
-    static PN: DICOMVR
+    static PN: DicomVR
     /**
      * Short String: A character string that may be padded with leading and/or trailing spaces.
      * The character code 05CH (the BACKSLASH "\" in ISO-IR 6) shall not be present, as it is used as
      * the delimiter between values for multiple data elements.
      * The string shall not have Control Characters except ESC.
      */
-    static SH: DICOMVR
+    static SH: DicomVR
     /**
      * Signed Long: Signed binary integer 32 bits long in 2's complement form.
      */
-    static SL: DICOMVR
+    static SL: DicomVR
     /**
      * Sequence of Items: Value is a Sequence of zero or more Items.
      */
-    static SQ: DICOMVR
+    static SQ: DicomVR
     /**
      * Signed Short: Signed binary integer 16 bits long in 2's complement form.
      */
-    static SS: DICOMVR
+    static SS: DicomVR
     /**
      * Short Text: A character string that may contain one or more paragraphs.
      * It may contain the Graphic Character set and the Control Characters, CR, LF, FF, and ESC.
@@ -164,7 +164,7 @@ class DICOMVR {
      * considered to be significant. Data Elements with this VR shall not be multi-valued
      * and therefore character code 5CH (the BACKSLASH "\" in ISO-IR 6) may be used.
      */
-    static ST: DICOMVR
+    static ST: DicomVR
     /**
      * Time: A string of characters of the format HHMMSS.FFFFFF; where
      * HH contains hours (range "00" - "23"),
@@ -180,14 +180,14 @@ class DICOMVR {
      * The FFFFFF component, if present, shall contain 1 to 6 digits. If FFFFFF is unspecified
      * the preceding "." shall not be included.
      */
-    static TM: DICOMVR
+    static TM: DicomVR
     /**
      * Unlimited Characters: A character string that may be of unlimited length that may be padded
      * with trailing spaces. The character code 5CH (the BACKSLASH "\" in ISO-IR 6) shall not be
      * present, as it is used as the delimiter between values in multiple valued data elements.
      * The string shall not have Control Characters except for ESC.
      */
-    static UC: DICOMVR
+    static UC: DicomVR
     /**
      * Unique Identifier: A character string containing a UID that is used to uniquely identify
      * a wide variety of items. The UID is a series of numeric components separated by the period
@@ -195,25 +195,25 @@ class DICOMVR {
      * in length, the Value Field shall be padded with a single trailing NULL (00H) character
      * to ensure that the Value Field is an even number of bytes in length.
      */
-    static UI: DICOMVR
+    static UI: DicomVR
     /**
      * Unsigned Long: Unsigned binary integer 32 bits long.
      */
-    static UL: DICOMVR
+    static UL: DicomVR
     /**
      * Unknown: A string of bytes where the encoding of the contents is unknown.
      */
-    static UN: DICOMVR
+    static UN: DicomVR
     /**
      * URI/URL: A string of characters that identifies a URI or a URL as defined in [RFC3986].
      * Leading spaces are not allowed. Trailing spaces shall be ignored. Data Elements with this VR
      * shall not be multi-valued.
      */
-    static UR: DICOMVR
+    static UR: DicomVR
     /**
      * Unsigned Short: Unsigned binary integer 16 bits long.
      */
-    static US: DICOMVR
+    static US: DicomVR
     /**
      * Unlimited Text: A character string that may contain one or more paragraphs. It may contain
      * the Graphic Character set and the Control Characters, CR, LF, FF, and ESC. It may be padded
@@ -221,7 +221,7 @@ class DICOMVR {
      * Data Elements with this VR shall not be multi-valued and therefore character code 5CH
      * (the BACKSLASH "\" in ISO-IR 6) may be used.
      */
-    static UT: DICOMVR
+    static UT: DicomVR
 
     constructor (name: string, types: string[], length: number | undefined | (number | undefined)[], measure: 'b'|'c' = 'b') {
         this.name = name
@@ -234,36 +234,36 @@ class DICOMVR {
  * DICOM Tag value representations, in format:
  * { name: string, types: array, length: number (in bytes) or array [min: number, max: number] }
  */
-DICOMVR.AE = new DICOMVR('ApplicationEntity', [typeof String], [,16])
-DICOMVR.AS = new DICOMVR('AgeString', [typeof String], 4)
-DICOMVR.AT = new DICOMVR('AttribeTag', [typeof Array, typeof Number], 4)
-DICOMVR.CS = new DICOMVR('CodeString', [typeof String], [,16])
-DICOMVR.DA = new DICOMVR('Date', [typeof String], 8)
-DICOMVR.DS = new DICOMVR('DecimalString', [typeof String], [,16])
-DICOMVR.DT = new DICOMVR('DateTime', [typeof String], [,26])
-DICOMVR.FL = new DICOMVR('FloatingPointSingle', [typeof Number], 4)
-DICOMVR.FD = new DICOMVR('FloatingPointDouble', [typeof Number], 8)
-DICOMVR.IS = new DICOMVR('IntegerString', [typeof String], [,12])
-DICOMVR.LO = new DICOMVR('LongString', [typeof String], [,64], 'c')
-DICOMVR.LT = new DICOMVR('LongText', [typeof String], [,10240], 'c')
-DICOMVR.OB = new DICOMVR('OtherByteString', [typeof Blob], undefined)
-DICOMVR.OD = new DICOMVR('OtherDoubleString', [typeof Blob], [,2**32-8])
-DICOMVR.OF = new DICOMVR('OtherFloatString', [typeof Blob], [,2**32-4])
-DICOMVR.OL = new DICOMVR('OtherLong', [typeof Blob], undefined)
-DICOMVR.OW = new DICOMVR('OtherWordString', [typeof Blob], undefined)
-DICOMVR.PN = new DICOMVR('PersonName', [typeof String], [,5*64+4], 'c')
-DICOMVR.SH = new DICOMVR('ShortString', [typeof String], [,16], 'c')
-DICOMVR.SL = new DICOMVR('SignedLong', [typeof Number], 4)
-DICOMVR.SQ = new DICOMVR('SequenceOfItems', [typeof Blob], undefined)
-DICOMVR.SS = new DICOMVR('SignedShort', [typeof Number], 2)
-DICOMVR.ST = new DICOMVR('ShortText', [typeof String], [,1024], 'c')
-DICOMVR.TM = new DICOMVR('Time', [typeof String], [,14])
-DICOMVR.UC = new DICOMVR('UnlimitedCharacters', [typeof String], [,2**32-2])
-DICOMVR.UI = new DICOMVR('UniqueIdentifier', [typeof String], [,64])
-DICOMVR.UL = new DICOMVR('UnsignedLong', [typeof Number], 4)
-DICOMVR.UN = new DICOMVR('Unknown', [typeof Blob], undefined)
-DICOMVR.UR = new DICOMVR('URI/URL', [typeof String], 2**32-2)
-DICOMVR.US = new DICOMVR('UnsignedShort', [typeof Number], 2)
-DICOMVR.UT = new DICOMVR('UnlimitedText', [typeof String], [,2**32-2])
+DicomVR.AE = new DicomVR('ApplicationEntity', [typeof String], [,16])
+DicomVR.AS = new DicomVR('AgeString', [typeof String], 4)
+DicomVR.AT = new DicomVR('AttribeTag', [typeof Array, typeof Number], 4)
+DicomVR.CS = new DicomVR('CodeString', [typeof String], [,16])
+DicomVR.DA = new DicomVR('Date', [typeof String], 8)
+DicomVR.DS = new DicomVR('DecimalString', [typeof String], [,16])
+DicomVR.DT = new DicomVR('DateTime', [typeof String], [,26])
+DicomVR.FL = new DicomVR('FloatingPointSingle', [typeof Number], 4)
+DicomVR.FD = new DicomVR('FloatingPointDouble', [typeof Number], 8)
+DicomVR.IS = new DicomVR('IntegerString', [typeof String], [,12])
+DicomVR.LO = new DicomVR('LongString', [typeof String], [,64], 'c')
+DicomVR.LT = new DicomVR('LongText', [typeof String], [,10240], 'c')
+DicomVR.OB = new DicomVR('OtherByteString', [typeof Blob], undefined)
+DicomVR.OD = new DicomVR('OtherDoubleString', [typeof Blob], [,2**32-8])
+DicomVR.OF = new DicomVR('OtherFloatString', [typeof Blob], [,2**32-4])
+DicomVR.OL = new DicomVR('OtherLong', [typeof Blob], undefined)
+DicomVR.OW = new DicomVR('OtherWordString', [typeof Blob], undefined)
+DicomVR.PN = new DicomVR('PersonName', [typeof String], [,5*64+4], 'c')
+DicomVR.SH = new DicomVR('ShortString', [typeof String], [,16], 'c')
+DicomVR.SL = new DicomVR('SignedLong', [typeof Number], 4)
+DicomVR.SQ = new DicomVR('SequenceOfItems', [typeof Blob], undefined)
+DicomVR.SS = new DicomVR('SignedShort', [typeof Number], 2)
+DicomVR.ST = new DicomVR('ShortText', [typeof String], [,1024], 'c')
+DicomVR.TM = new DicomVR('Time', [typeof String], [,14])
+DicomVR.UC = new DicomVR('UnlimitedCharacters', [typeof String], [,2**32-2])
+DicomVR.UI = new DicomVR('UniqueIdentifier', [typeof String], [,64])
+DicomVR.UL = new DicomVR('UnsignedLong', [typeof Number], 4)
+DicomVR.UN = new DicomVR('Unknown', [typeof Blob], undefined)
+DicomVR.UR = new DicomVR('URI/URL', [typeof String], 2**32-2)
+DicomVR.US = new DicomVR('UnsignedShort', [typeof Number], 2)
+DicomVR.UT = new DicomVR('UnlimitedText', [typeof String], [,2**32-2])
 
-export default DICOMVR
+export default DicomVR

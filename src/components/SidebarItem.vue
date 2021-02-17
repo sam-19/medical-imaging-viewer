@@ -4,7 +4,7 @@
         @click="$emit('toggle-active-item', index, $event)"
     >
         <div class="medigi-viewer-sidebar-icon">
-            <DICOMMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type"
+            <DicomMediaIcon :count="count" :cover="cover" :label="label" :stack="stack" :type="type"
                 v-on:loading-cover-failed="loadingCoverFailed"
              />
         </div>
@@ -22,7 +22,7 @@ import Vue from 'vue'
 
 export default Vue.extend({
     components: {
-        DICOMMediaIcon: () => import('./DICOMMediaIcon.vue'),
+        DicomMediaIcon: () => import('./DicomMediaIcon.vue'),
     },
     props: {
         active: Boolean,

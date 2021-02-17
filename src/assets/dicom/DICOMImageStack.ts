@@ -5,10 +5,10 @@
  * @license    MIT
  */
 import cornerstone from 'cornerstone-core'
-import DICOMMedia from './DICOMMedia'
+import DicomMedia from './DicomMedia'
 import { ImageResource, ImageStackResource } from '../../types/assets'
 
-class DICOMImageStack extends DICOMMedia implements ImageStackResource {
+class DicomImageStack extends DicomMedia implements ImageStackResource {
     private _coverImage?: string
     private _currentPosition: number = 0
     private _images: ImageResource[]
@@ -181,4 +181,4 @@ class DICOMImageStack extends DICOMMedia implements ImageStackResource {
     }
 }
 
-export default DICOMImageStack
+export default DicomImageStack

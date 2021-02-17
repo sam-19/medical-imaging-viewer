@@ -51,8 +51,12 @@ export default Vue.extend({
         containerSize: Array, // The size of the entire image media container as [width, height]
         layoutPosition: Array, // Element position in layout grid [[colPos, cols], [rowPos, rows]]
         linkedStackPos: Number, // Linked stack position
-        resource: Object, // DICOMResource or DICOMImageStack
-        topogram: Object, // DICOMImage
+        resource: Object, // DICOMResource or DicomImageStack
+        topogram: Object, // DicomImage
+        synchronizers: {
+            type: Object,
+            default: null
+        },
     },
     data () {
         return {
@@ -551,8 +555,8 @@ export default Vue.extend({
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
                         // Register element to synchronizers
-                        this.$root.synchronizers.stackScroll.add(this.dicomEl)
-                        this.$root.synchronizers.referenceLines.add(this.dicomEl)
+                        this.synchronizers.stackScroll.add(this.dicomEl)
+                        this.synchronizers.referenceLines.add(this.dicomEl)
                         // Add reference lines tool (must be done after setting up synchronizers!)
                         //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         this.resource.currentPosition = this.resource.currentPosition
@@ -581,13 +585,13 @@ export default Vue.extend({
                                 cornerstoneTools.addStackStateManager(this.topoEl, ['stack', 'Crosshairs'])
                                 cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
                                 // Register element to synchronizers
-                                this.$root.synchronizers.referenceLines.add(this.topoEl)
+                                this.synchronizers.referenceLines.add(this.topoEl)
                                 // Add reference lines tool (must be done after setting up synchronizers!)
                                 cornerstoneTools.addToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
                                 cornerstone.displayImage(this.topoEl, image, vp)
                                 // Activate reference lines tool
                                 cornerstoneTools.setToolEnabled('ReferenceLines', {
-                                    synchronizationContext: this.$root.synchronizers.referenceLines,
+                                    synchronizationContext: this.synchronizers.referenceLines,
                                 })
                                 enableElement()
                             }).catch((e: any) => {
@@ -685,8 +689,8 @@ export default Vue.extend({
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                     // Unregister synchronizers
-                    this.$root.synchronizers.stackScroll.remove(this.dicomEl)
-                    this.$root.synchronizers.referenceLines.remove(this.dicomEl)
+                    this.synchronizers.stackScroll.remove(this.dicomEl)
+                    this.synchronizers.referenceLines.remove(this.dicomEl)
                 }
                 // Disable the element
                 cornerstone.disable(this.dicomEl)
@@ -698,8 +702,8 @@ export default Vue.extend({
                 cornerstoneTools.clearToolState(this.topoEl, 'stack')
                 cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
                 cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
-                this.$root.synchronizers.stackScroll.remove(this.topoEl)
-                this.$root.synchronizers.referenceLines.remove(this.topoEl)
+                this.synchronizers.stackScroll.remove(this.topoEl)
+                this.synchronizers.referenceLines.remove(this.topoEl)
                 cornerstone.disable(this.topoEl)
             } catch (e) {}
         }

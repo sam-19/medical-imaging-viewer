@@ -7,8 +7,6 @@ import Vue from "vue"
 
 declare module "vue/types/vue" {
     interface Vue {
-        cornerstone: any
-        synchronizers: any
-        tools: any
+        appName: string
     }
 }
