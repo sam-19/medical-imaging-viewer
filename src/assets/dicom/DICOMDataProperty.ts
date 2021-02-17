@@ -28,7 +28,7 @@ class DICOMDataProperty {
      */
     public getElementHex = () => {
         const tag = this.property.tag
-        return `0x${tag[1]}`
+        return `0x${tag[1]}`.toLowerCase()
     }
     /**
      * Get the number (int) representation of this property's element value.
@@ -44,7 +44,7 @@ class DICOMDataProperty {
      */
     public getGroupHex = () => {
         const tag = this.property.tag
-        return `0x${tag[0]}`
+        return `0x${tag[0]}`.toLowerCase()
     }
     /**
      * Get the number (int) representation of this property's group value.
@@ -60,7 +60,7 @@ class DICOMDataProperty {
      */
     public getTagHex = () => {
         const tag = this.property.tag
-        return `0x${tag[0]}${tag[1]}`
+        return `0x${tag[0]}${tag[1]}`.toLowerCase()
     }
     /**
      * Get the number (int) representation of this property's tag value.
@@ -149,7 +149,7 @@ DICOMDataProperty.getPropertyByTagPair = (group: number, element: number): DICOM
  * image.data.int32() - Signed longs (SL)
  * image.data.float() - Floats (FL)
  * image.data.double() - Doubles (FD)
- * image.data.floatString() - Folat/double strings (DS)
+ * image.data.floatString() - Float/double strings (DS)
  * image.data.intString() - Integer strings (IS)
  */
 DICOMDataProperty.LIST = [
@@ -4204,6 +4204,7 @@ DICOMDataProperty.LIST = [
     { tag: ['5200','9229'], vr: DICOMVR.SQ, name: "Shared Functional Groups Sequence" },
     { tag: ['5200','9230'], vr: DICOMVR.SQ, name: "Per-frame Functional Groups Sequence" },
     { tag: ['5400','0100'], vr: DICOMVR.SQ, name: "Waveform Sequence" },
+    { tag: ['5400','0200'], vr: DICOMVR.SQ, name: "Waveform Definition Sequence" }, // This was not in the original definition
     { tag: ['5400','0110'], vr: [DICOMVR.OB, DICOMVR.OW], name: "Channel Minimum Value" },
     { tag: ['5400','0112'], vr: [DICOMVR.OB, DICOMVR.OW], name: "Channel Maximum Value" },
     { tag: ['5400','1004'], vr: DICOMVR.US, name: "Waveform Bits Allocated" },

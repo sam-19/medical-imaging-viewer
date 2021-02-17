@@ -68,7 +68,19 @@ interface SignalResource {
     name: string
     duration: number
     type: string
-    url: string
+    //url: string
+}
+interface SignalChannel {
+    baseline: number
+    filterLow: number
+    filterHigh: number
+    filterNotch: number
+    label: string
+    resolution: number
+    sensitivity: number
+    sensitivityCF: number
+    signals: number[]
+    timeSkew: number
 }
 
-export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource, SignalResource }
+export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource, SignalResource, SignalChannel }

@@ -46,6 +46,7 @@ export default Vue.extend({
             if (coverEl) {
                 cornerstone.enable(coverEl)
                 cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
+                    console.log(image.data)
                     // Get image dimensions and set the cover image dimensions to preserve the aspec ratio
                     /*
                     const maxDim = [150, 125] // Max width and height
@@ -64,8 +65,16 @@ export default Vue.extend({
                     cornerstone.displayImage(coverEl, image, viewport)
                     cornerstone.resize(coverEl)
                     this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
-                }).catch((error: any) => {
-                    this.$emit('loading-cover-failed')
+                }).catch((response: any) => {
+                    if (response.dataSet && response.dataSet.elements && response.dataSet.elements.x54000100) {
+                        // Waveform sequence
+                        import('../assets/dicom/DICOMWaveform').then(DICOMWaveform => {
+                            const waveform = new DICOMWaveform.default('Waveform', response.dataSet.elements)
+
+                        })
+                    } else {
+                        this.$emit('loading-cover-failed')
+                    }
                 })
             }
         },
