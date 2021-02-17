@@ -22,6 +22,19 @@ export default {
     data () {
         return {
             trace: null as any,
+            traceConfig: {
+                margin: { t: 0, r: 0 },
+                showlegend: false,
+                hovermode: false,
+                xaxis: {
+                    tickmode: 'array',
+                },
+                yaxis: {
+                    tickmode: 'array',
+                    showgrid: false,
+                    zeroline: false
+                },
+            },
             traceOptions: {
                 displayModeBar: false,
                 responsive: true,
@@ -70,19 +83,7 @@ export default {
         this.trace = Plotly.newPlot(
             this.$refs['container'],
             this.channelSignals,
-            {
-                margin: { t: 0, r: 0 },
-                showlegend: false,
-                hovermode: false,
-                xaxis: {
-                    tickmode: 'array',
-                },
-                yaxis: {
-                    tickmode: 'array',
-                    showgrid: false,
-                    zeroline: false
-                },
-            },
+            this.traceConfig,
             this.traceOptions
         )
         // Render Y-axis signal labels and signal data
