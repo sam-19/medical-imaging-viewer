@@ -346,7 +346,9 @@ export default Vue.extend({
                 //cornerstone.setViewport(this.dicomEl, this.viewport)
             } else {
                 // Update the loading text position
-                const loadingText = (document.querySelector(`#container-${this.id}-${this.instanceNum} > div`) as HTMLDivElement)
+                const loadingText = (document.querySelector(
+                        `#container-${this.id}-${this.instanceNum} > .medigi-viewer-image-loading`
+                    ) as HTMLDivElement)
                 loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
                 loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
                 loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
@@ -479,8 +481,9 @@ export default Vue.extend({
             }, 500)
             const showLoadingError = (reason: any) => {
                 window.clearInterval(this.loadingDotCycle)
-                ;(document.querySelector(`#container-${this.id}-${this.instanceNum} > div`) as HTMLDivElement)
-                    .innerText = this.$t('ERROR').toString()
+                ;(document.querySelector(
+                        `#container-${this.id}-${this.instanceNum} > .medigi-viewer-image-loading`
+                    ) as HTMLDivElement).innerText = this.$t('ERROR').toString()
                 console.error(reason)
             }
             // Enable the element
