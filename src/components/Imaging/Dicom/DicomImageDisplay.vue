@@ -703,7 +703,7 @@ export default Vue.extend({
     },
     beforeDestroy () {
         this.destroyed = true
-        // Clear image loading interval if it is running
+        // Clear loading indicator interval if it is running
         if (this.loadingDotCycle) {
             window.clearInterval(this.loadingDotCycle)
         }
