@@ -31,6 +31,7 @@ interface ButtonState {
     enabled: boolean,
 }
 interface ButtonRow {
+    'Crosshairs': ButtonState
     'EllipticalRoi': ButtonState
     'flip': ButtonState
     'invert': ButtonState
@@ -94,6 +95,13 @@ export default Vue.extend({
                     groups: ['interact'],
                     icon: [ ['fal', 'search'] ],
                     tooltip: [ this.$t('Zoom') ],
+                },
+                {
+                    id: 'Crosshairs',
+                    set: 0,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'crosshairs'] ],
+                    tooltip: [ this.$t('Crosshairs') ],
                 },
                 {
                     id: 'invert',
@@ -177,6 +185,7 @@ export default Vue.extend({
             ],
             // Button states
             buttonStates: {
+                'Crosshairs':       { active: false, visible: true, enabled: true } as ButtonState,
                 'EllipticalRoi':    { active: false, visible: true, enabled: true } as ButtonState,
                 'flip':             { active: false, visible: true, enabled: true } as ButtonState,
                 'invert':           { active: false, visible: true, enabled: true } as ButtonState,
@@ -199,6 +208,13 @@ export default Vue.extend({
             currentLayout: 0,
             // Default options for different tool types
             toolOptions: {
+                'Crosshairs': {
+                    active: {
+                        mouseButtonMask: 1,
+                        synchronizationContext: this.synchronizers.crosshairs
+                    },
+                    default: {},
+                },
                 'EllipticalRoi': {
                     active: { mouseButtonMask: 1 },
                     default: {},
@@ -264,7 +280,9 @@ export default Vue.extend({
          * @param buttonId string ID of the button
          */
         buttonClicked: function (buttonId: string) {
-            if (buttonId === 'EllipticalRoi') {
+            if (buttonId === 'Crosshairs') {
+                this.toggleCrosshairs()
+            } else if (buttonId === 'EllipticalRoi') {
                 this.toggleArea()
             } else if (buttonId === 'invert') {
                 this.invertColors()
@@ -452,6 +470,15 @@ export default Vue.extend({
                 cornerstoneTools.setToolPassive('EllipticalRoi')
             }
             this.$store.commit('set-active-tool', 'EllipticalRoi')
+        },
+        toggleCrosshairs: function () {
+            this.buttonStates['Crosshairs'].active = !this.buttonStates['Crosshairs'].active
+            if (this.buttonStates['Crosshairs'].active) {
+                cornerstoneTools.setToolActive('Crosshairs', this.toolOptions['Crosshairs'].active)
+            } else {
+                cornerstoneTools.setToolDisabled('Crosshairs')
+            }
+            this.$store.commit('set-active-tool', 'Crosshairs')
         },
         toggleDistance: function () {
             this.buttonStates['Length'].active = !this.buttonStates['Length'].active

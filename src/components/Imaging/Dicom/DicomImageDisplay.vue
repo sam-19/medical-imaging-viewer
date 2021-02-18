@@ -564,6 +564,8 @@ export default Vue.extend({
                 }
             }
             // Set up basic tools
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
+            this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
@@ -592,7 +594,6 @@ export default Vue.extend({
                         this.synchronizers.stackScroll.add(this.dicomEl)
                         this.synchronizers.referenceLines.add(this.dicomEl)
                         // Add reference lines tool (must be done after setting up synchronizers!)
-                        //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                         this.resource.currentPosition = this.resource.currentPosition
                         const enableElement = () => {
                             // Shorthand for these operations, as they are needed in a few (async) paths
@@ -620,6 +621,8 @@ export default Vue.extend({
                                 cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
                                 // Register element to synchronizers
                                 this.synchronizers.referenceLines.add(this.topoEl)
+                                // The crosshairs tool just doesn't play well with the topogram
+                                //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                                 // Add reference lines tool (must be done after setting up synchronizers!)
                                 cornerstoneTools.addToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
                                 cornerstone.displayImage(this.topoEl, image, vp)
@@ -718,6 +721,7 @@ export default Vue.extend({
         if (this.mainImageLoaded) {
             try {
                 // If the component is destroyed before all of the setup is done, some of these may throw errors
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)

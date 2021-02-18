@@ -19,6 +19,7 @@ import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
 import { faChevronSquareLeft } from '@fortawesome/pro-solid-svg-icons/faChevronSquareLeft'
 import { faChevronSquareRight } from '@fortawesome/pro-solid-svg-icons/faChevronSquareRight'
 import { faCompress } from '@fortawesome/pro-duotone-svg-icons/faCompress'
+import { faCrosshairs } from '@fortawesome/pro-light-svg-icons/faCrosshairs'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
 import { faDrawCircle as faDrawCircleR } from '@fortawesome/pro-regular-svg-icons/faDrawCircle'
 import { faExpand } from '@fortawesome/pro-regular-svg-icons/faExpand'
@@ -48,6 +49,7 @@ library.add(faClone)
 library.add(faChevronSquareLeft)
 library.add(faChevronSquareRight)
 library.add(faCompress)
+library.add(faCrosshairs)
 library.add(faDrawCircleL)
 library.add(faDrawCircleR)
 library.add(faExpand)

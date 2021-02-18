@@ -84,8 +84,9 @@ export default Vue.extend({
     data () {
         return {
             synchronizers: {
-                stackScroll: null as unknown,
+                crosshairs: null as unknown,
                 referenceLines: null as unknown,
+                stackScroll: null as unknown,
                 lastUpdatedTopo: null as any,
             },
             // Loaded elements
@@ -402,10 +403,50 @@ export default Vue.extend({
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
+        // Reference lines synchronizer
+        this.synchronizers.crosshairs = new cornerstoneTools.Synchronizer(
+            'cornerstonenewimage',
+            (synchronizer: any, source: any, target: any, event: any) => {
+                if (source === target) {
+                    return
+                }
+                // Get the item id from element id
+                const srcId = source.id.split('-')
+                const tgtId = target.id.split('-')
+                // Only synchronize linked elements
+                if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1])) {
+                    // Source or target is not linked, or they are the same element
+                    // This doesn't work at the moment, for some reason
+                    return
+                }
+                cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)
+            }
+        )
+        // Reference lines synchronizer
+        this.synchronizers.referenceLines = new cornerstoneTools.Synchronizer(
+            'cornerstonenewimage',
+            (synchronizer: any, source: any, target: any, event: any) => {
+                if (source === target) {
+                    return
+                }
+                // Right now there seems to be now way to prevent the reference lines from any synchronized
+                // elements from showing up
+                // const srcId = source.id.split('-')
+                const tgtId = target.id.split('-')
+                // Only pass update events to topogram elements
+                if (tgtId[0] !== 'topogram') {
+                    return
+                }
+                cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)
+            }
+        )
         // Stack scroll synchronizer
         this.synchronizers.stackScroll = new cornerstoneTools.Synchronizer(
             'cornerstonetoolsstackscroll',
             (synchronizer: any, source: any, target: any, event: any) => {
+                if (source === target) {
+                    return
+                }
                 // Get the item id from element id
                 const srcId = source.id.split('-')
                 const tgtId = target.id.split('-')
@@ -432,8 +473,8 @@ export default Vue.extend({
                     return
                 }
                 // Determine if target element should be synchronized with source element
-                if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1]) || source === target) {
-                    // Source or target is not linked, or they are the same element
+                if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1])) {
+                    // Source or target is not linked
                     return
                 }
                 const enabledSrc: any = cornerstone.getEnabledElement(source)
@@ -465,24 +506,6 @@ export default Vue.extend({
                 }
                 // We can use the built-in synchronizer for images that have nearly or examptly the same orientation
                 cornerstoneTools.stackImagePositionSynchronizer(synchronizer, source, target, event)
-            }
-        )
-        // Reference lines synchronizer
-        this.synchronizers.referenceLines = new cornerstoneTools.Synchronizer(
-            'cornerstonenewimage',
-            (synchronizer: any, source: any, target: any, event: any) => {
-                if (source === target) {
-                    return
-                }
-                // Right now there seems to be now way to prevent the reference lines from any synchronized
-                // elements from showing up
-                // const srcId = source.id.split('-')
-                const tgtId = target.id.split('-')
-                // Only pass update events to topogram elements
-                if (tgtId[0] !== 'topogram') {
-                    return
-                }
-                cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)
             }
         )
         // Set up resize observer for the media container
