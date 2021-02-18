@@ -7,7 +7,7 @@
         ]"
     >
         <div class="medigi-viewer-toolbar">
-            <imaging-toolbar
+            <radiology-toolbar
                 :allLinked="allResourcesLinked"
                 :gridLayout.sync="gridLayout"
                 :synchronizers="synchronizers"
@@ -15,7 +15,7 @@
             />
         </div>
         <div class="medigi-viewer-sidebar">
-            <imaging-sidebar
+            <radiology-sidebar
                 :items="dicomElements"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
@@ -72,8 +72,8 @@ const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
     components: {
-        ImagingSidebar: () => import('../ImagingSidebar.vue'),
-        ImagingToolbar: () => import('../ImagingToolbar.vue'),
+        RadiologySidebar: () => import('../RadiologySidebar.vue'),
+        RadiologyToolbar: () => import('../RadiologyToolbar.vue'),
         DicomImageDisplay: () => import('./DicomImageDisplay.vue'),
         DicomImagePlaceholder: () => import('./DicomImagePlaceholder.vue'),
     },

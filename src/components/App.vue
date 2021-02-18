@@ -42,7 +42,7 @@ const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
     components: {
-        DicomImageInterface: () => import('./Imaging/Dicom/DicomImageInterface.vue'),
+        DicomImageInterface: () => import('./Radiology/DICOM/DicomImageInterface.vue'),
     },
     data () {
         return {
