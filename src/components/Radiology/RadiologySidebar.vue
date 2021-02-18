@@ -123,7 +123,7 @@ export default Vue.extend({
     },
     mounted () {
         // Set up DICOM file dropzone
-        this.dropZone = document.getElementById(`${this.$store.state.appName}-medigi-viewer-dropzone`)
+        this.dropZone = document.getElementById(`${this.$store.state.appName}-medigi-viewer-radiology-dropzone`)
         if (this.dropZone) {
             this.dropZone.addEventListener('dragover', this.handleFileDrag, false)
             this.dropZone.addEventListener('drop', this.handleFileDrop, false)
