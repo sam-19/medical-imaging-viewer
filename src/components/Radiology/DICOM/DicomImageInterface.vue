@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-dicom-image-interface`"
+    <div :id="`${$store.state.appName}-medigi-dicom-radiology-interface`"
         :class="[
             'medigi-viewer-dicom-image-interface',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },

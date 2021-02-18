@@ -1,5 +1,5 @@
 <template>
-    <div :id="`${$store.state.appName}-medigi-viewer-sidebar`">
+    <div :id="`${$store.state.appName}-medigi-viewer-radiology-sidebar`">
         <div class="medigi-viewer-sidebar-items">
             <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
@@ -14,9 +14,9 @@
                 :type="item.type"
                 v-on:toggle-active-item="toggleActiveItem"
             />
-            <div :id="`${$store.state.appName}-medigi-viewer-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
+            <div :id="`${$store.state.appName}-medigi-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
-        <div :id="`${$root.$store.state.appName}-medigi-viewer-statusbar`" class="medigi-viewer-statusbar">
+        <div :id="`${$store.state.appName}-medigi-viewer-radiology-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache status') }}</span>
             <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
             <span v-if="cacheSize">

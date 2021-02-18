@@ -1,5 +1,5 @@
 <template>
-    <div :id="`${$store.state.appName}-medigi-dicom-waveform-interface`"
+    <div :id="`${$store.state.appName}-medigi-viewer-ekg-interface`"
         :class="[
             'medigi-viewer-dicom-waveform-interface',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
