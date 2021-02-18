@@ -54,7 +54,7 @@ interface ImageStackResource extends MediaResource {
     getIndexByUrl(url: string): number
     link(masterLinkPos: number, localPos?: number): void
     push(image: ImageResource): void
-    preloadAndSortImages?(): Promise<boolean>
+    preloadAndSortImages?(): Promise<object>
     removeFromCache(): void
     setCurrentPositionById(id: string): void
     setCurrentPositionByUrl(url: string): void

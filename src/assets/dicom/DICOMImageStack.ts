@@ -112,9 +112,9 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
      * Preload the image stack images into cache and sort them by instance number.
      * @param {Function} callback Will call true when ready, false if aborted
      */
-    public async preloadAndSortImages (): Promise<boolean> {
+    public async preloadAndSortImages (): Promise<object> {
         if (!this._images.length) {
-           return false
+           return { success: false, reason: "Image stack doesn't contain any images" }
         }
         this._preloaded = 0 // Reset counter
         for (let i=0; i<this._images.length; i++) {
@@ -126,14 +126,16 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
                     // Store dimensions from the first image
                     this._dimensions = [image.width, image.height]
                 }
+            }).catch((reason: any) => {
+                return { success: false, reason: reason }
             })
             if (this._preloaded === this._images.length) {
                 // All images have been loaded, sort them according to Instance Number
                 this.sortImages('i')
-                return true
+                return { success: true }
             }
         }
-        return true
+        return { success: true }
     }
     public removeFromCache = () => {
         for (let i=0; i<this._images.length; i++) {

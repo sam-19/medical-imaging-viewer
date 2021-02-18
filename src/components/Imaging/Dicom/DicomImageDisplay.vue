@@ -84,6 +84,7 @@ export default Vue.extend({
             // Keep track when the main and possible topogram images have loaded
             mainImageLoaded: false,
             topoImageLoaded: false,
+            loadingDotCycle: 0,
             // Don't continue async operations if component has been destroyed
             destroyed: false,
             // Store unsubscribe methods
@@ -96,7 +97,7 @@ export default Vue.extend({
     },
     watch: {
         containerSize (value: Array<number>, old: Array<number>) {
-            this.resizeImage(value)
+            this.resizeImage()
         },
         layoutPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage()
@@ -125,7 +126,7 @@ export default Vue.extend({
          * Display the single image from this.resource or current image (this.resource.currentPosition) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
-        displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<boolean> {
+        displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<void|object> {
             const imageUrl = this.resource.isStack
                              ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
@@ -137,10 +138,6 @@ export default Vue.extend({
                 if (this.viewport) {
                     cornerstone.displayImage(this.dicomEl, image, this.viewport)
                 }
-                return true
-            }).catch(() => {
-                // TODO: Display error image
-                return false
             })
         },
         flipHorizontally: function () {
@@ -322,13 +319,12 @@ export default Vue.extend({
         },
         /**
          * Resize the displayed image into given dimensions.
-         * @param {number[]} dimensions [width, height].
          */
-        resizeImage: function (dimensions?: number[]) {
+        resizeImage: function () {
             if (!this.dicomEl || !this.dicomWrapper) {
                 return
             }
-            dimensions = dimensions || this.containerSize as number[]
+            const dimensions = this.containerSize as number[]
             const colPos = this.layoutPosition[0] as number[]
             const rowPos = this.layoutPosition[1] as number[]
             const isRowFirst = (colPos[0] === 0)
@@ -350,7 +346,7 @@ export default Vue.extend({
                 //cornerstone.setViewport(this.dicomEl, this.viewport)
             } else {
                 // Update the loading text position
-                const loadingText = document.querySelector('.medigi-viewer-image-container > div') as HTMLDivElement
+                const loadingText = (document.querySelector(`#container-${this.id}-${this.instanceNum} > div`) as HTMLDivElement)
                 loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
                 loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
                 loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
@@ -459,8 +455,9 @@ export default Vue.extend({
         this.dicomWrapper = this.$refs[`wrapper`] as HTMLDivElement
         this.dicomEl = this.$refs[`container`] as HTMLDivElement
         this.topoEl = this.$refs[`topogram`] as HTMLDivElement
-        this.resizeImage() // Trigger first component resize to show the borders
         if (this.dicomEl) {
+            // Trigger first component resize to show the borders and loading text
+            this.resizeImage()
             // Add event listener
             this.dicomEl.addEventListener('cornerstonetoolsmouseclick', (e: any) => {
                 if (e.detail.event.button === 2) {
@@ -473,13 +470,19 @@ export default Vue.extend({
             })
             // Start loading dot cycle every half second until the image is done loading
             let cyclePos = 1
-            const loadingDotCycle = window.setInterval(() => {
+            this.loadingDotCycle = window.setInterval(() => {
                 for (let i=0; i<3; i++) {
                     (this.$refs[`loading-dot-${i+1}`] as HTMLElement).style.visibility
                         = i < cyclePos ? 'visible' : 'hidden'
                 }
                 cyclePos = cyclePos < 3 ? cyclePos + 1 : 0
             }, 500)
+            const showLoadingError = (reason: any) => {
+                window.clearInterval(this.loadingDotCycle)
+                ;(document.querySelector(`#container-${this.id}-${this.instanceNum} > div`) as HTMLDivElement)
+                    .innerText = this.$t('ERROR').toString()
+                console.error(reason)
+            }
             // Enable the element
             cornerstone.enable(this.dicomEl)
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
@@ -566,11 +569,11 @@ export default Vue.extend({
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
                 // Add stack state manager to loaded images
-                this.resource.preloadAndSortImages().then((success: boolean) => {
+                this.resource.preloadAndSortImages().then((response: { success: boolean, reason?: any }) => {
                     // Check that dicomEl still exists, in case the container has been destroyed during the load
-                    if (success && !this.destroyed) {
+                    if (response.success && !this.destroyed) {
                         // Stop loading dot cycler
-                        window.clearInterval(loadingDotCycle)
+                        window.clearInterval(this.loadingDotCycle)
                         this.mainImageLoaded = true
                         // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
@@ -595,7 +598,7 @@ export default Vue.extend({
                             Vue.nextTick(() => {
                                 // Don't trigger resize if the container has been destroyed
                                 if (!this.destroyed) {
-                                    this.resizeImage(this.containerSize as number[])
+                                    this.resizeImage()
                                 }
                             })
                         }
@@ -622,8 +625,8 @@ export default Vue.extend({
                                     synchronizationContext: this.synchronizers.referenceLines,
                                 })
                                 enableElement()
-                            }).catch((e: any) => {
-                                console.error('Loading topogram failed!')
+                            }).catch((reason: any) => {
+                                console.error('Loading topogram failed!', reason)
                                 enableElement()
                             })
                         } else {
@@ -635,31 +638,37 @@ export default Vue.extend({
                         this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
                             this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
                         })
+                    } else if (!this.destroyed) {
+                        // TODO: Return the reason somehow?
+                        showLoadingError(response.reason)
                     }
+                }).catch((reason: any) => {
+                    showLoadingError(reason)
                 })
             } else {
                 // Display first image with default settings
-                this.displayImage(true).then((success: boolean) => {
-                    if (success) {
-                        this.mainImageLoaded = true
-                        // We need to pass stack tools even to single images to enable reference lines
-                        //const stackOpts = {
-                        //    currentImageIdIndex: 0,
-                        //    imageIds: [this.resource.url]
-                        //}
-                        //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
-                        //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                        // Register element to synchronizers
-                        //this.$root.synchronizers.referenceLines.add(this.dicomEl)
-                        // Add reference lines tool (must be done after setting up synchronizers!)
-                        //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
-                        // Re-enable the active tool to include this image
-                        this.$store.dispatch('tools:re-enable-active')
-                        this.isFirstLoaded = true
-                        Vue.nextTick(() => {
-                            this.resizeImage(this.containerSize as number[])
-                        })
-                    }
+                this.displayImage(true).then(image => {
+                    window.clearInterval(this.loadingDotCycle)
+                    this.mainImageLoaded = true
+                    // We need to pass stack tools even to single images to enable reference lines
+                    //const stackOpts = {
+                    //    currentImageIdIndex: 0,
+                    //    imageIds: [this.resource.url]
+                    //}
+                    //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
+                    //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
+                    // Register element to synchronizers
+                    //this.$root.synchronizers.referenceLines.add(this.dicomEl)
+                    // Add reference lines tool (must be done after setting up synchronizers!)
+                    //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+                    // Re-enable the active tool to include this image
+                    this.$store.dispatch('tools:re-enable-active')
+                    this.isFirstLoaded = true
+                    Vue.nextTick(() => {
+                        this.resizeImage()
+                    })
+                }).catch((reason: any) => {
+                    showLoadingError(reason)
                 })
             }
             // Subscribe to store dispatch events
@@ -694,6 +703,10 @@ export default Vue.extend({
     },
     beforeDestroy () {
         this.destroyed = true
+        // Clear image loading interval if it is running
+        if (this.loadingDotCycle) {
+            window.clearInterval(this.loadingDotCycle)
+        }
         if (this.resource.isStack && this.resource.isLinked) {
             // Break linking
             this.resource.unlink()
