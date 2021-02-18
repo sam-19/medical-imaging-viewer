@@ -15,11 +15,16 @@
                 <!--<li>LIST OF OPTIONS</li>-->
             </ul>
         </div>
-        <dicom-image-interface v-if="scope==='dicom-image'"
+        <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
             :items="dicomElements"
             :sidebarOpen="sidebarOpen"
-        ></dicom-image-interface>
+        />
+        <dicom-waveform-interface v-else-if="scope==='ekg'"
+            ref="dicom-waveform-interface"
+            :ekgResources="ekgResources"
+            :sidebarOpen="sidebarOpen"
+        />
     </div>
 
 </template>
@@ -28,6 +33,7 @@
 
 import Vue from 'vue'
 import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
+import DicomWaveform from '../assets/dicom/DicomWaveform'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
 const TOOL_COLOR = {
@@ -43,15 +49,19 @@ const TOPOGRAM_NAME = '_topogram'
 export default Vue.extend({
     components: {
         DicomImageInterface: () => import('./Radiology/DICOM/DicomImageInterface.vue'),
+        DicomWaveformInterface: () => import('./EKG/DICOM/DicomWaveformInterface.vue'),
     },
     data () {
         return {
-            scope: 'dicom-image',
+            scope: 'radiology',
             sidebarOpen: true,
             // Loaded DICOM elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
+            ekgResources: [] as DicomWaveform[],
             // Theme change trigger
             themeChange: 0,
+            // Screen DPI
+            screenDPI: 96,
         }
     },
     computed: {
@@ -155,6 +165,19 @@ export default Vue.extend({
         toggleSidebar: function () {
             this.sidebarOpen = !this.sidebarOpen
         },
+    },
+    mounted () {
+        this.$root.$on('add-ekg-resource', (resource: any) => {
+            this.ekgResources.push(resource)
+            this.scope = 'ekg'
+        })
+        // Measure 1 inch in pixels for later trace calibration
+        const el = document.createElement('div')
+        el.style.width = '1in'
+        document.body.appendChild(el)
+        const dpi = el.offsetWidth
+        document.body.removeChild(el)
+        this.screenDPI = dpi
     },
 })
 

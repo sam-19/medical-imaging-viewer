@@ -226,15 +226,6 @@ export default Vue.extend({
             }
             return undefined
         },
-        handleFileDrag: function (event: DragEvent) {
-            // Prevent default event effects
-            event.stopPropagation()
-            event.preventDefault()
-            if (event.dataTransfer) {
-                // Show that dropping the file "copies" it
-                event.dataTransfer.dropEffect = 'copy'
-            }
-        },
         /**
          * Handle a file or directory dropped in the dropzone
          * @param event
@@ -331,10 +322,15 @@ export default Vue.extend({
             }
         },
         mediaResized: function () {
+            // Check that the element still exists (this method is also fired when the component is destroyed)
+            const mediaEl = this.$refs['media'] as HTMLElement
+            if (!mediaEl) {
+                return
+            }
             // Deduct padding and borders from element dimensions
             this.mediaContainerSize = [
-                (this.$refs['media'] as HTMLElement).offsetWidth - 2,
-                (this.$refs['media'] as HTMLElement).offsetHeight - 2
+                mediaEl.offsetWidth - 2,
+                mediaEl.offsetHeight - 2
             ]
         },
         removeDICOMResource: function (id: string) {
@@ -416,7 +412,7 @@ export default Vue.extend({
                 // Only synchronize linked elements
                 if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1])) {
                     // Source or target is not linked, or they are the same element
-                    // This doesn't work at the moment, for some reason
+                    // This doesn't work at the moment, because an update is triggered via the reference line synchronizer
                     return
                 }
                 cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)

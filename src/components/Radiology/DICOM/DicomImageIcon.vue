@@ -69,6 +69,7 @@ export default Vue.extend({
                         // Waveform sequence
                         import('../../../assets/dicom/DicomWaveform').then(DicomWaveform => {
                             const waveform = new DicomWaveform.default('Waveform', response.dataSet.elements)
+                            this.$root.$emit('add-ekg-resource', waveform)
                         })
                     } else {
                         this.$emit('loading-cover-failed')

@@ -7,7 +7,7 @@
 import { SignalResource, SignalChannel } from '../../types/assets'
 import DicomDataProperty from './DicomDataProperty'
 
-class DICOMWaveform implements SignalResource {
+class DicomWaveform implements SignalResource {
     protected _active: boolean = false
     protected _channels: SignalChannel[] = []
     protected _duration: number = 0
@@ -156,5 +156,5 @@ class DICOMWaveform implements SignalResource {
     }
 
 }
-export default DICOMWaveform
+export default DicomWaveform
 export { SignalResource }

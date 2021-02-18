@@ -8,5 +8,6 @@ import Vue from "vue"
 declare module "vue/types/vue" {
     interface Vue {
         appName: string
+        screenDPI: number
     }
 }
