@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import { SignalResource } from '../types/assets'
+import { SignalResource } from '../../../types/assets'
 // @ts-ignore: TSLint doesn't find the type definitions for Plotly.js, for some reason
 import * as  Plotly from 'plotly.js/lib/index-basic.js'
 

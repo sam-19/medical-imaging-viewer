@@ -1,7 +1,7 @@
 <template>
 
     <div :id="`${$store.state.appName}-medigi-viewer-toolbar`">
-        <ToolbarButton v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
+        <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :emit="button.emit"
             :enabled="button.enabled"
@@ -14,8 +14,7 @@
                 'medigi-viewer-toolbar-setfirst': button.setFirst
             }"
             @button-clicked="buttonClicked"
-        >
-        </ToolbarButton>
+        />
     </div>
 
 </template>
@@ -24,7 +23,7 @@
 
 import Vue from 'vue'
 import cornerstoneTools from 'cornerstone-tools'
-import { ToolbarButton } from '../types/viewer'
+import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
     active: boolean,
@@ -49,7 +48,7 @@ interface ButtonRow {
 }
 export default Vue.extend({
     components: {
-        ToolbarButton: () => import('./ToolbarButton.vue'),
+        ToolbarButton: () => import('../ToolbarButton.vue'),
     },
     props: {
         allLinked: {

@@ -67,8 +67,8 @@ export default Vue.extend({
                 }).catch((response: any) => {
                     if (response.dataSet && response.dataSet.elements && response.dataSet.elements.x54000100) {
                         // Waveform sequence
-                        import('../assets/dicom/DICOMWaveform').then(DICOMWaveform => {
-                            const waveform = new DICOMWaveform.default('Waveform', response.dataSet.elements)
+                        import('../../../assets/dicom/DicomWaveform').then(DicomWaveform => {
+                            const waveform = new DicomWaveform.default('Waveform', response.dataSet.elements)
                         })
                     } else {
                         this.$emit('loading-cover-failed')

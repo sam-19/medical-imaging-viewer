@@ -1,7 +1,7 @@
 <template>
     <div :id="`${$store.state.appName}-medigi-viewer-sidebar`">
         <div class="medigi-viewer-sidebar-items">
-            <SidebarItem v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
+            <imaging-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
                 :collation="item.isCollation"
                 :count="item.size"
@@ -29,11 +29,11 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { MediaResource, ImageStackResource } from '../types/assets'
+import { MediaResource, ImageStackResource } from '../../types/assets'
 
 export default Vue.extend({
     components: {
-        SidebarItem: () => import('./SidebarItem.vue'),
+        ImagingSidebarItem: () => import('./ImagingSidebarItem.vue'),
     },
     props: {
         items: Array,

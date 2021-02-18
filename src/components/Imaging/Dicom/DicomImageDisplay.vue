@@ -12,8 +12,16 @@
             {{ $t('Delete') }}
         </div>
         <div ref="container" :id="`container-${id}-${instanceNum}`"
+            class="medigi-viewer-image-container"
             @contextmenu.prevent
-        ></div>
+        >
+            <div v-if="!mainImageLoaded" class="medigi-viewer-image-loading">
+                {{ $t('LOADING') }}
+                <span ref="loading-dot-1" style="visibility: hidden">.</span>
+                <span ref="loading-dot-2" style="visibility: hidden">.</span>
+                <span ref="loading-dot-3" style="visibility: hidden">.</span>
+            </div>
+        </div>
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
             :icon="resource.isLinked ? ['fal', 'unlink'] : ['fal', 'link']"
             :title="$t('Link this image stack')"
@@ -39,7 +47,7 @@ import Vue from 'vue'
 import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneMath from 'cornerstone-math'
-import { ImageResource } from '../types/assets'
+import { ImageResource } from '../../../types/assets'
 
 let INSTANCE_NUM = 0
 const CLICK_DISTANCE_THRESHOLD = 5
@@ -340,6 +348,12 @@ export default Vue.extend({
                 // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
                 this.viewport = cornerstone.getViewport(this.dicomEl)
                 //cornerstone.setViewport(this.dicomEl, this.viewport)
+            } else {
+                // Update the loading text position
+                const loadingText = document.querySelector('.medigi-viewer-image-container > div') as HTMLDivElement
+                loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
+                loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
+                loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
             }
             // Resize possible topogram image
             if (this.topogram && this.topoImageLoaded) {
@@ -457,6 +471,15 @@ export default Vue.extend({
                     this.annotationMenu = null
                 }
             })
+            // Start loading dot cycle every half second until the image is done loading
+            let cyclePos = 1
+            const loadingDotCycle = window.setInterval(() => {
+                for (let i=0; i<3; i++) {
+                    (this.$refs[`loading-dot-${i+1}`] as HTMLElement).style.visibility
+                        = i < cyclePos ? 'visible' : 'hidden'
+                }
+                cyclePos = cyclePos < 3 ? cyclePos + 1 : 0
+            }, 500)
             // Enable the element
             cornerstone.enable(this.dicomEl)
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
@@ -546,6 +569,8 @@ export default Vue.extend({
                 this.resource.preloadAndSortImages().then((success: boolean) => {
                     // Check that dicomEl still exists, in case the container has been destroyed during the load
                     if (success && !this.destroyed) {
+                        // Stop loading dot cycler
+                        window.clearInterval(loadingDotCycle)
                         this.mainImageLoaded = true
                         // Set up cornerstone stack scroll tool
                         const imageIds = this.resource.images.map((img: ImageResource) => img.url)
@@ -761,4 +786,12 @@ export default Vue.extend({
         pointer-events: none;
         background-color: #CCCCCC;
     }
+        .medigi-viewer-image-container > div {
+            font-size: 24px;
+            font-family: sans-serif;
+            font-weight: bold;
+            font-style: italic;
+            color: var(--medigi-viewer-text-faint);
+            text-align: center;
+        }
 </style>

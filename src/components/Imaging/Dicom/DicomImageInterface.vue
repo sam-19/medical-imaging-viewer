@@ -7,21 +7,19 @@
         ]"
     >
         <div class="medigi-viewer-toolbar">
-            <dicom-image-toolbar
+            <imaging-toolbar
                 :allLinked="allResourcesLinked"
                 :gridLayout.sync="gridLayout"
                 :synchronizers="synchronizers"
                 v-on:link-all-resources="linkAllResources"
-            >
-            </dicom-image-toolbar>
+            />
         </div>
         <div class="medigi-viewer-sidebar">
-            <dicom-image-sidebar
+            <imaging-sidebar
                 :items="dicomElements"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
-            >
-            </dicom-image-sidebar>
+            />
         </div>
         <div ref="media" class="medigi-viewer-media">
             <div class="medigi-viewer-images">
@@ -34,15 +32,13 @@
                     :resource="resource"
                     :topogram="topogramElement"
                     :synchronizers="synchronizers"
-                >
-                </dicom-image-display>
+                />
                 <!-- Add a necessary amount of placeholder elements -->
                 <dicom-image-placeholder v-for="idx in getEmptyLayoutCells()"
                     :key="`${$store.state.appName}-medigi-viewer-placeholder-${idx}`"
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
-                >
-                </dicom-image-placeholder>
+                />
             </div>
         </div>
     </div>
@@ -59,10 +55,10 @@ import Hammer from 'hammerjs'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import dicomParser from 'dicom-parser'
 import ResizeObserver from 'resize-observer-polyfill'
-import { FileSystemItem, ImageResource, ImageStackResource }from '../types/assets'
-import DicomImage from '../assets/dicom/DicomImage'
-import DicomImageStack from '../assets/dicom/DicomImageStack'
-import LocalFileLoader from '../assets/loaders/LocalFileLoader'
+import { FileSystemItem, ImageResource, ImageStackResource } from '../../../types/assets'
+import DicomImage from '../../../assets/dicom/DicomImage'
+import DicomImageStack from '../../../assets/dicom/DicomImageStack'
+import LocalFileLoader from '../../../assets/loaders/LocalFileLoader'
 
 const TOOL_COLOR = {
     BLUE: '#C0DDF0',
@@ -76,8 +72,8 @@ const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
     components: {
-        DicomImageSidebar: () => import('./DicomImageSidebar.vue'),
-        DicomImageToolbar: () => import('./DicomImageToolbar.vue'),
+        ImagingSidebar: () => import('../ImagingSidebar.vue'),
+        ImagingToolbar: () => import('../ImagingToolbar.vue'),
         DicomImageDisplay: () => import('./DicomImageDisplay.vue'),
         DicomImagePlaceholder: () => import('./DicomImagePlaceholder.vue'),
     },

@@ -27,7 +27,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { FileSystemItem, ImageResource, ImageStackResource }from '../types/assets'
+import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
 const TOOL_COLOR = {
@@ -42,7 +42,7 @@ const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
     components: {
-        DicomImageInterface: () => import('./DicomImageInterface.vue'),
+        DicomImageInterface: () => import('./Imaging/Dicom/DicomImageInterface.vue'),
     },
     data () {
         return {
