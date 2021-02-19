@@ -61,7 +61,7 @@ export default Vue.extend({
             // Theme change trigger
             themeChange: 0,
             // Screen DPI
-            screenDPI: 96,
+            screenDPI: 144,
         }
     },
     computed: {
@@ -170,14 +170,15 @@ export default Vue.extend({
         this.$root.$on('add-ekg-resource', (resource: any) => {
             this.ekgResources.push(resource)
             this.scope = 'ekg'
+            this.toggleColorTheme(true)
         })
         // Measure 1 inch in pixels for later trace calibration
-        const el = document.createElement('div')
-        el.style.width = '1in'
-        document.body.appendChild(el)
-        const dpi = el.offsetWidth
-        document.body.removeChild(el)
-        this.screenDPI = dpi
+        //const el = document.createElement('div')
+        //el.style.width = '1in'
+        //document.body.appendChild(el)
+        //const dpi = el.offsetWidth
+        //document.body.removeChild(el)
+        //this.screenDPI = dpi
     },
 })
 

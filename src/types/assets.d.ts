@@ -64,9 +64,9 @@ interface ImageStackResource extends MediaResource {
 
 interface SignalResource {
     channels: { label: string, signals: number[] }[]
-    resolution: number // Highest resolution in this resource
     name: string
-    duration: number
+    resolution: number // Highest resolution in this resource
+    sampleCount: number
     type: string
     //url: string
 }

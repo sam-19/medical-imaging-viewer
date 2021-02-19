@@ -23,27 +23,57 @@ export default Vue.extend({
     },
     data () {
         return {
-            cmPerSec: 3,
-            trace: null as any,
-            traceConfig: {
+            chart: null as any,
+            chartConfig: {
                 margin: { t: 0, r: 0 },
                 showlegend: false,
                 hovermode: false,
                 xaxis: {
                     tickmode: 'array',
+                    rangemode: 'tozero',
+                    gridcolor: '#FFB6C1',
+                    gridwidth: 1,
+                    zerolinecolor: '#FFB6C1',
+                    zerolinewidth: 1,
+                },
+                xaxis2: {
+                    tickmode: 'array',
+                    rangemode: 'tozero',
+                    gridcolor: '#FFEDF0',
+                    gridwidth: 1,
+                    zeroline: false,
+                    overlaying: 'x',
                 },
                 yaxis: {
+                    autorange: false,
                     tickmode: 'array',
-                    showgrid: false,
-                    zeroline: false
+                    rangemode: 'tozero',
+                    gridcolor: '#FFB6C1',
+                    gridwidth: 1,
+                    zerolinecolor: '#FFB6C1',
+                    zerolinewidth: 1,
+                },
+                yaxis2: {
+                    autorange: false,
+                    tickmode: 'array',
+                    rangemode: 'tozero',
+                    gridcolor: '#FFEDF0',
+                    gridwidth: 1,
+                    zeroline: false,
+                    overlaying: 'y',
                 },
             },
-            traceOptions: {
+            chartOptions: {
                 displayModeBar: false,
-                responsive: true,
+                responsive: false,
             },
+            cmPerSec: 2.5,
+            cmPermV: 1,
+            lastYRange: [0, 0],
+            sensitivityAdjust: 1,
             viewStart: 0,
             viewEnd: 0,
+            yPad: 2, // Add pad amount of squares (0,5cm) above and below the top and bottom traces
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -51,52 +81,154 @@ export default Vue.extend({
     },
     watch: {
         containerSize (value: Array<number>, old: Array<number>) {
-            this.recalibrateTraceDimensions()
+            const yRange = this.yAxisRange
+            if (this.lastYRange[0] !== yRange[0] || this.lastYRange[1] !== yRange[1]) {
+                // Redraw entire plot if y-range changed (trace count changed)
+                this.redrawPlot()
+            } else {
+                this.recalibrateChart()
+            }
         },
     },
     computed: {
-        channelSignals () {
-            return []
-        },
-        yAxisTicks (): number[] {
-            const ticks = [] as number[]
-            //for (let i=0; i<this.montageConfig[this.activeMontage].channels.length; i++) {
-            //    ticks.push((this.montageConfig[this.activeMontage].channels.length-i)*this.sensitivity)
-            //}
-            return ticks
-        },
-        yAxisValues (): string[] {
-            const values = [] as string[]
-            //for (let i=0; i<this.montageConfig[this.activeMontage].channels.length; i++) {
-            //    values.push(i18n.t('biosignals.eeg.channels.'+this.montageConfig[this.activeMontage].channels[i].name) + "  ")
-            //}
-            return values
-        },
-    },
-    methods: {
-        calculateMontageSignals: function () {
+        channelSignals (): any[] {
             const signals: any[] = []
-            for (let i=0; i<this.resource.channels.length; i++) {
+            const min = this.yAxisRange[0]/(this.sensitivityAdjust*4)
+            const max = this.yAxisRange[1]/(this.sensitivityAdjust*4) - this.yPad/2
+            for (let i=min; i<max; i++) {
                 const chanLabel: string = this.resource.channels[i].label
-                // Give EKG and EOG channels a different color
                 const traceColor = '#303030'
-                const xrange = Array(Math.floor(this.viewEnd-this.viewStart)).keys()
                 // Wrap it into an object
                 signals[i] = {
                     name: this.$t(chanLabel),
                     type: 'scattergl',
                     mode: 'lines',
-                    x: xrange,
+                    x: this.xAxisRange,
                     y: [],
                     line: { color: traceColor, width: 1 },
                 }
             }
             return signals
         },
+        xAxisRange (): number[] {
+            return (this.viewEnd - this.viewStart) > 0
+                    ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
+                    : []
+        },
+        xAxisTicks (): number[] {
+            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const ticks = []
+            for (let i=0; i<range; i++) {
+                ticks.push(i*this.resource.resolution/5)
+            }
+            return ticks
+        },
+        xAxis2Ticks (): number[] {
+            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const ticks = []
+            for (let i=0; i<range; i++) {
+                ticks.push(
+                    (i + 1/5)*this.resource.resolution/5,
+                    (i + 2/5)*this.resource.resolution/5,
+                    (i + 3/5)*this.resource.resolution/5,
+                    (i + 4/5)*this.resource.resolution/5,
+                )
+            }
+            console.log(ticks)
+            return ticks
+        },
+        xAxisValues (): string[] {
+            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const values = []
+            for (let i=0; i<range; i++) {
+                if (!i || i%5) {
+                    values.push('')
+                    continue
+                }
+                let point = this.viewStart/this.resource.resolution + i/5
+                let hrs: number = Math.floor(point/60/60)
+                let mins: number = Math.floor((point - hrs*60*60)/60)
+                let secs: number = point - hrs*60*60 - mins*60
+                let timestamp = ''
+                if (hrs) {
+                    timestamp = hrs.toString() + ':'
+                }
+                if (mins) {
+                    if (hrs) {
+                        timestamp += mins.toString().padStart(2, '0') + ':'
+                    } else {
+                        timestamp += mins + ':'
+                    }
+                } else {
+                    if (hrs) {
+                        timestamp += '00:'
+                    } else {
+                        timestamp = '0:'
+                    }
+                }
+                if (secs) {
+                    timestamp += secs.toString().padStart(2, '0')
+                } else {
+                    timestamp += '00'
+                }
+                values.push(timestamp)
+            }
+            return values
+        },
+        yAxisRange (): number[] {
+            // Display either all 12, 6, 4, 2 or just one trace at a time
+            // Required height is 2 * 1cm per each trace plus padding
+            const traceHeight = Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)*2)
+            let traceCount = 12
+            const pad = (this.yPad/2 * traceHeight) + 30
+            if ((this.containerSize[1] as number) < traceHeight*2 + pad) {
+                traceCount = 1
+            } else if ((this.containerSize[1] as number) < traceHeight*4 + pad) {
+                traceCount = 2
+            } else if ((this.containerSize[1] as number) < traceHeight*6 + pad) {
+                traceCount = 4
+            } else if ((this.containerSize[1] as number) < traceHeight*12 + pad) {
+                traceCount = 6
+            }
+            return [0, traceCount*4 + 2*this.yPad].map((val => val*this.sensitivityAdjust))
+        },
+        yAxisTicks (): number[] {
+            const ticks = []
+            for (let i=this.yAxisRange[0]*this.sensitivityAdjust; i<=this.yAxisRange[1]*this.sensitivityAdjust; i++) {
+                if (i%this.sensitivityAdjust) {
+                    continue
+                }
+                ticks.push(i)
+            }
+            return ticks
+        },
+        yAxisValues (): string[] {
+            // Top channels depend on the view
+            const values = ['', '',]
+            values.push(...Array(this.yPad).fill(''))
+            for (let i=0; i<this.yAxisRange[1] - this.yPad*2; i++) {
+                if (i%4) {
+                    values.push('')
+                } else {
+                    values.push(this.getChannelLabel(i/4) + '  ')
+                }
+            }
+            values.push(...Array(this.yPad-1).fill(''))
+            return values.reverse()
+        },
+    },
+    methods: {
+        calculateMontageSignals: function () {
+        },
+        getChannelLabel: function (index: number): string {
+            return this.resource.channels[index].label.split('_').length === 2
+                    ? this.resource.channels[index].label.split('_')[1]
+                    : this.resource.channels[index].label
+        },
         hideAnnotationMenu: function () {
 
         },
-        recalibrateTraceDimensions: function () {
+        recalculateViewBounds: function ()  {
             // Deduct the chart's left and right margins
             let viewWidth: number = -80
             if (document.fullscreenElement === null) {
@@ -104,42 +236,87 @@ export default Vue.extend({
             } else {
                 viewWidth += screen.width
             }
-            let newWidth = (this.resource.resolution*viewWidth/this.$root.screenDPI)*(2.54/this.cmPerSec)
-            // This check is needed to prevent "Object is possibly 'undefined'" error
-            if (newWidth) {
-                this.viewEnd = this.viewStart + newWidth
-            }
-            // Update y-axis (x-axis is updated in refreshChart method)
+            const newWidth = this.resource.resolution*(viewWidth/this.$root.screenDPI)*(2.54/this.cmPerSec)
+            this.viewEnd = this.viewStart + newWidth
+        },
+        recalibrateChart: function () {
+            this.recalculateViewBounds()
+            // Update chart dimensions and the y-axis (x-axis is updated in refreshChart method)
             const chartLayout = {
                 width: this.containerSize[0],
-                height: this.containerSize[1],
-                yaxis: {
-                    range: [0, 1000],
-                    //tickmode: 'array',
-                    //tickvals: this.yAxisTicks,
-                    //ticktext: this.yAxisValues,
-                    showgrid: false,
-                    zeroline: false
+                height: Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)*(this.yAxisRange[1]/2)) + 30,
+                yaxis: Object.assign({}, this.chartConfig.yaxis, {
+                    range: this.yAxisRange,
+                    tickvals: this.yAxisTicks,
+                    ticktext: this.yAxisValues,
+                }),
+            }
+            Plotly.relayout(this.$refs['container'], chartLayout)
+            this.refreshTraces()
+        },
+        redrawPlot: function () {
+            // Store y-axis range so we know when to redraw the entire plot
+            this.lastYRange = this.yAxisRange
+            this.chart = Plotly.newPlot(
+                this.$refs['container'],
+                this.channelSignals,
+                this.chartConfig,
+                this.chartOptions
+            ).then(() => {
+                // Render Y-axis signal labels and signal data
+                this.recalibrateChart()
+            })
+        },
+        refreshTraces: function () {
+            // Y-axis values for each channel
+            const yValues = []
+            const min = this.yAxisRange[0]/(this.sensitivityAdjust*4)
+            const max = this.yAxisRange[1]/(this.sensitivityAdjust*4) - this.yPad/2
+            for (let i=min; i<max; i++) {
+                const offset = (max - i)*4
+                yValues.push([] as (number|null)[])
+                for (let j=0; j<this.xAxisRange.length; j++) {
+                    if (j < this.resource.channels[i].signals.length) {
+                        let sigVal = this.resource.channels[i].signals[j]
+                        // Apply required corrections
+                        if (this.resource.channels[i].baseline) {
+                            // According to my sources the baseline correction is really
+                            // applied before the sensitivity corrections
+                            sigVal += this.resource.channels[i].baseline
+                        }
+                        if (this.resource.channels[i].sensitivity) {
+                            sigVal *= this.resource.channels[i].sensitivity
+                        }
+                        if (this.resource.channels[i].sensitivityCF) {
+                            sigVal *= this.resource.channels[i].sensitivityCF
+                        }
+                        yValues[i].push((sigVal + offset)*this.sensitivityAdjust)
+                    } else {
+                        yValues[i].push(null)
+                    }
                 }
+            }
+            // Update chart signal data
+            Plotly.restyle(this.$refs['container'], 'x', this.xAxisRange)
+            Plotly.restyle(this.$refs['container'], 'y', yValues)
+            // Update x-axis styles
+            const chartLayout = {
+                xaxis: Object.assign({}, this.chartConfig.xaxis, {
+                    tickvals: this.xAxisTicks,
+                    ticktext: this.xAxisValues,
+                }),
+                xaxis2: Object.assign({}, this.chartConfig.xaxis2, {
+                    tickvals: this.xAxis2Ticks,
+                    ticktext: Array(this.xAxis2Ticks.length).fill(''),
+                }),
             }
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
-        updateSignalLabels: function () {
-
-        },
     },
     mounted () {
-        // Create the initial plot
-        this.trace = Plotly.newPlot(
-            this.$refs['container'],
-            this.channelSignals,
-            this.traceConfig,
-            this.traceOptions
-        ).then(() => {
-            // Render Y-axis signal labels and signal data
-            this.updateSignalLabels()
-            this.recalibrateTraceDimensions()
-        })
+        // Calculate view bounds
+        this.recalculateViewBounds()
+        this.redrawPlot()
     }
 })
 </script>

@@ -10,7 +10,7 @@ import DicomDataProperty from './DicomDataProperty'
 class DicomWaveform implements SignalResource {
     protected _active: boolean = false
     protected _channels: SignalChannel[] = []
-    protected _duration: number = 0
+    protected _samples: number = 0
     protected _id: string
     protected _name: string
     protected _resolution: number = 0
@@ -29,9 +29,6 @@ class DicomWaveform implements SignalResource {
     get channels () {
         return this._channels
     }
-    get duration () {
-        return this._duration
-    }
     get id () {
         return this._id
     }
@@ -49,6 +46,9 @@ class DicomWaveform implements SignalResource {
     }
     get resolution () {
         return this._resolution
+    }
+    get sampleCount () {
+        return this._samples
     }
     get type () {
         return this._type.split(':')[0]
@@ -95,10 +95,10 @@ class DicomWaveform implements SignalResource {
         const numChans = data.x54000100.items[0].dataSet.uint16(ncTag)
         // Number of samples (uint)
         const nsTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0010)?.getTagHex().substring(1)
-        const numSmpl = data.x54000100.items[0].dataSet.uint16(nsTag)
+        this._samples = data.x54000100.items[0].dataSet.uint16(nsTag)
         // Sampling frequency (number string)
         const sfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x001A)?.getTagHex().substring(1)
-        const samplingFr = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
+        this._resolution  = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
         if (!data.x54000100.items[0].dataSet.elements || !data.x54000100.items[0].dataSet.elements.x003a0200
             || !data.x54000100.items[0].dataSet.elements.x003a0200.items
         ) {
@@ -131,7 +131,7 @@ class DicomWaveform implements SignalResource {
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
             const chanData = {
                 label: chanItem.string(clTag) || altLabel || '??',
-                resolution: samplingFr,
+                resolution: this._resolution ,
                 signals: [] as number[],
                 sensitivity: parseFloat(chanItem.string(csTag)),
                 sensitivityCF: parseFloat(chanItem.string(scTag)),
@@ -142,7 +142,7 @@ class DicomWaveform implements SignalResource {
                 filterNotch: parseFloat(chanItem.string(nfTag)),
             }
             // Read signal data
-            for (let j=0; j<numSmpl; j++) {
+            for (let j=0; j<this._samples; j++) {
                 const offset = j*numChans + i
                 chanData.signals.push(data.x54000100.items[0].dataSet.byteArrayParser.readFloat(offset,offset+1))
             }
