@@ -27,31 +27,40 @@ export default Vue.extend({
             chartConfig: {
                 margin: { t: 0, r: 0 },
                 showlegend: false,
-                hovermode: false,
                 xaxis: {
                     tickmode: 'array',
+                    ticklen: 5,
+                    tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: '#FFB6C1',
                     gridwidth: 1,
                     zerolinecolor: '#FFB6C1',
                     zerolinewidth: 1,
+                    overlaying: 'x2',
+                    //rangeslider: {},
+                    fixedrange: true,
                 },
                 xaxis2: {
                     tickmode: 'array',
                     rangemode: 'tozero',
                     gridcolor: '#FFEDF0',
                     gridwidth: 1,
+                    matches: 'x',
                     zeroline: false,
-                    overlaying: 'x',
+                    fixedrange: true,
                 },
                 yaxis: {
                     autorange: false,
                     tickmode: 'array',
+                    ticklen: 10,
+                    tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: '#FFB6C1',
                     gridwidth: 1,
                     zerolinecolor: '#FFB6C1',
                     zerolinewidth: 1,
+                    overlaying: 'y2',
+                    fixedrange: true,
                 },
                 yaxis2: {
                     autorange: false,
@@ -59,8 +68,9 @@ export default Vue.extend({
                     rangemode: 'tozero',
                     gridcolor: '#FFEDF0',
                     gridwidth: 1,
+                    matches: 'y',
                     zeroline: false,
-                    overlaying: 'y',
+                    fixedrange: true,
                 },
             },
             chartOptions: {
@@ -74,6 +84,9 @@ export default Vue.extend({
             viewStart: 0,
             viewEnd: 0,
             yPad: 2, // Add pad amount of squares (0,5cm) above and below the top and bottom traces
+            // Keep track of some event data for chart interaction
+            lastHoverPoint: { x: null, y: null },
+            mouseReleased: false,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -93,8 +106,8 @@ export default Vue.extend({
     computed: {
         channelSignals (): any[] {
             const signals: any[] = []
-            const min = this.yAxisRange[0]/(this.sensitivityAdjust*4)
-            const max = this.yAxisRange[1]/(this.sensitivityAdjust*4) - this.yPad/2
+            const min = this.yAxisRange[0]/4
+            const max = this.yAxisRange[1]/4 - this.yPad/2
             for (let i=min; i<max; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 const traceColor = '#303030'
@@ -106,8 +119,19 @@ export default Vue.extend({
                     x: this.xAxisRange,
                     y: [],
                     line: { color: traceColor, width: 1 },
+                    hoverinfo: 'none',
                 }
             }
+            // Add something to x2, y2 to show the gridlines
+            signals.push({
+                name: '',
+                x: this.xAxisRange,
+                y: [],
+                xaxis: 'x2',
+                yaxis: 'y2',
+                line: { color: 'rgba(0,0,0,0)', width: 0 },
+                hoverinfo: 'none',
+            })
             return signals
         },
         xAxisRange (): number[] {
@@ -134,7 +158,6 @@ export default Vue.extend({
                     (i + 4/5)*this.resource.resolution/5,
                 )
             }
-            console.log(ticks)
             return ticks
         },
         xAxisValues (): string[] {
@@ -190,15 +213,21 @@ export default Vue.extend({
             } else if ((this.containerSize[1] as number) < traceHeight*12 + pad) {
                 traceCount = 6
             }
-            return [0, traceCount*4 + 2*this.yPad].map((val => val*this.sensitivityAdjust))
+            return [0, traceCount*4 + 2*this.yPad]
         },
         yAxisTicks (): number[] {
             const ticks = []
-            for (let i=this.yAxisRange[0]*this.sensitivityAdjust; i<=this.yAxisRange[1]*this.sensitivityAdjust; i++) {
-                if (i%this.sensitivityAdjust) {
-                    continue
-                }
+            for (let i=this.yAxisRange[0]; i<=this.yAxisRange[1]; i++) {
                 ticks.push(i)
+            }
+            return ticks
+        },
+        yAxisTicks2 (): number[] {
+            const ticks = []
+            for (let i=this.yAxisRange[0]*4 + 1; i<=this.yAxisRange[1] * 4; i++) {
+                if (i%4) {
+                    ticks.push(i/4)
+                }
             }
             return ticks
         },
@@ -210,7 +239,7 @@ export default Vue.extend({
                 if (i%4) {
                     values.push('')
                 } else {
-                    values.push(this.getChannelLabel(i/4) + '  ')
+                    values.push(this.getChannelLabel(i/4))
                 }
             }
             values.push(...Array(this.yPad-1).fill(''))
@@ -242,6 +271,7 @@ export default Vue.extend({
         recalibrateChart: function () {
             this.recalculateViewBounds()
             // Update chart dimensions and the y-axis (x-axis is updated in refreshChart method)
+            const y2TickVals = this.yAxisTicks2
             const chartLayout = {
                 width: this.containerSize[0],
                 height: Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)*(this.yAxisRange[1]/2)) + 30,
@@ -249,6 +279,11 @@ export default Vue.extend({
                     range: this.yAxisRange,
                     tickvals: this.yAxisTicks,
                     ticktext: this.yAxisValues,
+                }),
+                yaxis2: Object.assign({}, this.chartConfig.yaxis2, {
+                    range: this.yAxisRange,
+                    tickvals: y2TickVals,
+                    ticktext: Array(y2TickVals.length).fill(''),
                 }),
             }
             Plotly.relayout(this.$refs['container'], chartLayout)
@@ -270,8 +305,8 @@ export default Vue.extend({
         refreshTraces: function () {
             // Y-axis values for each channel
             const yValues = []
-            const min = this.yAxisRange[0]/(this.sensitivityAdjust*4)
-            const max = this.yAxisRange[1]/(this.sensitivityAdjust*4) - this.yPad/2
+            const min = this.yAxisRange[0]/4
+            const max = this.yAxisRange[1]/4 - this.yPad/2
             for (let i=min; i<max; i++) {
                 const offset = (max - i)*4
                 yValues.push([] as (number|null)[])
@@ -290,7 +325,7 @@ export default Vue.extend({
                         if (this.resource.channels[i].sensitivityCF) {
                             sigVal *= this.resource.channels[i].sensitivityCF
                         }
-                        yValues[i].push((sigVal + offset)*this.sensitivityAdjust)
+                        yValues[i].push(sigVal + offset)
                     } else {
                         yValues[i].push(null)
                     }
@@ -300,16 +335,44 @@ export default Vue.extend({
             Plotly.restyle(this.$refs['container'], 'x', this.xAxisRange)
             Plotly.restyle(this.$refs['container'], 'y', yValues)
             // Update x-axis styles
+            const x2TickVals = this.xAxis2Ticks
             const chartLayout = {
                 xaxis: Object.assign({}, this.chartConfig.xaxis, {
                     tickvals: this.xAxisTicks,
                     ticktext: this.xAxisValues,
                 }),
                 xaxis2: Object.assign({}, this.chartConfig.xaxis2, {
-                    tickvals: this.xAxis2Ticks,
-                    ticktext: Array(this.xAxis2Ticks.length).fill(''),
+                    tickvals: x2TickVals,
+                    ticktext: Array(x2TickVals.length).fill(''),
                 }),
             }
+            // Bind event listeners
+            ;(this.$refs['container'] as any).on('plotly_hover', (e: any) => {
+                if (this.mouseReleased) {
+                    if (this.lastHoverPoint.x !== null && e.points[0].x !== this.lastHoverPoint.x) {
+                        // Handle drag selection
+                        console.log('up', e.points[0].x - (this.lastHoverPoint.x || 0))
+                    }
+                    this.mouseReleased = false
+                }
+                // Store the last hover point for drag detection
+                this.lastHoverPoint = {
+                    x: e.points[0].x,
+                    y: e.points[0].y,
+                }
+            })
+            ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', (e: any) => {
+                console.log('down', this.lastHoverPoint.x, this.lastHoverPoint.y)
+            })
+            ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', (e: any) => {
+                // TODO: This fires twice for some reason
+                console.log('mouseup')
+                this.mouseReleased = true
+            })
+            ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', (e: any) => {
+                this.lastHoverPoint = { x: null, y: null }
+                this.mouseReleased = false
+            })
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
     },
@@ -322,5 +385,9 @@ export default Vue.extend({
 </script>
 
 <style>
-
+/* Disable the Plotly.js dragcover element */
+body > .dragcover {
+    display: none !important;
+    pointer-events: none !important;
+}
 </style>
