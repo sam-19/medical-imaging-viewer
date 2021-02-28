@@ -22,6 +22,7 @@ declare module 'cornerstone-tools' {
     const CrosshairsTool: any
     const EllipticalRoiTool: any
     const LengthTool: any
+    const OrientationMarkersTool: any
     const PanTool: any
     const ReferenceLinesTool: any
     const StackScrollTool: any

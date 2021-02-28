@@ -60,13 +60,14 @@ import DicomImage from '../../../assets/dicom/DicomImage'
 import DicomImageStack from '../../../assets/dicom/DicomImageStack'
 import LocalFileLoader from '../../../assets/loaders/LocalFileLoader'
 
-const TOOL_COLOR = {
+const TOOL_COLORS = {
     BLUE: '#C0DDF0',
     GRAY: '#E0E0E0',
     GREEN: '#C0FFC0',
     ORANGE: '#F0DDC0',
     RED: '#FFC0C0',
     WHITE: '#FFFFFF',
+    YELLOW: '#FFFFC0',
 }
 const TOPOGRAM_NAME = '_topogram'
 
@@ -393,8 +394,8 @@ export default Vue.extend({
         cornerstoneTools.init()
         // Set a more neutral tool color
         // TODO: Allow selecting the tool color?
-        cornerstoneTools.toolColors.setToolColor(TOOL_COLOR.WHITE)
-        cornerstoneTools.toolColors.setActiveColor(TOOL_COLOR.WHITE)
+        cornerstoneTools.toolColors.setToolColor(TOOL_COLORS.YELLOW)
+        cornerstoneTools.toolColors.setActiveColor(TOOL_COLORS.YELLOW)
         localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = cornerstone

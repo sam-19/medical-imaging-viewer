@@ -568,6 +568,7 @@ export default Vue.extend({
             this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
@@ -593,6 +594,8 @@ export default Vue.extend({
                         // Register element to synchronizers
                         this.synchronizers.stackScroll.add(this.dicomEl)
                         this.synchronizers.referenceLines.add(this.dicomEl)
+                        // Display orietation markers (must be called after image is loaded
+                        cornerstoneTools.setToolActive('OrientationMarkers', {})
                         // Add reference lines tool (must be done after setting up synchronizers!)
                         this.resource.currentPosition = this.resource.currentPosition
                         const enableElement = () => {
@@ -667,6 +670,8 @@ export default Vue.extend({
                     //this.$root.synchronizers.referenceLines.add(this.dicomEl)
                     // Add reference lines tool (must be done after setting up synchronizers!)
                     //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
+                    // Display orietation markers (must be called after image is loaded
+                    cornerstoneTools.setToolActive('OrientationMarkers', {})
                     // Re-enable the active tool to include this image
                     this.$store.dispatch('tools:re-enable-active')
                     this.isFirstLoaded = true
@@ -724,6 +729,7 @@ export default Vue.extend({
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)

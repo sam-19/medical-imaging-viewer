@@ -36,14 +36,6 @@ import { FileSystemItem, ImageResource, ImageStackResource } from '../types/asse
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
-const TOOL_COLOR = {
-    BLUE: '#C0DDF0',
-    GRAY: '#E0E0E0',
-    GREEN: '#C0FFC0',
-    ORANGE: '#F0DDC0',
-    RED: '#FFC0C0',
-    WHITE: '#FFFFFF',
-}
 const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
