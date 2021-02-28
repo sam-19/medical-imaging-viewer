@@ -37,7 +37,6 @@ export default Vue.extend({
                     zerolinecolor: '#FFB6C1',
                     zerolinewidth: 1,
                     overlaying: 'x2',
-                    //rangeslider: {},
                     fixedrange: true,
                 },
                 xaxis2: {
@@ -361,18 +360,6 @@ export default Vue.extend({
                     y: e.points[0].y,
                 }
             })
-            ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', (e: any) => {
-                console.log('down', this.lastHoverPoint.x, this.lastHoverPoint.y)
-            })
-            ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', (e: any) => {
-                // TODO: This fires twice for some reason
-                console.log('mouseup')
-                this.mouseReleased = true
-            })
-            ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', (e: any) => {
-                this.lastHoverPoint = { x: null, y: null }
-                this.mouseReleased = false
-            })
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
     },
@@ -380,6 +367,18 @@ export default Vue.extend({
         // Calculate view bounds
         this.recalculateViewBounds()
         this.redrawPlot()
+        // Bind event listeners
+        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', (e: any) => {
+            console.log('down', this.lastHoverPoint.x, this.lastHoverPoint.y)
+        })
+        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', (e: any) => {
+            console.log('mouseup')
+            this.mouseReleased = true
+        })
+        ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', (e: any) => {
+            this.lastHoverPoint = { x: null, y: null }
+            this.mouseReleased = false
+        })
     }
 })
 </script>
@@ -388,6 +387,11 @@ export default Vue.extend({
 /* Disable the Plotly.js dragcover element */
 body > .dragcover {
     display: none !important;
+    pointer-events: none !important;
+}
+/* Do not allow adjusting the range */
+.medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
+.medigi-viewer-waveform-wrapper .rangeslider-grabber-max {
     pointer-events: none !important;
 }
 </style>
