@@ -29,7 +29,7 @@ export default Vue.extend({
                 showlegend: false,
                 xaxis: {
                     tickmode: 'array',
-                    ticklen: 5,
+                    ticklen: 5, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: '#FFB6C1',
@@ -51,7 +51,7 @@ export default Vue.extend({
                 yaxis: {
                     autorange: false,
                     tickmode: 'array',
-                    ticklen: 10,
+                    ticklen: 10, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: '#FFB6C1',
@@ -82,7 +82,8 @@ export default Vue.extend({
             sensitivityAdjust: 1,
             viewStart: 0,
             viewEnd: 0,
-            yPad: 2, // Add pad amount of squares (0,5cm) above and below the top and bottom traces
+            traceSpacing: 3, // The vertical space between traces (in cm)
+            yPad: 3, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             // Keep track of some event data for chart interaction
             lastHoverPoint: { x: null, y: null },
             mouseReleased: false,
@@ -199,10 +200,11 @@ export default Vue.extend({
         },
         yAxisRange (): number[] {
             // Display either all 12, 6, 4, 2 or just one trace at a time
-            // Required height is 2 * 1cm per each trace plus padding
-            const traceHeight = Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)*2)
+            // Required height is trace spacing plus padding
+            const pxPerCm = ((this.$root.screenDPI/2.54)/this.cmPermV)
+            const traceHeight = Math.floor(pxPerCm*this.traceSpacing)
+            const pad = this.yPad*pxPerCm + 30
             let traceCount = 12
-            const pad = (this.yPad/2 * traceHeight) + 30
             if ((this.containerSize[1] as number) < traceHeight*2 + pad) {
                 traceCount = 1
             } else if ((this.containerSize[1] as number) < traceHeight*4 + pad) {
@@ -212,7 +214,7 @@ export default Vue.extend({
             } else if ((this.containerSize[1] as number) < traceHeight*12 + pad) {
                 traceCount = 6
             }
-            return [0, traceCount*4 + 2*this.yPad]
+            return [0, traceCount*this.traceSpacing*2 + 2*this.yPad]
         },
         yAxisTicks (): number[] {
             const ticks = []
@@ -232,16 +234,17 @@ export default Vue.extend({
         },
         yAxisValues (): string[] {
             // Top channels depend on the view
-            const values = ['', '',]
-            values.push(...Array(this.yPad).fill(''))
+            const values = []
+            values.push(...Array(this.yPad*2).fill(''))
+            values.push(...Array(this.traceSpacing).fill(''))
             for (let i=0; i<this.yAxisRange[1] - this.yPad*2; i++) {
-                if (i%4) {
+                if (i%(this.traceSpacing*2)) {
                     values.push('')
                 } else {
-                    values.push(this.getChannelLabel(i/4))
+                    values.push(this.getChannelLabel(i/(this.traceSpacing*2)))
                 }
             }
-            values.push(...Array(this.yPad-1).fill(''))
+            values.push('') // Add one final empty label for the axis line
             return values.reverse()
         },
     },
@@ -249,9 +252,19 @@ export default Vue.extend({
         calculateMontageSignals: function () {
         },
         getChannelLabel: function (index: number): string {
-            return this.resource.channels[index].label.split('_').length === 2
-                    ? this.resource.channels[index].label.split('_')[1]
-                    : this.resource.channels[index].label
+            const labelParts = this.resource.channels[index].label.toLowerCase().split(/[_|\s]+/g)
+            const validLabels: any = {
+                i: 'I', ii: 'II', iii: 'III', avr: 'aVR', avl: 'aVL', avf: 'aVF',
+                v1: 'V1', v2: 'V2', v3: 'V3', v4: 'V4', v5: 'V5', v6: 'V6'
+            }
+            for (let i=0; i<labelParts.length; i++) {
+                if (labelParts[i] in validLabels) {
+                    // Return a standardized channel label
+                    return validLabels[labelParts[i]]
+                }
+            }
+            // Fallback: just return the label
+            return this.resource.channels[index].label
         },
         hideAnnotationMenu: function () {
 
@@ -304,14 +317,15 @@ export default Vue.extend({
         refreshTraces: function () {
             // Y-axis values for each channel
             const yValues = []
-            const min = this.yAxisRange[0]/4
-            const max = this.yAxisRange[1]/4 - this.yPad/2
+            const min = this.yAxisRange[0]/(this.traceSpacing*2)
+            const max = (this.yAxisRange[1] - this.yPad*2)/(this.traceSpacing*2)
+            const ampScale = 2/(this.cmPermV*1000) // 2 squares per 1000 uV
             for (let i=min; i<max; i++) {
-                const offset = (max - i)*4
+                const offset = (max - i)*this.traceSpacing*2
                 yValues.push([] as (number|null)[])
                 for (let j=0; j<this.xAxisRange.length; j++) {
                     if (j < this.resource.channels[i].signals.length) {
-                        let sigVal = this.resource.channels[i].signals[j]
+                        let sigVal = this.resource.channels[i].signals[j]*ampScale
                         // Apply required corrections
                         if (this.resource.channels[i].baseline) {
                             // According to my sources the baseline correction is really

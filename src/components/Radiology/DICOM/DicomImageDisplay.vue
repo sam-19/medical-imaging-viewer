@@ -780,6 +780,7 @@ export default Vue.extend({
         background-color: var(--medigi-viewer-background);
         padding: 10px;
         cursor: pointer;
+        z-index: 1000; /* ALWAYS on top */
     }
         .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation:hover {
             background-color: var(--medigi-viewer-background-highlight);

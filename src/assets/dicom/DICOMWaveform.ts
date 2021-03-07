@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER DICOM SIGNAL
- * Class for handling DICOM waveform (mostly biosignals).
+/** MEDIGI VIEWER DICOM WAVEFORM
+ * Class for handling DICOM waveforms (mostly biosignals).
  * @package    medigi-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
@@ -105,6 +105,15 @@ class DicomWaveform implements SignalResource {
             console.error('Provided DICOM dataset did not contain any valid channel definitions!')
             return
         }
+        // Then the actual waveform data
+        if (!data.x54000100.items[0] || !data.x54000100.items[0].dataSet.elements
+            || !data.x54000100.items[0].dataSet.elements.x54001010
+        ) {
+            console.error('Provided DICOM dataset did not contain waveform data!')
+            return
+        }
+        //const wdTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
+        const wfData = data.x54000100.items[0].dataSet
         // Get channel properties
         // Channel label
         const clTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0203)?.getTagHex().substring(1)
@@ -126,6 +135,12 @@ class DicomWaveform implements SignalResource {
         const fhTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
         // Channel notch filter frequency
         const nfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
+        console.log(data)
+        const wfArray = data.x54000100.items[0].dataSet.byteArray.slice(
+            wfData.elements.x54001010.dataOffset,
+            wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length
+        )
+        console.log(wfArray)
         for (let i=0; i<data.x54000100.items[0].dataSet.elements.x003a0200.items.length; i++) {
             const chanItem = data.x54000100.items[0].dataSet.elements.x003a0200.items[i].dataSet
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
@@ -143,14 +158,15 @@ class DicomWaveform implements SignalResource {
             }
             // Read signal data
             for (let j=0; j<this._samples; j++) {
+                if (j*numChans + i >= wfArray.length/2) {
+                    break
+                }
                 const offset = j*numChans + i
-                chanData.signals.push(data.x54000100.items[0].dataSet.byteArrayParser.readFloat(offset,offset+1))
+                chanData.signals.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
             }
             this.channels.push(chanData)
             console.log(chanData)
         }
-        // The actual waveform data property tag
-        //const wdTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
         // Waveform padding (not sure if this is needed)
         //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
     }
