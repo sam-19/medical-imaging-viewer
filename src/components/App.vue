@@ -201,14 +201,14 @@ body {
 }
 .medigi-viewer-light-mode, .medigi-viewer-light-mode * {
     --medigi-viewer-background: #FFFFFF;
-    --medigi-viewer-background-highlight: #D0D0D0;
-    --medigi-viewer-border: #303030;
+    --medigi-viewer-background-highlight: #F0F0F0;
+    --medigi-viewer-border: #808080;
     --medigi-viewer-border-faint: #A0A0A0;
-    --medigi-viewer-border-highlight: #101010;
-    --medigi-viewer-text-main: #202020;
+    --medigi-viewer-border-highlight: #404040;
+    --medigi-viewer-text-main: #303030;
     --medigi-viewer-text-highlight: #101010;
-    --medigi-viewer-text-minor: #404040;
-    --medigi-viewer-text-faint: #808080;
+    --medigi-viewer-text-minor: #606060;
+    --medigi-viewer-text-faint: #909090;
 }
 /* Use prettier and more consistent scrollbars */
 ::-webkit-scrollbar {
