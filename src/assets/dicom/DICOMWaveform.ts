@@ -166,7 +166,6 @@ class DicomWaveform implements SignalResource {
                 const offset = j*numChans + i
                 chanData.signals.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
             }
-            console.log(chanData)
             this.channels.push(chanData)
         }
     }
