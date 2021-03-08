@@ -136,9 +136,13 @@ export default Vue.extend({
             })
             return signals
         },
-        // Return a rounded down pixel count per square
-        pxPerSquare (): number {
-            return Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)/2)
+        /** Return a rounded down pixel count per vertical square. */
+        pxPerVerticalSquare (): number {
+            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPermV)/2)
+        },
+        /** Return a rounded down pixel count per horizontal square. */
+        pxPerHorizontalSquare (): number {
+            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
         },
         xAxisRange (): number[] {
             return (this.viewEnd - this.viewStart) > 0
@@ -207,7 +211,7 @@ export default Vue.extend({
         yAxisRange (): number[] {
             // Display either all 12, 6, 4, 2 or just one trace at a time
             // Required height is trace spacing plus padding
-            const pxPerCm = this.pxPerSquare*2
+            const pxPerCm = this.pxPerVerticalSquare*2
             const traceHeight = pxPerCm*(this.traceSpacing/2)
             const pad = this.yPad*pxPerCm + MARGIN_BOTTOM // pxPerCm already multiplies the yPad with 2
             let traceCount = 12
@@ -283,7 +287,7 @@ export default Vue.extend({
             } else {
                 viewWidth += screen.width
             }
-            const newWidth = this.resource.resolution*(viewWidth/this.$root.screenDPI)*(2.54/this.cmPerSec)
+            const newWidth = this.resource.resolution*(viewWidth/(this.pxPerHorizontalSquare*5))
             this.viewEnd = this.viewStart + newWidth
         },
         recalibrateChart: function () {
@@ -292,7 +296,7 @@ export default Vue.extend({
             const y2TickVals = this.yAxisTicks2
             const chartLayout = {
                 width: this.containerSize[0],
-                height: this.pxPerSquare*(this.yAxisRange[1] - this.yAxisRange[0]) + MARGIN_BOTTOM,
+                height: this.pxPerVerticalSquare*(this.yAxisRange[1] - this.yAxisRange[0]) + MARGIN_BOTTOM,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
                     range: this.yAxisRange,
                     tickvals: this.yAxisTicks,
@@ -384,6 +388,15 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Check for invalid config values
+        if (this.cmPermV <= 0 || this.cmPerSec <= 0) {
+            console.error(`Vertical and horizontal scales must be greater than zero!`)
+            return
+        }
+        if (this.traceSpacing <= 0 || this.yPad <= 0) {
+            console.error(`Vertical padding and spacing between traces must be greater than zero!`)
+            return
+        }
         // Calculate view bounds
         this.recalculateViewBounds()
         this.redrawPlot()
