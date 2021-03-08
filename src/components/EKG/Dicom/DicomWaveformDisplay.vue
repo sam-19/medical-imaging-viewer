@@ -547,6 +547,11 @@ export default Vue.extend({
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', this.handleMouseUp)
         ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
+        // Set ruler scale
+        const hSqr = this.pxPerHorizontalSquare
+        const vSqr = this.pxPerVerticalSquare
+        ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
+            = `${hSqr}px ${hSqr}px, ${vSqr}px ${vSqr}px, ${hSqr/5}px ${hSqr/5}px, ${vSqr/5}px ${vSqr/5}px`
     }
 })
 </script>
@@ -554,12 +559,28 @@ export default Vue.extend({
 <style>
 .medigi-viewer-ekg-mousedrag {
     position: absolute;
-    background-color: rgba(255, 0, 0, 0.05);
+    background-color: rgba(255, 0, 0, 0.2);
     pointer-events: none;
+    opacity: 0.5;
 }
-    .medigi-viewer-ekg-mousedrag.medigi-viewer-drag-active {
+    .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler {
+        border-bottom: solid 1px var(--medigi-viewer-border);
+        background-image:
+            linear-gradient(rgba(0, 0, 0, 0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.4) 1px, transparent 1px),
+            linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+    }
+        .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler.medigi-viewer-drag-active {
+            background-color: rgba(255, 0, 0, 0.1);
+            border-right: solid 1px var(--medigi-viewer-border);
+            opacity: 1;
+        }
+    .medigi-viewer-ekg-mousedrag:not(.medigi-viewer-ekg-ruler).medigi-viewer-drag-active {
+        background-color: rgba(255, 0, 0, 0.1);
         border-left: solid 1px var(--medigi-viewer-border);
         border-right: solid 1px var(--medigi-viewer-border);
+        opacity: 1;
     }
 .medigi-viewer-ekg-measurements {
     position: absolute;
