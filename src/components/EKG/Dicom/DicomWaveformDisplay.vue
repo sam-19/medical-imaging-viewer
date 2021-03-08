@@ -6,7 +6,8 @@
         ></div>
         <div ref="mousedrag" :class="[
             'medigi-viewer-ekg-mousedrag',
-            { 'medigi-viewer-hidden': !this.mouseDragIndicator }
+            { 'medigi-viewer-drag-active': this.mouseDragIndicator && !this.measurements },
+            { 'medigi-viewer-hidden': !this.mouseDragIndicator },
         ]"></div>
         <div ref="measurements"
             :class="[
@@ -363,6 +364,13 @@ export default Vue.extend({
             if (Math.abs(e.x - (this.mouseDownPoint.x || 0)) >= this.mouseDragThreshold) {
                 // Check which trace the mouse down event happened at
                 const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+                // Do not allow dragging outside the wrapper
+                if (e.x < wrapperPos.left + MARGIN_LEFT || e.x > wrapperPos.right
+                    || e.y < wrapperPos.top || e.y > wrapperPos.bottom - MARGIN_BOTTOM
+                ) {
+                    this.handleMouseOut(e)
+                    return
+                }
                 const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
                 const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
                 this.mouseDownTrace = Math.floor(((this.mouseDownPoint.y || 0) - wrapperPos.top - startPos)/traceHeight)
@@ -515,10 +523,12 @@ export default Vue.extend({
 .medigi-viewer-ekg-mousedrag {
     position: absolute;
     background-color: rgba(255, 0, 0, 0.05);
-    border-left: solid 1px var(--medigi-viewer-border);
-    border-right: solid 1px var(--medigi-viewer-border);
     pointer-events: none;
 }
+    .medigi-viewer-ekg-mousedrag.medigi-viewer-drag-active {
+        border-left: solid 1px var(--medigi-viewer-border);
+        border-right: solid 1px var(--medigi-viewer-border);
+    }
 .medigi-viewer-ekg-measurements {
     position: absolute;
     background-color: var(--medigi-viewer-background-highlight);
