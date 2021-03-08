@@ -4,6 +4,26 @@
         <div ref="container" :id="`container-${resource.id}-${instanceNum}`"
             @contextmenu.prevent
         ></div>
+        <div ref="mousedrag" :class="[
+            'medigi-viewer-ekg-mousedrag',
+            { 'medigi-viewer-hidden': !this.mouseDragIndicator }
+        ]"></div>
+        <div ref="measurements"
+            :class="[
+                'medigi-viewer-ekg-measurements',
+                { 'medigi-viewer-hidden': !this.measurements }
+            ]"
+            @contextmenu.prevent
+        >
+            <div>
+                <span>{{ $t('Distance') }}</span>
+                <span v-if="measurements">{{ measurements.distance }} ms</span>
+            </div>
+            <div>
+                <span>{{ $t('Amplitude') }}</span>
+                <span v-if="measurements">{{ measurements.amplitude > 0 ? '+' : '' }}{{ measurements.amplitude }} µV</span>
+            </div>
+        </div>
     </div>
 
 </template>
@@ -88,7 +108,11 @@ export default Vue.extend({
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             // Keep track of some event data for chart interaction
             lastHoverPoint: { x: null, y: null },
-            mouseReleased: false,
+            mouseDownPoint: { x: null, y: null },
+            mouseDownTrace: 0,
+            // Display an indicator when mouse is dragged on the trace
+            mouseDragIndicator: false,
+            measurements: null as null | object,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -135,6 +159,10 @@ export default Vue.extend({
                 hoverinfo: 'none',
             })
             return signals
+        },
+        mouseDragThreshold (): number {
+            // Require at least two mm of mouse movement to register a drag event
+            return this.$root.screenDPI/17.7
         },
         /** Return a rounded down pixel count per vertical square. */
         pxPerVerticalSquare (): number {
@@ -276,6 +304,94 @@ export default Vue.extend({
             // Fallback: just return the label
             return this.resource.channels[index].label
         },
+        handleMouseDown: function (e: any) {
+            this.mouseDragIndicator = false
+            this.measurements = null
+            this.mouseDownPoint = { x: e.x, y: e.y }
+            // Unregister mouseout or it will trigger when the cover layer is drawn
+            ;(this.$refs['wrapper'] as HTMLDivElement).removeEventListener('mouseout', this.handleMouseOut)
+            this.$nextTick(() => {
+                const dragOverlay = document.querySelector('body > .dragcover')
+                dragOverlay?.addEventListener('mousemove', this.handleMouseMove)
+                dragOverlay?.addEventListener('mouseout', this.handleMouseOut)
+                dragOverlay?.addEventListener('mouseup', (e: any) => {
+                    dragOverlay?.removeEventListener('mousemove', this.handleMouseMove)
+                    dragOverlay?.removeEventListener('mouseout', this.handleMouseOut)
+                    // Reapply mouseout listener
+                    ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
+                    // Pass event to mouse up handler
+                    this.handleMouseUp(e)
+                })
+            })
+        },
+        /**
+         * Handle mouse hover events fired by Plotly.
+         */
+        handleMouseHover: function (e: any) {
+            if (this.mouseDragIndicator) {
+                if (this.lastHoverPoint.x !== null && e.points[0].x !== this.lastHoverPoint.x) {
+                    // Handle drag selection
+                    if (this.$store.state.activeTool === 'measure' && !this.measurements) {
+                        const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+                        this.measurements = {
+                            distance: Math.round(((e.points[0].x - (this.lastHoverPoint.x || 0))/this.resource.resolution)*1000),
+                            amplitude: this.resource.channels[this.mouseDownTrace].signals[e.points[0].x]
+                                       - this.resource.channels[this.mouseDownTrace].signals[this.lastHoverPoint.x || 0],
+                        }
+                        ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.event.y - wrapperPos.top}px`
+                        ;(this.$refs['measurements'] as HTMLDivElement).style.left = `${e.event.x - wrapperPos.left}px`
+                    }
+                }
+            }
+            // Store the last hover point for drag detection
+            this.lastHoverPoint = {
+                x: e.points[0].x,
+                y: e.points[0].y,
+            }
+        },
+        /**
+         * Handle mouse move events fired by the drag cover element.
+         */
+        handleMouseMove: function (e: any) {
+            if (this.mouseDownPoint.x === null || this.mouseDownPoint.y === null) {
+                return
+            }
+            if (this.$store.state.activeTool !== 'measure') {
+                // Only measurements require this right now
+                return
+            }
+            if (Math.abs(e.x - (this.mouseDownPoint.x || 0)) >= this.mouseDragThreshold) {
+                // Check which trace the mouse down event happened at
+                const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+                const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
+                const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
+                this.mouseDownTrace = Math.floor(((this.mouseDownPoint.y || 0) - wrapperPos.top - startPos)/traceHeight)
+                if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1) {
+                    // Mouse down position is out of bounds
+                    return
+                }
+                if (!this.mouseDragIndicator) {
+                    const top = startPos + this.mouseDownTrace*traceHeight
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.top = top > 0 ? `${top}px` : '0px'
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${(this.mouseDownPoint.x || 0) - wrapperPos.left}px`
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.height = `${traceHeight}px`
+                    this.mouseDragIndicator = true
+                }
+                ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - (e.x - wrapperPos.left)}px`
+            }
+        },
+        /**
+         * Handle the mouse leaving trace area.
+         */
+        handleMouseOut: function (e: any) {
+            this.mouseDragIndicator = false
+            this.measurements = null
+            this.lastHoverPoint = { x: null, y: null }
+            this.mouseDownPoint = { x: null, y: null }
+        },
+        handleMouseUp: function (e: any) {
+            this.mouseDownPoint = { x: null, y: null }
+        },
         hideAnnotationMenu: function () {
 
         },
@@ -370,20 +486,7 @@ export default Vue.extend({
                 }),
             }
             // Bind event listeners
-            ;(this.$refs['container'] as any).on('plotly_hover', (e: any) => {
-                if (this.mouseReleased) {
-                    if (this.lastHoverPoint.x !== null && e.points[0].x !== this.lastHoverPoint.x) {
-                        // Handle drag selection
-                        console.log('up', e.points[0].x - (this.lastHoverPoint.x || 0))
-                    }
-                    this.mouseReleased = false
-                }
-                // Store the last hover point for drag detection
-                this.lastHoverPoint = {
-                    x: e.points[0].x,
-                    y: e.points[0].y,
-                }
-            })
+            ;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
     },
@@ -401,26 +504,38 @@ export default Vue.extend({
         this.recalculateViewBounds()
         this.redrawPlot()
         // Bind event listeners
-        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', (e: any) => {
-            console.log('down', this.lastHoverPoint.x, this.lastHoverPoint.y)
-        })
-        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', (e: any) => {
-            console.log('mouseup')
-            this.mouseReleased = true
-        })
-        ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', (e: any) => {
-            this.lastHoverPoint = { x: null, y: null }
-            this.mouseReleased = false
-        })
+        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
+        ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', this.handleMouseUp)
+        ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
     }
 })
 </script>
 
 <style>
-/* Disable the Plotly.js dragcover element */
-body > .dragcover {
-    display: none !important;
-    pointer-events: none !important;
+.medigi-viewer-ekg-mousedrag {
+    position: absolute;
+    background-color: rgba(255, 0, 0, 0.05);
+    border-left: solid 1px var(--medigi-viewer-border);
+    border-right: solid 1px var(--medigi-viewer-border);
+    pointer-events: none;
+}
+.medigi-viewer-ekg-measurements {
+    position: absolute;
+    background-color: var(--medigi-viewer-background-highlight);
+    padding: 6px 10px;
+    border: solid 1px var(--medigi-viewer-border);
+    pointer-events: none;
+}
+    .medigi-viewer-ekg-measurements > div > span {
+        display: inline-block;
+        height: 24px;
+        line-height: 24px;
+    }
+    .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
+        width: 80px;
+    }
+.medigi-viewer-hidden {
+    display: none;
 }
 /* Do not allow adjusting the range */
 .medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
