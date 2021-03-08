@@ -348,15 +348,17 @@ export default Vue.extend({
                 return
             }
             const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
-            if (Math.abs(e.offsetX - wrapperPos.left - this.mouseDownPoint.x) >= this.mouseDragThreshold || this.mouseDragIndicator) {
+            // Do not allow dragging outside the wrapper
+            if (e.offsetX < wrapperPos.left + MARGIN_LEFT || e.offsetX > wrapperPos.right
+                || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - MARGIN_BOTTOM
+            ) {
+                this.handleMouseOut(e)
+                return
+            }
+            if (Math.abs(e.offsetX - wrapperPos.left - this.mouseDownPoint.x) >= this.mouseDragThreshold
+                || this.mouseDragIndicator
+            ) {
                 // Check which trace the mouse down event happened at
-                // Do not allow dragging outside the wrapper
-                if (e.offsetX < wrapperPos.left + MARGIN_LEFT || e.offsetX > wrapperPos.right
-                    || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - MARGIN_BOTTOM
-                ) {
-                    this.handleMouseOut(e)
-                    return
-                }
                 const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
                 const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
                 this.mouseDownTrace = Math.floor((this.mouseDownPoint.y - startPos)/traceHeight)
@@ -388,7 +390,10 @@ export default Vue.extend({
                     dragEl.style.left = `${relXOffset}px`
                 }
                 // Update last hover position (Plotly doesn't pass hover event through when dragging)
-                this.lastHoverPoint = { x: e.x, y: e.y }
+                this.lastHoverPoint = {
+                    x: e.offsetX - wrapperPos.left,
+                    y: e.offsetY - wrapperPos.top
+                }
             }
         },
         /**

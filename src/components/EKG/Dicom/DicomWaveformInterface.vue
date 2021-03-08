@@ -87,7 +87,6 @@ export default Vue.extend({
     mounted () {
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
-        console.log(this.ekgResources)
         this.activeItem = this.ekgResources[0] as DicomWaveform
     },
 })
