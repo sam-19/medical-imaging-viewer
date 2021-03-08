@@ -1,15 +1,276 @@
 <template>
 
+    <div :id="`${$store.state.appName}-medigi-viewer-ekg-toolbar`">
+        <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
+            :id="button.id"
+            :emit="button.emit"
+            :enabled="button.enabled"
+            :icon="button.icon"
+            :overlay="button.overlay"
+            :tooltip="button.tooltip"
+            :class="{
+                'medigi-viewer-disabled': !button.enabled,
+                'element-active': typeof button.active === 'boolean' ? button.active : button.active(),
+                'medigi-viewer-toolbar-setfirst': button.setFirst
+            }"
+            @button-clicked="buttonClicked"
+        />
+    </div>
+
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
+
+// We need an interface for buttons to access them dynamically
+interface ButtonState {
+    active: boolean,
+    visible: boolean,
+    enabled: boolean,
+}
+interface ButtonRow {
+    'previous': ButtonState
+    'next': ButtonState
+    'measure': ButtonState
+}
 
 export default Vue.extend({
+    components: {
+        ToolbarButton: () => import('../ToolbarButton.vue'),
+    },
+    data () {
+        return {
+            // This array is used to build the button row
+            buttons: [
+                {
+                    // A unique identifier for the button. Must match a key in the ButtonRow interface.
+                    id: 'previous',
+                    // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
+                    set: 0,
+                    // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
+                    // Tools that use the same mouse button must all share the same group as well!
+                    groups: [],
+                    // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
+                    icon: [ ['fal', 'arrow-alt-up'] ],
+                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
+                    tooltip:[ this.$t('Show previous set of traces') ]
+                },
+                {
+                    id: 'next',
+                    set: 0,
+                    groups: [],
+                    icon: [ ['fal', 'arrow-alt-down'] ],
+                    tooltip: [ this.$t('Show next set of traces') ]
+                },
+                {
+                    id: 'measure',
+                    set: 0,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'ruler-triangle'] ],
+                    tooltip: [ this.$t('Measure') ]
+                },
+            ],
+            buttonStates: {
+                'measure':          { active: false, visible: true, enabled: true } as ButtonState,
+                'next':             { active: false, visible: true, enabled: true } as ButtonState,
+                'previous':         { active: false, visible: true, enabled: true } as ButtonState,
+            },
+            // This is needed to keep the button row up to date
+            buttonsUpdated: 0,
+            // Unsubscribe from store actions
+            unsubscribeActions: null as any,
+        }
+    },
+    computed: {
+        buttonRow (): ToolbarButton[] {
+            this.buttonsUpdated // Trigger refresh when this value changes
+            let buttons = [] as ToolbarButton[]
+            let buttonSet = null as number | null
+            this.buttons.forEach((button) => {
+                // Add visible buttons
+                if (this.buttonStates[button.id as keyof ButtonRow].visible) {
+                    let newSet = false
+                    if (buttonSet === null) {
+                        buttonSet = button.set
+                    } else if (button.set > buttonSet) {
+                        newSet = true
+                        buttonSet = button.set
+                    }
+                    buttons.push({
+                        id: button.id,
+                        active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
+                        enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        setFirst: newSet,
+                        icon: this.getButtonIcon(button),
+                        overlay: this.getButtonOverlay(button),
+                        tooltip: this.getButtonTooltip(button),
+                    })
+                }
+            })
+            return buttons
+        },
+    },
+    methods: {
+        /**
+         * A button was clicked.
+         * @param buttonId string ID of the button
+         */
+        buttonClicked: function (buttonId: string) {
+            if (buttonId === 'measure') {
+                this.toggleMeasure()
+            } else if (buttonId === 'next') {
+                this.nextTraces()
+            } else if (buttonId === 'previous') {
+                this.previousTraces()
+            }
+            // Deactivate other buttons that share a group with this button
+            let button = this.buttons.find((btn) => { return btn.id === buttonId })
+            if (button !== undefined && button.groups.length) {
+                this.buttons.forEach((btn) => {
+                    if (btn.id !== button?.id && btn.groups.length &&
+                        btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length
+                    ) {
+                        this.buttonStates[btn.id as keyof ButtonRow].active = false
+                    }
+                })
+            }
+            this.$nextTick(() => {
+                if (!this.$store.state.activeTool) {
+                    this.enableDefaults()
+                }
+            })
+            // Refresh button row
+            this.buttonsUpdated++
+        },
+        enableDefaults: function () {
+        },
+        /**
+         * Get the button icon appropriate for button state.
+         * @param button this.buttons array member or button ID string
+         * @return [] | undefined
+         */
+        getButtonIcon: function (button: any): string[] {
+            if (typeof button === 'string') {
+                button = this.buttons.find((btn) => { return btn.id === button })
+            }
+            if (typeof button !== undefined) {
+                return button.icon[
+                    button.icon.length === 1 ||
+                    !this.isActive(button.id) ? 0 : 1
+                ]
+            }
+            return []
+        },
+        /**
+         * Get the appropriate overlay for the given button.
+         * @param button this.buttons array member or button ID string
+         * @return string
+         */
+        getButtonOverlay: function (button: any): string {
+            if (typeof button === 'string') {
+                button = this.buttons.find((btn) => { return btn.id === button })
+            }
+            return ''
+        },
+        /**
+         * Get the button tooltip appropriate for button state.
+         * @param button this.buttons array member or button ID string
+         * @return string
+         */
+        getButtonTooltip: function (button: any): string {
+            if (typeof button === 'string') {
+                button = this.buttons.find((btn) => { return btn.id === button })
+            }
+            if (typeof button !== undefined) {
+                return button.tooltip[
+                    button.tooltip.length === 1 ||
+                    !this.isActive(button.id) ? 0 : 1
+                ].toString()
+            }
+            return ''
+        },
+        /**
+         * Check button active state dynamically if needed, else return false.
+         */
+        isActive (button: string): boolean {
+            return this.buttonStates[button as keyof ButtonRow].active
+        },
+        /**
+         * Display the next set of traces if available.
+         */
+        nextTraces: function () {
 
+        },
+        /**
+         * Display the previous set of traces if available.
+         */
+        previousTraces: function () {
+
+        },
+        /**
+         * Toggle the measurement tool.
+         */
+        toggleMeasure: function () {
+            this.buttonStates['measure'].active = !this.buttonStates['measure'].active
+            this.$store.commit('set-active-tool', 'measure')
+        },
+        /**
+         * Disable a set of buttons.
+         * @param buttonIds string[] IDs of the buttons to disable. Providing an empty array will enable all buttons.
+         */
+        setDisabledButtons: function (buttonIds: string[]): void {
+            // First set all buttons as enabled
+            Object.keys(this.buttonStates).map(key => {
+                this.buttonStates[key as keyof ButtonRow].enabled = true
+            })
+            buttonIds.forEach((button) => {
+                let match = this.buttons.find((btn) => { return btn.id === button })
+                if (match !== undefined) {
+                    this.buttonStates[match.id as keyof ButtonRow].enabled = false
+                }
+            })
+            // Refresh button row
+            this.buttonsUpdated++
+        },
+        /**
+         * Hide a set of buttons.
+         * @param buttonIds string[] IDs of the buttons to hide. Providing an empty array will show all buttons.
+         */
+        setHiddenButtons: function (buttonIds: string[]): void {
+            // First set all buttons as visible
+            Object.keys(this.buttonStates).map(key => {
+                this.buttonStates[key as keyof ButtonRow].visible = true
+            })
+            buttonIds.forEach((button) => {
+                let match = this.buttons.find((btn) => { return btn.id === button })
+                if (match !== undefined) {
+                    this.buttonStates[match.id as keyof ButtonRow].active = false // Can't leave an invisible button active
+                    this.buttonStates[match.id as keyof ButtonRow].visible = false
+                }
+            })
+            // Refresh button row
+            this.buttonsUpdated++
+        },
+    },
+    mounted () {
+        // Subscribe to store dispatches
+        this.unsubscribeActions = this.$store.subscribeAction((action) => {
+
+        })
+        // Enable default tools
+        this.enableDefaults()
+    },
+    beforeDestroy () {
+        this.$store.commit('set-active-tool', null)
+        this.unsubscribeActions()
+    },
 })
 </script>
 
-<style>
-
+<style scoped>
+.medigi-viewer-toolbar > div {
+    display: flex;
+    padding: 10px;
+}
 </style>

@@ -11,6 +11,8 @@ import { MediaResource } from './types/assets'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
+import { faArrowAltDown } from '@fortawesome/pro-light-svg-icons/faArrowAltDown'
+import { faArrowAltUp } from '@fortawesome/pro-light-svg-icons/faArrowAltUp'
 import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
 import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows'
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
@@ -31,6 +33,7 @@ import { faReply } from '@fortawesome/pro-light-svg-icons/faReply'
 import { faReplyAll } from '@fortawesome/pro-light-svg-icons/faReplyAll'
 import { faRuler as faRulerL } from '@fortawesome/pro-light-svg-icons/faRuler'
 import { faRuler as faRulerR } from '@fortawesome/pro-regular-svg-icons/faRuler'
+import { faRulerTriangle } from '@fortawesome/pro-light-svg-icons/faRulerTriangle'
 import { faSearch as faSearchL } from '@fortawesome/pro-light-svg-icons/faSearch'
 import { faSearch as faSearchS } from '@fortawesome/pro-solid-svg-icons/faSearch'
 import { faShare } from '@fortawesome/pro-light-svg-icons/faShare'
@@ -41,6 +44,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(faAdjust)
+library.add(faArrowAltDown)
+library.add(faArrowAltUp)
 library.add(faArrowsAltH)
 library.add(faArrowsL)
 library.add(faArrowsR)
@@ -61,6 +66,7 @@ library.add(faReply)
 library.add(faReplyAll)
 library.add(faRulerL)
 library.add(faRulerR)
+library.add(faRulerTriangle)
 library.add(faSearchL)
 library.add(faSearchS)
 library.add(faShare)

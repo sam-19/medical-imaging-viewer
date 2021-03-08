@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer-toolbar`">
+    <div :id="`${$store.state.appName}-medigi-viewer-radiology-toolbar`">
         <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :emit="button.emit"
@@ -242,7 +242,9 @@ export default Vue.extend({
                     active: { mouseButtonMask: 1 },
                     default: { mouseButtonMask: 4 },
                 },
-            }
+            },
+            // Unsubscribe from store actions
+            unsubscribeActions: null as any,
         }
     },
     computed: {
@@ -328,7 +330,7 @@ export default Vue.extend({
                 }
             })
             // Refresh button row
-            this.buttonsUpdated = Date.now()
+            this.buttonsUpdated++
         },
         enableDefaults: function () {
             cornerstoneTools.setToolActive('Pan', this.toolOptions['Pan'].default)
@@ -432,7 +434,7 @@ export default Vue.extend({
                 }
             })
             // Refresh button row
-            this.buttonsUpdated = Date.now()
+            this.buttonsUpdated++
         },
         /**
          * Hide a set of buttons.
@@ -451,7 +453,7 @@ export default Vue.extend({
                 }
             })
             // Refresh button row
-            this.buttonsUpdated = Date.now()
+            this.buttonsUpdated++
         },
         toggleAdjust: function () {
             this.buttonStates['Wwwc'].active = !this.buttonStates['Wwwc'].active
@@ -536,7 +538,7 @@ export default Vue.extend({
     },
     mounted () {
         // Subscribe to store dispatches
-        this.$store.subscribeAction((action) => {
+        this.unsubscribeActions = this.$store.subscribeAction((action) => {
             switch (action.type) {
                 case 'tools:re-enable-active':
                     if (this.$store.state.activeTool) {
@@ -559,18 +561,12 @@ export default Vue.extend({
                     break
             }
         })
-        // Start listening to some global hooks
-        this.$root.$on('setDisabledButtons', (buttonIds: string[]) => {
-            this.setDisabledButtons(buttonIds)
-        })
-        this.$root.$on('setHiddenButtons', (buttonIds: string[]) => {
-            this.setHiddenButtons(buttonIds)
-        })
-        this.$root.$on('toggleButton', (buttonId: string) => {
-            this.buttonClicked(buttonId)
-        })
         // Enable default tools
         this.enableDefaults()
+    },
+    beforeDestroy () {
+        this.$store.commit('set-active-tool', null)
+        this.unsubscribeActions()
     },
 })
 
