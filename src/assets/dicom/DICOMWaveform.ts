@@ -75,7 +75,6 @@ class DicomWaveform implements SignalResource {
             console.error("Provided DICOM dataset did not contain any waveform data items!")
             return
         }
-        console.log(data.x54000100)
         // Allocated bits
         const baTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
         const ba = data.x54000100.items[0].dataSet.uint16(baTag)
@@ -98,7 +97,7 @@ class DicomWaveform implements SignalResource {
         this._samples = data.x54000100.items[0].dataSet.uint16(nsTag)
         // Sampling frequency (number string)
         const sfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x001A)?.getTagHex().substring(1)
-        this._resolution  = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
+        this._resolution = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
         if (!data.x54000100.items[0].dataSet.elements || !data.x54000100.items[0].dataSet.elements.x003a0200
             || !data.x54000100.items[0].dataSet.elements.x003a0200.items
         ) {
@@ -135,18 +134,16 @@ class DicomWaveform implements SignalResource {
         const fhTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
         // Channel notch filter frequency
         const nfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
-        console.log(data)
         const wfArray = data.x54000100.items[0].dataSet.byteArray.slice(
             wfData.elements.x54001010.dataOffset,
             wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length
         )
-        console.log(wfArray)
         for (let i=0; i<data.x54000100.items[0].dataSet.elements.x003a0200.items.length; i++) {
             const chanItem = data.x54000100.items[0].dataSet.elements.x003a0200.items[i].dataSet
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
             const chanData = {
                 label: chanItem.string(clTag) || altLabel || '??',
-                resolution: this._resolution ,
+                resolution: this._resolution,
                 signals: [] as number[],
                 sensitivity: parseFloat(chanItem.string(csTag)),
                 sensitivityCF: parseFloat(chanItem.string(scTag)),
@@ -165,7 +162,6 @@ class DicomWaveform implements SignalResource {
                 chanData.signals.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
             }
             this.channels.push(chanData)
-            console.log(chanData)
         }
         // Waveform padding (not sure if this is needed)
         //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)

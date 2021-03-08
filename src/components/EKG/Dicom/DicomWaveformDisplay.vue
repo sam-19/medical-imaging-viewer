@@ -411,10 +411,14 @@ export default Vue.extend({
                         const startPos = Math.round((startX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
                         const endX = e.offsetX - wrapperPos.left - MARGIN_LEFT
                         const endPos = Math.round((endX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
+                        // Use default 0 amplitude if start or end is outside the trace bounds
+                        const startAmp = startPos >= 0 && startPos <= this.resource.sampleCount
+                                         ? this.resource.channels[this.mouseDownTrace].signals[startPos] : 0
+                        const endAmp = endPos >= 0 && endPos <= this.resource.sampleCount
+                                       ? this.resource.channels[this.mouseDownTrace].signals[endPos] : 0
                         this.measurements = {
                             distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
-                            amplitude: this.resource.channels[this.mouseDownTrace].signals[endPos]
-                                       - this.resource.channels[this.mouseDownTrace].signals[startPos],
+                            amplitude: endAmp - startAmp,
                         }
                         ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.y - wrapperPos.top}px`
                         ;(this.$refs['measurements'] as HTMLDivElement).style.left = `${e.x - wrapperPos.left}px`
