@@ -15,6 +15,8 @@ import { SignalResource } from '../../../types/assets'
 import * as  Plotly from 'plotly.js/lib/index-basic.js'
 
 let INSTANCE_NUM = 0
+const MARGIN_LEFT = 50
+const MARGIN_BOTTOM = 50
 
 export default Vue.extend({
     props: {
@@ -25,7 +27,7 @@ export default Vue.extend({
         return {
             chart: null as any,
             chartConfig: {
-                margin: { t: 0, r: 0 },
+                margin: { t: 0, r: 0, b: MARGIN_BOTTOM, l: MARGIN_LEFT },
                 showlegend: false,
                 xaxis: {
                     tickmode: 'array',
@@ -132,8 +134,11 @@ export default Vue.extend({
                 line: { color: 'rgba(0,0,0,0)', width: 0 },
                 hoverinfo: 'none',
             })
-            console.log(signals)
             return signals
+        },
+        // Return a rounded down pixel count per square
+        pxPerSquare (): number {
+            return Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)/2)
         },
         xAxisRange (): number[] {
             return (this.viewEnd - this.viewStart) > 0
@@ -202,9 +207,9 @@ export default Vue.extend({
         yAxisRange (): number[] {
             // Display either all 12, 6, 4, 2 or just one trace at a time
             // Required height is trace spacing plus padding
-            const pxPerCm = ((this.$root.screenDPI/2.54)/this.cmPermV)
-            const traceHeight = Math.floor(pxPerCm*(this.traceSpacing/2))
-            const pad = this.yPad*pxPerCm + 30 // pxPerCm already multiplies the yPad with 2
+            const pxPerCm = this.pxPerSquare*2
+            const traceHeight = pxPerCm*(this.traceSpacing/2)
+            const pad = this.yPad*pxPerCm + MARGIN_BOTTOM // pxPerCm already multiplies the yPad with 2
             let traceCount = 12
             if ((this.containerSize[1] as number) < traceHeight*1 + pad) {
                 traceCount = 1
@@ -272,7 +277,7 @@ export default Vue.extend({
         },
         recalculateViewBounds: function ()  {
             // Deduct the chart's left and right margins
-            let viewWidth: number = -80
+            let viewWidth: number = -MARGIN_LEFT
             if (document.fullscreenElement === null) {
                 viewWidth += this.containerSize[0] as number
             } else {
@@ -287,7 +292,7 @@ export default Vue.extend({
             const y2TickVals = this.yAxisTicks2
             const chartLayout = {
                 width: this.containerSize[0],
-                height: Math.floor(((this.$root.screenDPI/2.54)/this.cmPermV)*(this.yAxisRange[1]/2)) + 30,
+                height: this.pxPerSquare*(this.yAxisRange[1] - this.yAxisRange[0]) + MARGIN_BOTTOM,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
                     range: this.yAxisRange,
                     tickvals: this.yAxisTicks,
