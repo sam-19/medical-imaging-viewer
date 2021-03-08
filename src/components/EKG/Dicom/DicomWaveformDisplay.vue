@@ -50,6 +50,7 @@ export default Vue.extend({
             chartConfig: {
                 margin: { t: 0, r: 0, b: MARGIN_BOTTOM, l: MARGIN_LEFT },
                 showlegend: false,
+                dragmode: false,
                 xaxis: {
                     tickmode: 'array',
                     ticklen: 5, // This serves as padding between axis and label
@@ -108,8 +109,8 @@ export default Vue.extend({
             traceSpacing: 6, // The number of squares (0.5cm) between traces
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             // Keep track of some event data for chart interaction
-            lastHoverPoint: { x: null, y: null },
-            mouseDownPoint: { x: null, y: null },
+            lastHoverPoint: { x: -1, y: -1 },
+            mouseDownPoint: { x: -1, y: -1 },
             mouseDownTrace: 0,
             // Display an indicator when mouse is dragged on the trace
             mouseDragIndicator: false,
@@ -308,7 +309,7 @@ export default Vue.extend({
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
-            this.mouseDownPoint = { x: e.x, y: e.y }
+            this.mouseDownPoint = { x: e.offsetX, y: e.offsetY }
             // Unregister mouseout or it will trigger when the cover layer is drawn
             ;(this.$refs['wrapper'] as HTMLDivElement).removeEventListener('mouseout', this.handleMouseOut)
             this.$nextTick(() => {
@@ -329,74 +330,65 @@ export default Vue.extend({
          * Handle mouse hover events fired by Plotly.
          */
         handleMouseHover: function (e: any) {
-            if (this.mouseDragIndicator) {
-                if (this.lastHoverPoint.x !== null && e.points[0].x !== this.lastHoverPoint.x) {
-                    // Handle drag selection
-                    if (this.$store.state.activeTool === 'measure' && !this.measurements) {
-                        const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
-                        this.measurements = {
-                            distance: Math.round(((e.points[0].x - (this.lastHoverPoint.x || 0))/this.resource.resolution)*1000),
-                            amplitude: this.resource.channels[this.mouseDownTrace].signals[e.points[0].x]
-                                       - this.resource.channels[this.mouseDownTrace].signals[this.lastHoverPoint.x || 0],
-                        }
-                        ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.event.y - wrapperPos.top}px`
-                        ;(this.$refs['measurements'] as HTMLDivElement).style.left = `${e.event.x - wrapperPos.left}px`
-                    }
-                }
-            }
             // Store the last hover point for drag detection
             this.lastHoverPoint = {
-                x: e.points[0].x,
-                y: e.points[0].y,
+                x: e.event.offsetX,
+                y: e.event.offsetY,
             }
         },
         /**
          * Handle mouse move events fired by the drag cover element.
          */
         handleMouseMove: function (e: any) {
-            if (this.mouseDownPoint.x === null || this.mouseDownPoint.y === null) {
+            if (this.mouseDownPoint.x < 0 || this.mouseDownPoint.y < 0) {
                 return
             }
             if (this.$store.state.activeTool !== 'measure') {
                 // Only measurements require this right now
                 return
             }
-            if (Math.abs(e.x - (this.mouseDownPoint.x || 0)) >= this.mouseDragThreshold || this.mouseDragIndicator) {
+            const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+            if (Math.abs(e.offsetX - wrapperPos.left - this.mouseDownPoint.x) >= this.mouseDragThreshold || this.mouseDragIndicator) {
                 // Check which trace the mouse down event happened at
-                const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
                 // Do not allow dragging outside the wrapper
-                if (e.x < wrapperPos.left + MARGIN_LEFT || e.x > wrapperPos.right
-                    || e.y < wrapperPos.top || e.y > wrapperPos.bottom - MARGIN_BOTTOM
+                if (e.offsetX < wrapperPos.left + MARGIN_LEFT || e.offsetX > wrapperPos.right
+                    || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - MARGIN_BOTTOM
                 ) {
                     this.handleMouseOut(e)
                     return
                 }
                 const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
                 const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
-                this.mouseDownTrace = Math.floor(((this.mouseDownPoint.y || 0) - wrapperPos.top - startPos)/traceHeight)
+                this.mouseDownTrace = Math.floor((this.mouseDownPoint.y - startPos)/traceHeight)
                 if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1) {
                     // Mouse down position is out of bounds
                     return
                 }
+                const dragEl = (this.$refs['mousedrag'] as HTMLDivElement)
                 if (!this.mouseDragIndicator) {
                     const top = startPos + this.mouseDownTrace*traceHeight
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.top = top > 0 ? `${top}px` : '0px'
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.height = `${traceHeight}px`
+                    dragEl.style.top = top > 0 ? `${top}px` : '0px'
+                    dragEl.style.height = `${traceHeight}px`
                     this.mouseDragIndicator = true
                 }
-                if ((this.mouseDownPoint.x || 0) < e.x) {
+                // The drag cover div spans the entire page, so have to adjust before comparing values
+                const relXOffset = e.offsetX - wrapperPos.left
+                const wrapperWidth = wrapperPos.right - wrapperPos.left
+                if (this.mouseDownPoint.x < relXOffset) {
                     // Dragging from left to right
                     // Place static left marker to mouse down position
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${(this.mouseDownPoint.x || 0) - wrapperPos.left}px`
+                    dragEl.style.left = `${this.mouseDownPoint.x}px`
                     // Update right position dynamically
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - (e.x - wrapperPos.left)}px`
+                    dragEl.style.right = `${wrapperWidth - relXOffset - 1}px`
                 } else {
                     // Dragging from right to left
                     // Place static right marker to mouse down position
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - ((this.mouseDownPoint.x || 0) - wrapperPos.left)}px`
+                    dragEl.style.right = `${wrapperWidth - this.mouseDownPoint.x - 1}px`
                     // Update left position dynamically
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${e.x - wrapperPos.left}px`
+                    dragEl.style.left = `${relXOffset}px`
                 }
+                // Update last hover position (Plotly doesn't pass hover event through when dragging)
+                this.lastHoverPoint = { x: e.x, y: e.y }
             }
         },
         /**
@@ -405,11 +397,31 @@ export default Vue.extend({
         handleMouseOut: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
-            this.lastHoverPoint = { x: null, y: null }
-            this.mouseDownPoint = { x: null, y: null }
+            this.lastHoverPoint = { x: -1, y: -1 }
+            this.mouseDownPoint = { x: -1, y: -1 }
         },
         handleMouseUp: function (e: any) {
-            this.mouseDownPoint = { x: null, y: null }
+            // Check if we have a drag selection
+            if (this.mouseDragIndicator) {
+                if (this.lastHoverPoint.x >= 0) {
+                    // Handle drag selection
+                    if (this.$store.state.activeTool === 'measure' && !this.measurements) {
+                        const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+                        const startX = this.mouseDownPoint.x - MARGIN_LEFT
+                        const startPos = Math.round((startX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
+                        const endX = e.offsetX - wrapperPos.left - MARGIN_LEFT
+                        const endPos = Math.round((endX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
+                        this.measurements = {
+                            distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
+                            amplitude: this.resource.channels[this.mouseDownTrace].signals[endPos]
+                                       - this.resource.channels[this.mouseDownTrace].signals[startPos],
+                        }
+                        ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.y - wrapperPos.top}px`
+                        ;(this.$refs['measurements'] as HTMLDivElement).style.left = `${e.x - wrapperPos.left}px`
+                    }
+                }
+            }
+            this.mouseDownPoint = { x: -1, y: -1 }
         },
         hideAnnotationMenu: function () {
 
