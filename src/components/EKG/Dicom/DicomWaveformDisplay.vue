@@ -83,7 +83,7 @@ export default Vue.extend({
             viewStart: 0,
             viewEnd: 0,
             traceSpacing: 6, // The number of squares (0.5cm) between traces
-            yPad: 3, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
+            yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             // Keep track of some event data for chart interaction
             lastHoverPoint: { x: null, y: null },
             mouseReleased: false,
@@ -107,7 +107,7 @@ export default Vue.extend({
         channelSignals (): any[] {
             const signals: any[] = []
             const min = this.yAxisRange[0]/this.traceSpacing
-            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing
+            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1
             for (let i=min; i<max; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 const traceColor = '#303030'
@@ -141,7 +141,7 @@ export default Vue.extend({
                     : []
         },
         xAxisTicks (): number[] {
-            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(i*this.resource.resolution/5)
@@ -149,7 +149,7 @@ export default Vue.extend({
             return ticks
         },
         xAxis2Ticks (): number[] {
-            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(
@@ -162,7 +162,7 @@ export default Vue.extend({
             return ticks
         },
         xAxisValues (): string[] {
-            const range = Math.floor(5*(this.viewEnd - this.viewStart)/this.resource.resolution)
+            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
             const values = []
             for (let i=0; i<range; i++) {
                 if (!i || i%5) {
@@ -204,18 +204,20 @@ export default Vue.extend({
             // Required height is trace spacing plus padding
             const pxPerCm = ((this.$root.screenDPI/2.54)/this.cmPermV)
             const traceHeight = Math.floor(pxPerCm*(this.traceSpacing/2))
-            const pad = this.yPad*pxPerCm + 30
+            const pad = this.yPad*pxPerCm + 30 // pxPerCm already multiplies the yPad with 2
             let traceCount = 12
-            if ((this.containerSize[1] as number) < traceHeight*2 + pad) {
+            if ((this.containerSize[1] as number) < traceHeight*1 + pad) {
                 traceCount = 1
-            } else if ((this.containerSize[1] as number) < traceHeight*4 + pad) {
+            } else if ((this.containerSize[1] as number) < traceHeight*3 + pad) {
                 traceCount = 2
-            } else if ((this.containerSize[1] as number) < traceHeight*6 + pad) {
+            } else if ((this.containerSize[1] as number) < traceHeight*5 + pad) {
                 traceCount = 4
-            } else if ((this.containerSize[1] as number) < traceHeight*12 + pad) {
+            } else if ((this.containerSize[1] as number) < traceHeight*11 + pad) {
                 traceCount = 6
             }
-            return [0, traceCount*this.traceSpacing + 2*this.yPad]
+            // Add one trace height for each trace (except the last one) plus
+            // padding for top and bottom
+            return [0, (traceCount - 1)*this.traceSpacing + 2*this.yPad]
         },
         yAxisTicks (): number[] {
             const ticks = []
@@ -235,8 +237,8 @@ export default Vue.extend({
         },
         yAxisValues (): string[] {
             const values = []
-            values.push(...Array(this.yPad*2).fill(''))
-            for (let i=0; i<this.yAxisRange[1] - this.yPad*2; i++) {
+            values.push(...Array(this.yPad).fill(''))
+            for (let i=this.yAxisRange[0]; i<this.yAxisRange[1] - this.yPad; i++) {
                 if (i%this.traceSpacing) {
                     values.push('')
                 } else {
@@ -317,10 +319,10 @@ export default Vue.extend({
             // Y-axis values for each channel
             const yValues = []
             const min = this.yAxisRange[0]/this.traceSpacing
-            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing
+            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1
             const ampScale = 2/(this.cmPermV*1000) // 2 squares per 1000 uV
             for (let i=min; i<max; i++) {
-                const offset = (max - i)*this.traceSpacing
+                const offset = (max - i - 1)*this.traceSpacing + this.yPad
                 yValues.push([] as (number|null)[])
                 for (let j=0; j<this.xAxisRange.length; j++) {
                     if (j < this.resource.channels[i].signals.length) {
