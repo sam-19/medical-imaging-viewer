@@ -361,7 +361,7 @@ export default Vue.extend({
                 // Only measurements require this right now
                 return
             }
-            if (Math.abs(e.x - (this.mouseDownPoint.x || 0)) >= this.mouseDragThreshold) {
+            if (Math.abs(e.x - (this.mouseDownPoint.x || 0)) >= this.mouseDragThreshold || this.mouseDragIndicator) {
                 // Check which trace the mouse down event happened at
                 const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
                 // Do not allow dragging outside the wrapper
@@ -381,11 +381,22 @@ export default Vue.extend({
                 if (!this.mouseDragIndicator) {
                     const top = startPos + this.mouseDownTrace*traceHeight
                     ;(this.$refs['mousedrag'] as HTMLDivElement).style.top = top > 0 ? `${top}px` : '0px'
-                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${(this.mouseDownPoint.x || 0) - wrapperPos.left}px`
                     ;(this.$refs['mousedrag'] as HTMLDivElement).style.height = `${traceHeight}px`
                     this.mouseDragIndicator = true
                 }
-                ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - (e.x - wrapperPos.left)}px`
+                if ((this.mouseDownPoint.x || 0) < e.x) {
+                    // Dragging from left to right
+                    // Place static left marker to mouse down position
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${(this.mouseDownPoint.x || 0) - wrapperPos.left}px`
+                    // Update right position dynamically
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - (e.x - wrapperPos.left)}px`
+                } else {
+                    // Dragging from right to left
+                    // Place static right marker to mouse down position
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.right = `${wrapperPos.right - wrapperPos.left - ((this.mouseDownPoint.x || 0) - wrapperPos.left)}px`
+                    // Update left position dynamically
+                    ;(this.$refs['mousedrag'] as HTMLDivElement).style.left = `${e.x - wrapperPos.left}px`
+                }
             }
         },
         /**
