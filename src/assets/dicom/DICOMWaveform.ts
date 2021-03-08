@@ -113,6 +113,9 @@ class DicomWaveform implements SignalResource {
         }
         //const wdTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
         const wfData = data.x54000100.items[0].dataSet
+        // Waveform padding (not sure if this is needed)
+        // See: https://dicom.innolitics.com/ciods/ambulatory-ecg/waveform/54000100/5400100a
+        //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x100A)?.getTagHex().substring(1)
         // Get channel properties
         // Channel label
         const clTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0203)?.getTagHex().substring(1)
@@ -134,6 +137,7 @@ class DicomWaveform implements SignalResource {
         const fhTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
         // Channel notch filter frequency
         const nfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
+        console.log(data)
         const wfArray = data.x54000100.items[0].dataSet.byteArray.slice(
             wfData.elements.x54001010.dataOffset,
             wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length
@@ -147,6 +151,7 @@ class DicomWaveform implements SignalResource {
                 signals: [] as number[],
                 sensitivity: parseFloat(chanItem.string(csTag)),
                 sensitivityCF: parseFloat(chanItem.string(scTag)),
+                //waveformPadding: chanItem.string(wpTag),
                 baseline: parseFloat(chanItem.string(cbTag)),
                 timeSkew: parseFloat(chanItem.string(tsTag)),
                 filterLow: parseFloat(chanItem.string(flTag)),
@@ -161,10 +166,9 @@ class DicomWaveform implements SignalResource {
                 const offset = j*numChans + i
                 chanData.signals.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
             }
+            console.log(chanData)
             this.channels.push(chanData)
         }
-        // Waveform padding (not sure if this is needed)
-        //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
     }
 
 }
