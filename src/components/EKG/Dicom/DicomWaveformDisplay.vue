@@ -116,7 +116,7 @@ export default Vue.extend({
             viewEnd: 0,
             downSampleFactor: 1,
             // Keep track of some event data for chart interaction
-            lastHoverPoint: { x: -1, y: -1 },
+            //lastHoverPoint: { x: -1, y: -1 },
             mouseDownPoint: { x: -1, y: -1 },
             mouseDownTrace: 0,
             // Display an indicator when mouse is dragged on the trace
@@ -303,10 +303,10 @@ export default Vue.extend({
          */
         handleMouseHover: function (e: any) {
             // Store the last hover point for drag detection
-            this.lastHoverPoint = {
-                x: e.event.offsetX,
-                y: e.event.offsetY,
-            }
+            //this.lastHoverPoint = {
+            //    x: e.event.offsetX,
+            //    y: e.event.offsetY,
+            //}
         },
         /**
          * Handle mouse move events fired by the drag cover element.
@@ -363,10 +363,10 @@ export default Vue.extend({
                     dragEl.style.left = `${relXOffset}px`
                 }
                 // Update last hover position (Plotly doesn't pass hover event through when dragging)
-                this.lastHoverPoint = {
-                    x: e.offsetX - wrapperPos.left,
-                    y: e.offsetY - wrapperPos.top
-                }
+                //this.lastHoverPoint = {
+                //    x: e.offsetX - wrapperPos.left,
+                //    y: e.offsetY - wrapperPos.top
+                //}
             }
         },
         /**
@@ -375,13 +375,13 @@ export default Vue.extend({
         handleMouseOut: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
-            this.lastHoverPoint = { x: -1, y: -1 }
+            //this.lastHoverPoint = { x: -1, y: -1 }
             this.mouseDownPoint = { x: -1, y: -1 }
         },
         handleMouseUp: function (e: any) {
             // Check if we have a drag selection
             if (this.mouseDragIndicator) {
-                if (this.lastHoverPoint.x >= 0) {
+                if (this.mouseDownPoint.x >= 0) {
                     // Handle drag selection
                     if (this.$store.state.activeTool === 'measure' && !this.measurements) {
                         const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
@@ -499,7 +499,7 @@ export default Vue.extend({
                 }),
             }
             // Bind event listeners
-            ;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
+            //;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
     },
