@@ -153,7 +153,6 @@ export default Vue.extend({
         },
         hasNextTrace (): boolean {
             for (let i=0; i<this.activeItems.length; i++) {
-                console.log((this.activeItems[i] as DicomWaveform).channels.length, this.firstTraceIndex + this.displayedTraceCount)
                 if ((this.activeItems[i] as DicomWaveform).channels.length <= this.firstTraceIndex + this.displayedTraceCount) {
                     return false
                 }

@@ -114,6 +114,7 @@ export default Vue.extend({
             sensitivityAdjust: 1,
             viewStart: 0,
             viewEnd: 0,
+            downSampleFactor: 1,
             // Keep track of some event data for chart interaction
             lastHoverPoint: { x: -1, y: -1 },
             mouseDownPoint: { x: -1, y: -1 },
@@ -158,45 +159,48 @@ export default Vue.extend({
             })
             return signals
         },
+        downscaledResolution (): number {
+            return Math.floor(this.resource.resolution/this.downSampleFactor)
+        },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
             return this.$root.screenDPI/17.7
         },
         xAxisRange (): number[] {
-            return (this.viewEnd - this.viewStart) > 0
+            return this.viewEnd > this.viewStart
                     ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
                     : []
         },
         xAxisTicks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
+            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const ticks = []
             for (let i=0; i<range; i++) {
-                ticks.push(i*this.resource.resolution/5)
+                ticks.push(i*this.downscaledResolution/5)
             }
             return ticks
         },
         xAxis2Ticks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
+            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(
-                    (i + 1/5)*this.resource.resolution/5,
-                    (i + 2/5)*this.resource.resolution/5,
-                    (i + 3/5)*this.resource.resolution/5,
-                    (i + 4/5)*this.resource.resolution/5,
+                    (i + 1/5)*this.downscaledResolution/5,
+                    (i + 2/5)*this.downscaledResolution/5,
+                    (i + 3/5)*this.downscaledResolution/5,
+                    (i + 4/5)*this.downscaledResolution/5,
                 )
             }
             return ticks
         },
         xAxisValues (): string[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.resource.resolution
+            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const values = []
             for (let i=0; i<range; i++) {
                 if (!i || i%5) {
                     values.push('')
                     continue
                 }
-                let point = this.viewStart/this.resource.resolution + i/5
+                let point = this.viewStart/this.downscaledResolution + i/5
                 let hrs: number = Math.floor(point/60/60)
                 let mins: number = Math.floor((point - hrs*60*60)/60)
                 let secs: number = point - hrs*60*60 - mins*60
@@ -411,7 +415,7 @@ export default Vue.extend({
             } else {
                 viewWidth += screen.width
             }
-            const newWidth = this.resource.resolution*(viewWidth/(this.pxPerHorizontalSquare*5))
+            const newWidth = this.downscaledResolution*(viewWidth/(this.pxPerHorizontalSquare*5))
             this.viewEnd = this.viewStart + newWidth
         },
         recalibrateChart: function () {
@@ -454,7 +458,10 @@ export default Vue.extend({
             for (let i=0; i<max; i++) {
                 const offset = (max - i - 1)*this.traceSpacing + this.yPad
                 yValues.push([] as (number|null)[])
-                for (let j=0; j<this.xAxisRange.length; j++) {
+                for (let j=0; j<this.xAxisRange.length*this.downSampleFactor; j++) {
+                    if (j%this.downSampleFactor) {
+                        continue
+                    }
                     if (j < this.resource.channels[i+this.firstTraceIndex].signals.length) {
                         let sigVal = this.resource.channels[i+this.firstTraceIndex].signals[j]*ampScale
                         // Apply required corrections
