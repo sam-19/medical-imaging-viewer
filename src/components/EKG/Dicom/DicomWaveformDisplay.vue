@@ -340,9 +340,10 @@ export default Vue.extend({
                 }
                 const dragEl = (this.$refs['mousedrag'] as HTMLDivElement)
                 if (!this.mouseDragIndicator) {
-                    const top = startPos + this.mouseDownTrace*traceHeight
+                    const yOffset = this.$store.state.showEkgRuler ? 1 : 0
+                    const top = startPos + this.mouseDownTrace*traceHeight - yOffset
                     dragEl.style.top = top > 0 ? `${top}px` : '0px'
-                    dragEl.style.height = `${traceHeight}px`
+                    dragEl.style.height = `${traceHeight + yOffset}px`
                     this.mouseDragIndicator = true
                 }
                 // The drag cover div spans the entire page, so have to adjust before comparing values
