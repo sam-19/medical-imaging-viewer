@@ -38,7 +38,6 @@ export default Vue.extend({
     },
     computed: {
         parsedDuration (): string {
-            console.log(this.duration)
             const d = Math.floor(this.duration/(60*60*24))
             const h = Math.floor((this.duration%(60*60*24))/(60*60))
             const m = Math.floor((this.duration%(60*60))/60)

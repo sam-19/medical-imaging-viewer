@@ -17,12 +17,12 @@
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
-            :items="dicomElements"
+            :items.sync="dicomElements"
             :sidebarOpen="sidebarOpen"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
-            :ekgResources="ekgResources"
+            :ekgResources.sync="ekgResources"
             :sidebarOpen="sidebarOpen"
         />
     </div>

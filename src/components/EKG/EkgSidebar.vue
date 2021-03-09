@@ -30,6 +30,7 @@ export default Vue.extend({
     },
     data () {
         return {
+            dropZone: null as HTMLElement | null,
             lastActivated: null as number | null,
         }
     },
@@ -40,6 +41,30 @@ export default Vue.extend({
         },
     },
     methods: {
+        clearDropZoneHighlight: function () {
+            if (this.dropZone) {
+                this.dropZone.classList.remove('medigi-viewer-highlight')
+            }
+        },
+        handleFileDrag: function (event: DragEvent) {
+            // Prevent default event effects
+            event.stopPropagation()
+            event.preventDefault()
+            if (event.dataTransfer) {
+                // Show that dropping the file "copies" it
+                event.dataTransfer.dropEffect = 'copy'
+                // Highlight the dropzone
+                if (this.dropZone) {
+                    this.dropZone.classList.add('medigi-viewer-highlight')
+                }
+            }
+        },
+        handleFileDrop: function (event: DragEvent) {
+            // Clear the highlight
+            this.clearDropZoneHighlight()
+            // Pass file drop event to parent component
+            this.$emit('file-dropped', event)
+        },
         toggleActiveItem: function (index: number, event: MouseEvent) {
             const item = this.items[index] as MediaResource
             item.isActive = !item.isActive
@@ -64,6 +89,15 @@ export default Vue.extend({
             this.$emit('element-status-changed')
         },
     },
+    mounted () {
+        // Set up file dropzone
+        this.dropZone = document.getElementById(`${this.$store.state.appName}-medigi-viewer-ekg-dropzone`)
+        if (this.dropZone) {
+            this.dropZone.addEventListener('dragover', this.handleFileDrag, false)
+            this.dropZone.addEventListener('drop', this.handleFileDrop, false)
+            this.dropZone.addEventListener('dragleave', this.clearDropZoneHighlight, false)
+        }
+    },
 })
 </script>
 
@@ -72,7 +106,7 @@ export default Vue.extend({
     position: relative;
     padding: 0 0 10px 10px;
     width: 300px;
-    height: calc(100% - 80px - 50px);
+    height: calc(100% - 80px);
     margin-top: 80px;
 }
 .medigi-viewer-sidebar-items {
@@ -83,7 +117,6 @@ export default Vue.extend({
 }
 .medigi-viewer-dropzone {
     flex-grow: 1;
-    margin-bottom: 10px;
     min-height: 140px;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
