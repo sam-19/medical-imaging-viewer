@@ -47,7 +47,6 @@
 <script lang="ts">
 import Vue from 'vue'
 import ResizeObserver from 'resize-observer-polyfill'
-import { SignalResource } from '../../../types/assets'
 import DicomWaveform from '../../../assets/dicom/DicomWaveform'
 
 export default Vue.extend({
@@ -62,7 +61,6 @@ export default Vue.extend({
     },
     data () {
         return {
-            activeItems: [] as DicomWaveform[],
             cmPermV: 1,
             cmPerSec: 2.5,
             displayedTraceCount: 0, // Number of traces displayed is synchronized between all displayed recordings
@@ -78,20 +76,40 @@ export default Vue.extend({
             traceSpacing: 6, // The number of squares (0.5cm) between traces
             yAxisRange: 0,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
+            // React to some property changes
+            elementsChanged: 0,
         }
     },
     watch: {
         ekgResources (value: any, old: any) {
-            console.log(this.ekgResources)
-            if (this.ekgResources.length) {
-                this.activeItems = this.ekgResources as DicomWaveform[]
-            }
+            this.elementsChanged++
         },
         firstTraceIndex (value: number, old: number) {
             this.redrawCharts()
         },
     },
     computed: {
+        activeItems (): DicomWaveform[] {
+            this.elementsChanged
+            // Array.filter is a pain to make work in TypeScript
+            const items = []
+            for (let i=0; i<this.ekgResources.length; i++) {
+                if ((this.ekgResources[i] as DicomWaveform).isActive) {
+                    items.push(this.ekgResources[i] as DicomWaveform)
+                }
+                // Make sure we don't exceed predefined grid dimensions
+                if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
+                    && i === this.gridLayout[0]*this.gridLayout[1]
+                ) {
+                    return items
+                }
+            }
+            if (!items.length) {
+                // Reset first trace index
+                this.firstTraceIndex = 0
+            }
+            return items
+        },
         actualLayout (): number[] {
             const activeNum = this.activeItems.length
             const layout = [...this.gridLayout]
@@ -197,7 +215,7 @@ export default Vue.extend({
             }
         },
         updateElements: function () {
-
+            this.elementsChanged++
         },
     },
     mounted () {
@@ -215,8 +233,6 @@ export default Vue.extend({
         // Calculate EKG paper square sizes
         this.pxPerHorizontalSquare = Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
         this.pxPerVerticalSquare = Math.floor(((this.$root.screenDPI/2.54)*this.cmPermV)/2)
-        // TEST
-        this.activeItems = this.ekgResources as DicomWaveform[]
     },
 })
 </script>

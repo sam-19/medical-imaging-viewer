@@ -4,13 +4,12 @@
         @click="$emit('toggle-active-item', index, $event)"
     >
         <div class="medigi-viewer-sidebar-icon">
-            <dicom-image-icon :count="count" :cover="cover" :label="label" :stack="stack" :type="type"
-                v-on:loading-cover-failed="loadingCoverFailed"
-             />
+            <ekg-sidebar-icon :channels="channels" :label="label" :type="type" />
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
-            <div v-if="count>1 && stack">{{ $t('sidebaritem.imagecount', { count: count }) }}</div>
+            <div>{{ $t('sidebaritem.channelcount', { count: channels }) }}</div>
+            <div>{{ parsedDuration }}</div>
         </div>
     </div>
 </template>
@@ -21,32 +20,41 @@ import Vue from 'vue'
 
 export default Vue.extend({
     components: {
-        DicomImageIcon: () => import('./DICOM/DicomImageIcon.vue'),
+        EkgSidebarIcon: () => import('./EkgSidebarIcon.vue')
     },
     props: {
         active: Boolean,
-        collation: Boolean,
-        count: Number,
-        cover: String,
+        channels: Number,
+        duration: Number,
         id: String,
         index: Number,
         label: String,
-        stack: Boolean,
         title: String,
         type: String,
-        url: String,
     },
     data () {
         return {
         }
     },
-    methods: {
-        loadingCoverFailed: function () {
-            if (!this.stack && !this.collation) {
-                console.error(`Unable to load the resource ${this.title}, removing it from resource list.`)
-                this.$root.$emit('remove-dicom-resource', this.id)
+    computed: {
+        parsedDuration (): string {
+            console.log(this.duration)
+            const d = Math.floor(this.duration/(60*60*24))
+            const h = Math.floor((this.duration%(60*60*24))/(60*60))
+            const m = Math.floor((this.duration%(60*60))/60)
+            const s = Math.floor(this.duration%60)
+            if (d) {
+                return `${d}${this.$t('days_short')} ${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+            } else if (h) {
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} ${this.$t('hours')}`
+            } else if (m) {
+                return `${m}:${s.toString().padStart(2, '0')} ${this.$t('minutes')}`
+            } else {
+                return `${s} ${this.$t('seconds')}`
             }
         },
+    },
+    methods: {
     },
     mounted () {
     },
@@ -85,7 +93,8 @@ export default Vue.extend({
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .medigi-viewer-sidebar-details > div:nth-child(2) {
+        .medigi-viewer-sidebar-details > div:nth-child(2),
+        .medigi-viewer-sidebar-details > div:nth-child(3) {
             font-size: 12px;
             margin-top: 5px;
             color: var(--medigi-viewer-text-minor);

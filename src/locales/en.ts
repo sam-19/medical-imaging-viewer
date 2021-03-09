@@ -5,6 +5,7 @@
  */
 
 const messagesEN = {
+    days_short: "d",
     sidebaritem: {
         channelcount: '%{count} channels',
         imagecount: '%{count} images',

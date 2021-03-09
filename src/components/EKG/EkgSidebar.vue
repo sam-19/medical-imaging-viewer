@@ -1,21 +1,17 @@
 <template>
     <div :id="`${$store.state.appName}-medigi-viewer-ekg-sidebar`">
         <div class="medigi-viewer-sidebar-items">
-            <!--
-            <imaging-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
+            <ekg-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
-                :collation="item.isCollation"
-                :count="item.size"
-                :cover="item.coverImage"
+                :channels="item.channels.length"
+                :duration="item.sampleCount/item.resolution"
                 :id="item.id"
                 :index="idx"
                 :label="item.modality"
-                :stack="item.isStack"
                 :title="item.name"
                 :type="item.type"
                 v-on:toggle-active-item="toggleActiveItem"
             />
-            -->
             <div :id="`${$store.state.appName}-medigi-viewer-ekg-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
     </div>
@@ -23,10 +19,19 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { MediaResource } from '../../types/assets'
 
 export default Vue.extend({
     props: {
         items: Array,
+    },
+    components: {
+        EkgSidebarItem: () => import('./EkgSidebarItem.vue'),
+    },
+    data () {
+        return {
+            lastActivated: null as number | null,
+        }
     },
     computed: {
         dropZoneStyles () {
@@ -35,8 +40,28 @@ export default Vue.extend({
         },
     },
     methods: {
-        toggleActiveItem: function (index: number) {
-
+        toggleActiveItem: function (index: number, event: MouseEvent) {
+            const item = this.items[index] as MediaResource
+            item.isActive = !item.isActive
+            if (item.isActive) {
+                // If the element was activated, check if this is a shift-click to activate a range of elements
+                if (this.lastActivated !== null  && this.lastActivated !== index && event.shiftKey) {
+                    const diff = this.lastActivated - index
+                    for (let i=1; i<=Math.abs(diff); i++) {
+                        // Either add or substract i from starting index
+                        const curIdx = index + (diff < 0 ? -i : i)
+                        if (!(this.items[curIdx] as MediaResource).isActive) {
+                            (this.items[curIdx] as MediaResource).isActive = true
+                        }
+                    }
+                }
+                // Mark as last activated
+                this.lastActivated = index
+            } else {
+                // Unset last activated
+                this.lastActivated = null
+            }
+            this.$emit('element-status-changed')
         },
     },
 })

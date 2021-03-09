@@ -98,29 +98,14 @@ export default Vue.extend({
         }
     },
     watch: {
-        displayedTraceCount (value: number, old: number) {
-            if (!this.hasNextTrace) {
-                this.disableButton('next')
-            } else {
-                this.enableButton('next')
-            }
-            if (!this.hasPreviousTrace) {
-                this.disableButton('previous')
-            } else {
-                this.enableButton('previous')
-            }
+        activeItems () {
+            this.updateBrowseButtons()
         },
-        firstTraceIndex (value: number, old: number) {
-            if (!this.hasNextTrace) {
-                this.disableButton('next')
-            } else {
-                this.enableButton('next')
-            }
-            if (!this.hasPreviousTrace) {
-                this.disableButton('previous')
-            } else {
-                this.enableButton('previous')
-            }
+        displayedTraceCount () {
+            this.updateBrowseButtons()
+        },
+        firstTraceIndex () {
+            this.updateBrowseButtons()
         },
     },
     computed: {
@@ -157,10 +142,10 @@ export default Vue.extend({
                     return false
                 }
             }
-            return true
+            return (this.activeItems.length > 0)
         },
         hasPreviousTrace (): boolean {
-            return (this.firstTraceIndex > 0)
+            return (this.activeItems.length > 0 && this.firstTraceIndex > 0)
         },
     },
     methods: {
@@ -336,6 +321,18 @@ export default Vue.extend({
             })
             // Refresh button row
             this.buttonsUpdated++
+        },
+        updateBrowseButtons: function () {
+            if (!this.hasNextTrace) {
+                this.disableButton('next')
+            } else {
+                this.enableButton('next')
+            }
+            if (!this.hasPreviousTrace) {
+                this.disableButton('previous')
+            } else {
+                this.enableButton('previous')
+            }
         },
     },
     mounted () {
