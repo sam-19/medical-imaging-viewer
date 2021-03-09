@@ -36,19 +36,29 @@ import { SignalResource } from '../../../types/assets'
 import * as  Plotly from 'plotly.js/lib/index-basic.js'
 
 let INSTANCE_NUM = 0
-const MARGIN_LEFT = 50
-const MARGIN_BOTTOM = 50
 
 export default Vue.extend({
     props: {
+        cmPermV: Number,
+        cmPerSec: Number,
         containerSize: Array,
+        displayedTraceCount: Number,
+        firstTraceIndex: Number,
+        marginBottom: Number,
+        marginLeft: Number,
+        pxPerHorizontalSquare: Number,
+        pxPerVerticalSquare: Number,
         resource: Object, // SignalResource
+        traceSpacing: Number,
+        yAxisRange: Number,
+        yPad: Number,
     },
     data () {
         return {
             chart: null as any,
             chartConfig: {
-                margin: { t: 0, r: 0, b: MARGIN_BOTTOM, l: MARGIN_LEFT },
+                // Props are initialized before data
+                margin: { t: 0, r: 0, b: this.marginBottom, l: this.marginLeft },
                 showlegend: false,
                 dragmode: false,
                 xaxis: {
@@ -100,14 +110,9 @@ export default Vue.extend({
                 displayModeBar: false,
                 responsive: false,
             },
-            cmPerSec: 2.5,
-            cmPermV: 1,
-            lastYRange: [0, 0],
             sensitivityAdjust: 1,
             viewStart: 0,
             viewEnd: 0,
-            traceSpacing: 6, // The number of squares (0.5cm) between traces
-            yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             // Keep track of some event data for chart interaction
             lastHoverPoint: { x: -1, y: -1 },
             mouseDownPoint: { x: -1, y: -1 },
@@ -121,22 +126,13 @@ export default Vue.extend({
         }
     },
     watch: {
-        containerSize (value: Array<number>, old: Array<number>) {
-            const yRange = this.yAxisRange
-            if (this.lastYRange[0] !== yRange[0] || this.lastYRange[1] !== yRange[1]) {
-                // Redraw entire plot if y-range changed (trace count changed)
-                this.redrawPlot()
-            } else {
-                this.recalibrateChart()
-            }
-        },
     },
     computed: {
         channelSignals (): any[] {
+            console.log(this.yAxisRange, this.yPad)
             const signals: any[] = []
-            const min = this.yAxisRange[0]/this.traceSpacing
-            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1
-            for (let i=min; i<max; i++) {
+            const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
+            for (let i=0; i<max; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 const traceColor = '#303030'
                 // Wrap it into an object
@@ -160,19 +156,12 @@ export default Vue.extend({
                 line: { color: 'rgba(0,0,0,0)', width: 0 },
                 hoverinfo: 'none',
             })
+            console.log(signals)
             return signals
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
             return this.$root.screenDPI/17.7
-        },
-        /** Return a rounded down pixel count per vertical square. */
-        pxPerVerticalSquare (): number {
-            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPermV)/2)
-        },
-        /** Return a rounded down pixel count per horizontal square. */
-        pxPerHorizontalSquare (): number {
-            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
         },
         xAxisRange (): number[] {
             return (this.viewEnd - this.viewStart) > 0
@@ -238,36 +227,16 @@ export default Vue.extend({
             }
             return values
         },
-        yAxisRange (): number[] {
-            // Display either all 12, 6, 4, 2 or just one trace at a time
-            // Required height is trace spacing plus padding
-            const pxPerCm = this.pxPerVerticalSquare*2
-            const traceHeight = pxPerCm*(this.traceSpacing/2)
-            const pad = this.yPad*pxPerCm + MARGIN_BOTTOM // pxPerCm already multiplies the yPad with 2
-            let traceCount = 12
-            if ((this.containerSize[1] as number) < traceHeight*1 + pad) {
-                traceCount = 1
-            } else if ((this.containerSize[1] as number) < traceHeight*3 + pad) {
-                traceCount = 2
-            } else if ((this.containerSize[1] as number) < traceHeight*5 + pad) {
-                traceCount = 4
-            } else if ((this.containerSize[1] as number) < traceHeight*11 + pad) {
-                traceCount = 6
-            }
-            // Add one trace height for each trace (except the last one) plus
-            // padding for top and bottom
-            return [0, (traceCount - 1)*this.traceSpacing + 2*this.yPad]
-        },
         yAxisTicks (): number[] {
             const ticks = []
-            for (let i=this.yAxisRange[0]; i<=this.yAxisRange[1]; i++) {
+            for (let i=0; i<=this.yAxisRange; i++) {
                 ticks.push(i)
             }
             return ticks
         },
         yAxisTicks2 (): number[] {
             const ticks = []
-            for (let i=this.yAxisRange[0]*5 + 1; i<=this.yAxisRange[1]*5; i++) {
+            for (let i=1; i<=this.yAxisRange*5; i++) {
                 if (i%5) {
                     ticks.push(i/5)
                 }
@@ -277,14 +246,14 @@ export default Vue.extend({
         yAxisValues (): string[] {
             const values = []
             values.push(...Array(this.yPad).fill(''))
-            for (let i=this.yAxisRange[0]; i<this.yAxisRange[1] - this.yPad; i++) {
+            for (let i=0; i<this.yAxisRange - this.yPad; i++) {
                 if (i%this.traceSpacing) {
                     values.push('')
                 } else {
-                    values.push(this.getChannelLabel(i/this.traceSpacing))
+                    values.push(this.getChannelLabel(i/this.traceSpacing + this.firstTraceIndex))
                 }
             }
-            values.push('') // Add one final empty label for the axis line
+            values.push('') // Add one final empty label (for the axis line?)
             return values.reverse()
         },
     },
@@ -349,8 +318,8 @@ export default Vue.extend({
             }
             const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
             // Do not allow dragging outside the wrapper
-            if (e.offsetX < wrapperPos.left + MARGIN_LEFT || e.offsetX > wrapperPos.right
-                || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - MARGIN_BOTTOM
+            if (e.offsetX < wrapperPos.left + this.marginLeft || e.offsetX > wrapperPos.right
+                || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.marginBottom
             ) {
                 this.handleMouseOut(e)
                 return
@@ -362,7 +331,7 @@ export default Vue.extend({
                 const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
                 const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
                 this.mouseDownTrace = Math.floor((this.mouseDownPoint.y - startPos)/traceHeight)
-                if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1) {
+                if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1) {
                     // Mouse down position is out of bounds
                     return
                 }
@@ -412,15 +381,15 @@ export default Vue.extend({
                     // Handle drag selection
                     if (this.$store.state.activeTool === 'measure' && !this.measurements) {
                         const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
-                        const startX = this.mouseDownPoint.x - MARGIN_LEFT
+                        const startX = this.mouseDownPoint.x - this.marginLeft
                         const startPos = Math.round((startX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
-                        const endX = e.offsetX - wrapperPos.left - MARGIN_LEFT
+                        const endX = e.offsetX - wrapperPos.left - this.marginLeft
                         const endPos = Math.round((endX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
                         // Use default 0 amplitude if start or end is outside the trace bounds
                         const startAmp = startPos >= 0 && startPos <= this.resource.sampleCount
-                                         ? this.resource.channels[this.mouseDownTrace].signals[startPos] : 0
+                                         ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[startPos] : 0
                         const endAmp = endPos >= 0 && endPos <= this.resource.sampleCount
-                                       ? this.resource.channels[this.mouseDownTrace].signals[endPos] : 0
+                                       ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[endPos] : 0
                         this.measurements = {
                             distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
                             amplitude: endAmp - startAmp,
@@ -437,7 +406,7 @@ export default Vue.extend({
         },
         recalculateViewBounds: function ()  {
             // Deduct the chart's left and right margins
-            let viewWidth: number = -MARGIN_LEFT
+            let viewWidth: number = -this.marginLeft
             if (document.fullscreenElement === null) {
                 viewWidth += this.containerSize[0] as number
             } else {
@@ -448,28 +417,27 @@ export default Vue.extend({
         },
         recalibrateChart: function () {
             this.recalculateViewBounds()
-            // Update chart dimensions and the y-axis (x-axis is updated in refreshChart method)
+            // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const y2TickVals = this.yAxisTicks2
             const chartLayout = {
                 width: this.containerSize[0],
-                height: this.pxPerVerticalSquare*(this.yAxisRange[1] - this.yAxisRange[0]) + MARGIN_BOTTOM,
+                height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
-                    range: this.yAxisRange,
+                    range: [0, this.yAxisRange],
                     tickvals: this.yAxisTicks,
                     ticktext: this.yAxisValues,
                 }),
                 yaxis2: Object.assign({}, this.chartConfig.yaxis2, {
-                    range: this.yAxisRange,
+                    range: [0, this.yAxisRange],
                     tickvals: y2TickVals,
                     ticktext: Array(y2TickVals.length).fill(''),
                 }),
             }
+            console.log(chartLayout)
             Plotly.relayout(this.$refs['container'], chartLayout)
             this.refreshTraces()
         },
         redrawPlot: function () {
-            // Store y-axis range so we know when to redraw the entire plot
-            this.lastYRange = this.yAxisRange
             this.chart = Plotly.newPlot(
                 this.$refs['container'],
                 this.channelSignals,
@@ -483,26 +451,25 @@ export default Vue.extend({
         refreshTraces: function () {
             // Y-axis values for each channel
             const yValues = []
-            const min = this.yAxisRange[0]/this.traceSpacing
-            const max = (this.yAxisRange[1] - this.yPad*2)/this.traceSpacing + 1
+            const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
             const ampScale = 2/(this.cmPermV*1000) // 2 squares per 1000 uV
-            for (let i=min; i<max; i++) {
+            for (let i=0; i<max; i++) {
                 const offset = (max - i - 1)*this.traceSpacing + this.yPad
                 yValues.push([] as (number|null)[])
                 for (let j=0; j<this.xAxisRange.length; j++) {
-                    if (j < this.resource.channels[i].signals.length) {
-                        let sigVal = this.resource.channels[i].signals[j]*ampScale
+                    if (j < this.resource.channels[i+this.firstTraceIndex].signals.length) {
+                        let sigVal = this.resource.channels[i+this.firstTraceIndex].signals[j]*ampScale
                         // Apply required corrections
-                        if (this.resource.channels[i].baseline) {
+                        if (this.resource.channels[i+this.firstTraceIndex].baseline) {
                             // According to my sources the baseline correction is really
                             // applied before the sensitivity corrections
-                            sigVal += this.resource.channels[i].baseline
+                            sigVal += this.resource.channels[i+this.firstTraceIndex].baseline
                         }
-                        if (this.resource.channels[i].sensitivity) {
-                            sigVal *= this.resource.channels[i].sensitivity
+                        if (this.resource.channels[i+this.firstTraceIndex].sensitivity) {
+                            sigVal *= this.resource.channels[i+this.firstTraceIndex].sensitivity
                         }
-                        if (this.resource.channels[i].sensitivityCF) {
-                            sigVal *= this.resource.channels[i].sensitivityCF
+                        if (this.resource.channels[i+this.firstTraceIndex].sensitivityCF) {
+                            sigVal *= this.resource.channels[i+this.firstTraceIndex].sensitivityCF
                         }
                         yValues[i].push(sigVal + offset)
                     } else {
@@ -531,15 +498,6 @@ export default Vue.extend({
         },
     },
     mounted () {
-        // Check for invalid config values
-        if (this.cmPermV <= 0 || this.cmPerSec <= 0) {
-            console.error(`Vertical and horizontal scales must be greater than zero!`)
-            return
-        }
-        if (this.traceSpacing <= 0 || this.yPad <= 0) {
-            console.error(`Vertical padding and spacing between traces must be greater than zero!`)
-            return
-        }
         // Calculate view bounds
         this.recalculateViewBounds()
         this.redrawPlot()
@@ -552,6 +510,8 @@ export default Vue.extend({
         const vSqr = this.pxPerVerticalSquare
         ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
             = `${hSqr}px ${hSqr}px, ${vSqr}px ${vSqr}px, ${hSqr/5}px ${hSqr/5}px, ${vSqr/5}px ${vSqr/5}px`
+
+        console.log(this.yAxisTicks, this.yAxisValues)
     }
 })
 </script>

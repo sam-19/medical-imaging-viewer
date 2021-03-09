@@ -21,6 +21,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import DicomWaveform from '../../assets/dicom/DicomWaveform'
 import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
 
 // We need an interface for buttons to access them dynamically
@@ -36,6 +37,11 @@ interface ButtonRow {
 }
 
 export default Vue.extend({
+    props: {
+        activeItems: Array,
+        firstTraceIndex: Number,
+        tracesDisplayed: Number,
+    },
     components: {
         ToolbarButton: () => import('../ToolbarButton.vue'),
     },
@@ -110,6 +116,14 @@ export default Vue.extend({
             })
             return buttons
         },
+        hasNextTrace (): boolean {
+            for (let i=0; i<this.activeItems.length; i++) {
+                if ((this.activeItems[i] as DicomWaveform).channels.length <= this.firstTraceIndex + this.tracesDisplayed) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     methods: {
         /**
