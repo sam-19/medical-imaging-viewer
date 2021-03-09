@@ -278,6 +278,32 @@ export default Vue.extend({
             // Fallback: just return the label
             return this.resource.channels[index].label
         },
+        /**
+         * Get datapoint value with all corrections applied.
+         * @param number channel index
+         * @param number datapoint index
+         */
+        getCorrectedSignalValue: function (channel: number, datapoint: number): number | undefined {
+            if (channel >= this.resource.channels.length
+                || datapoint >= this.resource.channels[channel].signals.length
+            ) {
+                return undefined
+            }
+            let sigVal = this.resource.channels[channel].signals[datapoint]
+            // Apply required corrections
+            if (this.resource.channels[channel].baseline) {
+                // According to my sources the baseline correction is really
+                // applied before the sensitivity corrections
+                sigVal += this.resource.channels[channel].baseline
+            }
+            if (this.resource.channels[channel].sensitivity) {
+                sigVal *= this.resource.channels[channel].sensitivity
+            }
+            if (this.resource.channels[channel].sensitivityCF) {
+                sigVal *= this.resource.channels[channel].sensitivityCF
+            }
+            return sigVal
+        },
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
@@ -385,18 +411,26 @@ export default Vue.extend({
                     // Handle drag selection
                     if (this.$store.state.activeTool === 'measure' && !this.measurements) {
                         const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
+                        // Horizontal paper scale; standard is 2 squares per cm (when scale is 2.5cm per sec)
+                        const scaleF = (this.cmPerSec/2.5)/2
+                        // Signal datapoints per second
+                        const ptsPerSec = this.resource.resolution/this.cmPerSec
+                        // Start position (datapoint)
                         const startX = this.mouseDownPoint.x - this.marginLeft
-                        const startPos = Math.round((startX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
+                        const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
                         const endX = e.offsetX - wrapperPos.left - this.marginLeft
-                        const endPos = Math.round((endX/(this.pxPerHorizontalSquare*2))*(this.resource.resolution/this.cmPerSec))
+                        // End position
+                        const endPos = Math.round((scaleF*endX/this.pxPerHorizontalSquare)*ptsPerSec)
                         // Use default 0 amplitude if start or end is outside the trace bounds
-                        const startAmp = startPos >= 0 && startPos <= this.resource.sampleCount
-                                         ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[startPos] : 0
-                        const endAmp = endPos >= 0 && endPos <= this.resource.sampleCount
-                                       ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[endPos] : 0
+                        const startAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, startPos)
+                        //startPos >= 0 && startPos <= this.resource.sampleCount
+                        //                 ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[startPos] : 0
+                        const endAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, endPos)
+                        //endPos >= 0 && endPos <= this.resource.sampleCount
+                        //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[endPos] : 0
                         this.measurements = {
                             distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
-                            amplitude: endAmp - startAmp,
+                            amplitude: Math.round((endAmp || 0) - (startAmp || 0)),
                         }
                         ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.y - wrapperPos.top}px`
                         ;(this.$refs['measurements'] as HTMLDivElement).style.left = `${e.x - wrapperPos.left}px`
@@ -455,7 +489,7 @@ export default Vue.extend({
             // Y-axis values for each channel
             const yValues = []
             const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
-            const ampScale = 2/(this.cmPermV*1000) // 2 squares per 1000 uV
+            const ampScale = 2*this.cmPermV/1000 // 2 squares per 1000 uV
             for (let i=0; i<max; i++) {
                 const offset = (max - i - 1)*this.traceSpacing + this.yPad
                 yValues.push([] as (number|null)[])
@@ -463,21 +497,9 @@ export default Vue.extend({
                     if (j%this.downSampleFactor) {
                         continue
                     }
-                    if (j < this.resource.channels[i+this.firstTraceIndex].signals.length) {
-                        let sigVal = this.resource.channels[i+this.firstTraceIndex].signals[j]*ampScale
-                        // Apply required corrections
-                        if (this.resource.channels[i+this.firstTraceIndex].baseline) {
-                            // According to my sources the baseline correction is really
-                            // applied before the sensitivity corrections
-                            sigVal += this.resource.channels[i+this.firstTraceIndex].baseline
-                        }
-                        if (this.resource.channels[i+this.firstTraceIndex].sensitivity) {
-                            sigVal *= this.resource.channels[i+this.firstTraceIndex].sensitivity
-                        }
-                        if (this.resource.channels[i+this.firstTraceIndex].sensitivityCF) {
-                            sigVal *= this.resource.channels[i+this.firstTraceIndex].sensitivityCF
-                        }
-                        yValues[i].push(sigVal + offset)
+                    const corrVal = this.getCorrectedSignalValue(i+this.firstTraceIndex, j)
+                    if (corrVal !== undefined) {
+                        yValues[i].push(corrVal*ampScale + offset)
                     } else {
                         yValues[i].push(null)
                     }
