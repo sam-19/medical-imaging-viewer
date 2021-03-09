@@ -411,7 +411,7 @@ export default Vue.extend({
                     // Handle drag selection
                     if (this.$store.state.activeTool === 'measure' && !this.measurements) {
                         const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
-                        // Horizontal paper scale; standard is 2 squares per cm (when scale is 2.5cm per sec)
+                        // Horizontal paper scale; standard is 1 cm per 2 squares and 2.5cm per sec
                         const scaleF = (this.cmPerSec/2.5)/2
                         // Signal datapoints per second
                         const ptsPerSec = this.resource.resolution/this.cmPerSec
@@ -537,7 +537,7 @@ export default Vue.extend({
         const hSqr = this.pxPerHorizontalSquare
         const vSqr = this.pxPerVerticalSquare
         ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
-            = `${hSqr}px ${hSqr}px, ${vSqr}px ${vSqr}px, ${hSqr/5}px ${hSqr/5}px, ${vSqr/5}px ${vSqr/5}px`
+            = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
     }
 })
 </script>
