@@ -14,6 +14,7 @@ const state = {
     appName: '' as string,
     cacheStatus: { count: 0, max: 0, size: 0 },
     linkedScrollPosition: 0,
+    showEkgRuler: false,
 }
 type State = typeof state
 // Getters
@@ -48,18 +49,23 @@ const actions = {
 }
 // Mutations (commits)
 enum MutationTypes {
+    EKG_SHOW_RULER = 'ekg:show-ruler',
     SET_ACTIVE_TOOL = 'set-active-tool',
     SET_APP_NAME = 'set-app-name',
     SET_CACHE_STATUS = 'set-cache-status',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
 }
 type Mutations<S = State> = {
+    [MutationTypes.EKG_SHOW_RULER] (state: S, payload: boolean): void,
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
 }
 const mutations: MutationTree<State> & Mutations = {
+    [MutationTypes.EKG_SHOW_RULER] (state, payload: boolean) {
+        state.showEkgRuler = payload
+    },
     [MutationTypes.SET_ACTIVE_TOOL] (state, payload: string) {
         if (state.activeTool === payload) {
             state.activeTool = null

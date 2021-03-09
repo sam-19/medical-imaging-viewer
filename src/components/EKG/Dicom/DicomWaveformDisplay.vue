@@ -6,13 +6,14 @@
         ></div>
         <div ref="mousedrag" :class="[
             'medigi-viewer-ekg-mousedrag',
-            { 'medigi-viewer-drag-active': this.mouseDragIndicator && !this.measurements },
-            { 'medigi-viewer-hidden': !this.mouseDragIndicator },
+            { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
+            { 'medigi-viewer-hidden': !mouseDragIndicator },
+            { 'medigi-viewer-ekg-ruler': $store.state.showEkgRuler },
         ]"></div>
         <div ref="measurements"
             :class="[
                 'medigi-viewer-ekg-measurements',
-                { 'medigi-viewer-hidden': !this.measurements }
+                { 'medigi-viewer-hidden': !measurements }
             ]"
             @contextmenu.prevent
         >
@@ -129,7 +130,6 @@ export default Vue.extend({
     },
     computed: {
         channelSignals (): any[] {
-            console.log(this.yAxisRange, this.yPad)
             const signals: any[] = []
             const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
             for (let i=0; i<max; i++) {
@@ -156,7 +156,6 @@ export default Vue.extend({
                 line: { color: 'rgba(0,0,0,0)', width: 0 },
                 hoverinfo: 'none',
             })
-            console.log(signals)
             return signals
         },
         mouseDragThreshold (): number {
@@ -433,7 +432,6 @@ export default Vue.extend({
                     ticktext: Array(y2TickVals.length).fill(''),
                 }),
             }
-            console.log(chartLayout)
             Plotly.relayout(this.$refs['container'], chartLayout)
             this.refreshTraces()
         },
@@ -510,8 +508,6 @@ export default Vue.extend({
         const vSqr = this.pxPerVerticalSquare
         ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
             = `${hSqr}px ${hSqr}px, ${vSqr}px ${vSqr}px, ${hSqr/5}px ${hSqr/5}px, ${vSqr/5}px ${vSqr/5}px`
-
-        console.log(this.yAxisTicks, this.yAxisValues)
     }
 })
 </script>

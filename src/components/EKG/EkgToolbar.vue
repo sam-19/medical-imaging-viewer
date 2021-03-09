@@ -34,13 +34,14 @@ interface ButtonRow {
     'previous': ButtonState
     'next': ButtonState
     'measure': ButtonState
+    'ruler': ButtonState
 }
 
 export default Vue.extend({
     props: {
         activeItems: Array,
+        displayedTraceCount: Number,
         firstTraceIndex: Number,
-        tracesDisplayed: Number,
     },
     components: {
         ToolbarButton: () => import('../ToolbarButton.vue'),
@@ -71,22 +72,56 @@ export default Vue.extend({
                 },
                 {
                     id: 'measure',
-                    set: 0,
+                    set: 1,
                     groups: ['interact'],
                     icon: [ ['fal', 'ruler-triangle'] ],
                     tooltip: [ this.$t('Measure') ]
+                },
+                {
+                    id: 'ruler',
+                    set: 1,
+                    groups: [],
+                    icon: [ ['fal', 'ruler'] ],
+                    tooltip: [ this.$t('Display ruler') ]
                 },
             ],
             buttonStates: {
                 'measure':          { active: false, visible: true, enabled: true } as ButtonState,
                 'next':             { active: false, visible: true, enabled: true } as ButtonState,
                 'previous':         { active: false, visible: true, enabled: true } as ButtonState,
+                'ruler':            { active: false, visible: true, enabled: true } as ButtonState,
             },
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
             // Unsubscribe from store actions
             unsubscribeActions: null as any,
         }
+    },
+    watch: {
+        displayedTraceCount (value: number, old: number) {
+            if (!this.hasNextTrace) {
+                this.disableButton('next')
+            } else {
+                this.enableButton('next')
+            }
+            if (!this.hasPreviousTrace) {
+                this.disableButton('previous')
+            } else {
+                this.enableButton('previous')
+            }
+        },
+        firstTraceIndex (value: number, old: number) {
+            if (!this.hasNextTrace) {
+                this.disableButton('next')
+            } else {
+                this.enableButton('next')
+            }
+            if (!this.hasPreviousTrace) {
+                this.disableButton('previous')
+            } else {
+                this.enableButton('previous')
+            }
+        },
     },
     computed: {
         buttonRow (): ToolbarButton[] {
@@ -118,12 +153,16 @@ export default Vue.extend({
         },
         hasNextTrace (): boolean {
             for (let i=0; i<this.activeItems.length; i++) {
-                if ((this.activeItems[i] as DicomWaveform).channels.length <= this.firstTraceIndex + this.tracesDisplayed) {
+                console.log((this.activeItems[i] as DicomWaveform).channels.length, this.firstTraceIndex + this.displayedTraceCount)
+                if ((this.activeItems[i] as DicomWaveform).channels.length <= this.firstTraceIndex + this.displayedTraceCount) {
                     return false
                 }
             }
             return true
-        }
+        },
+        hasPreviousTrace (): boolean {
+            return (this.firstTraceIndex > 0)
+        },
     },
     methods: {
         /**
@@ -134,9 +173,11 @@ export default Vue.extend({
             if (buttonId === 'measure') {
                 this.toggleMeasure()
             } else if (buttonId === 'next') {
-                this.nextTraces()
+                this.nextTrace()
             } else if (buttonId === 'previous') {
-                this.previousTraces()
+                this.previousTrace()
+            } else if (buttonId === 'ruler') {
+                this.toggleRuler()
             }
             // Deactivate other buttons that share a group with this button
             let button = this.buttons.find((btn) => { return btn.id === buttonId })
@@ -156,6 +197,26 @@ export default Vue.extend({
             })
             // Refresh button row
             this.buttonsUpdated++
+        },
+        /**
+         * Disable a single button.
+         * @param string buttonId
+         */
+        disableButton: function (buttonId: string) {
+            const match = this.buttons.find((btn) => { return btn.id === buttonId })
+            if (match !== undefined) {
+                this.buttonStates[match.id as keyof ButtonRow].enabled = false
+            }
+        },
+        /**
+         * Enable a single button.
+         * @param string buttonId
+         */
+        enableButton: function (buttonId: string) {
+            const match = this.buttons.find((btn) => { return btn.id === buttonId })
+            if (match !== undefined) {
+                this.buttonStates[match.id as keyof ButtonRow].enabled = true
+            }
         },
         enableDefaults: function () {
         },
@@ -211,16 +272,20 @@ export default Vue.extend({
             return this.buttonStates[button as keyof ButtonRow].active
         },
         /**
-         * Display the next set of traces if available.
+         * Display the next trace if available.
          */
-        nextTraces: function () {
-
+        nextTrace: function () {
+            if (this.hasNextTrace) {
+                this.$emit('update:firstTraceIndex', this.firstTraceIndex + 1)
+            }
         },
         /**
-         * Display the previous set of traces if available.
+         * Display the previous trace if available.
          */
-        previousTraces: function () {
-
+        previousTrace: function () {
+            if (this.hasPreviousTrace) {
+                this.$emit('update:firstTraceIndex', this.firstTraceIndex - 1)
+            }
         },
         /**
          * Toggle the measurement tool.
@@ -228,6 +293,13 @@ export default Vue.extend({
         toggleMeasure: function () {
             this.buttonStates['measure'].active = !this.buttonStates['measure'].active
             this.$store.commit('set-active-tool', 'measure')
+        },
+        /**
+         * Toggle ruler display when making measurements.
+         */
+        toggleRuler: function () {
+            this.buttonStates['ruler'].active = !this.buttonStates['ruler'].active
+            this.$store.commit('ekg:show-ruler', this.buttonStates['ruler'].active)
         },
         /**
          * Disable a set of buttons.

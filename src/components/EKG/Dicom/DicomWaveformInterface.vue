@@ -87,6 +87,9 @@ export default Vue.extend({
                 this.activeItems = this.ekgResources as DicomWaveform[]
             }
         },
+        firstTraceIndex (value: number, old: number) {
+            this.redrawCharts()
+        },
     },
     computed: {
         actualLayout (): number[] {
@@ -143,30 +146,55 @@ export default Vue.extend({
             } else if ((this.mediaContainerSize[1] as number) < traceHeight*11 + pad) {
                 traceCount = 6
             }
+            this.displayedTraceCount = traceCount
             // Add one trace height for each trace (except the last one) plus
             // padding for top and bottom
             this.yAxisRange = (traceCount - 1)*this.traceSpacing + 2*this.yPad
-            this.$nextTick(() => {
-                if (Array.isArray(this.$refs['waveform-element'])) {
-                    this.$refs['waveform-element'].forEach((item: any) => {
-                        if (this.yAxisRange !== this.lastYRange) {
-                            item.redrawPlot()
-                            this.lastYRange = this.yAxisRange
-                        } else if (this.mediaContainerSize[0] !== this.lastXRange) {
-                            item.recalibrateChart()
-                            this.lastXRange = this.mediaContainerSize[0]
-                        }
-                    })
-                } else if (this.$refs['waveform-element']) {
-                    if (this.yAxisRange !== this.lastYRange) {
-                        (this.$refs['waveform-element'] as any).redrawPlot()
-                        this.lastYRange = this.yAxisRange
-                    } else if (this.mediaContainerSize[0] !== this.lastXRange) {
-                        (this.$refs['waveform-element'] as any).recalibrateChart()
-                        this.lastXRange = this.mediaContainerSize[0]
-                    }
-                }
-            })
+            // Stop here if there are no traces displayed
+            if (!this.activeItems.length) {
+                return
+            }
+            // Check if we need to change the first displayed trace index
+            if (this.activeItems[0].channels.length < this.displayedTraceCount + this.firstTraceIndex) {
+                const newFirstIndex = this.activeItems[0].channels.length - this.displayedTraceCount
+                this.firstTraceIndex = newFirstIndex > 0 ? newFirstIndex : 0
+            }
+            // Update charts as needed
+            if (this.yAxisRange !== this.lastYRange) {
+                this.lastYRange = this.yAxisRange
+                this.$nextTick(() => {
+                    this.redrawCharts()
+                })
+            } else if (this.mediaContainerSize[0] !== this.lastXRange) {
+                this.lastXRange = this.mediaContainerSize[0]
+                this.$nextTick(() => {
+                    this.recalibrateCharts()
+                })
+            }
+        },
+        /**
+         * Recalibrate the data on any active charts.
+         */
+        recalibrateCharts: function () {
+            if (Array.isArray(this.$refs['waveform-element'])) {
+                this.$refs['waveform-element'].forEach((item: any) => {
+                    item.recalibrateChart()
+                })
+            } else {
+                (this.$refs['waveform-element'] as any).recalibrateChart()
+            }
+        },
+        /**
+         * Completely redraw any active charts.
+         */
+        redrawCharts: function () {
+            if (Array.isArray(this.$refs['waveform-element'])) {
+                this.$refs['waveform-element'].forEach((item: any) => {
+                    item.redrawPlot()
+                })
+            } else {
+                (this.$refs['waveform-element'] as any).redrawPlot()
+            }
         },
         updateElements: function () {
 
@@ -187,13 +215,8 @@ export default Vue.extend({
         // Calculate EKG paper square sizes
         this.pxPerHorizontalSquare = Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
         this.pxPerVerticalSquare = Math.floor(((this.$root.screenDPI/2.54)*this.cmPermV)/2)
-        // Trigger the resize observer to calculate rest of the properties
-        this.mediaResized()
         // TEST
         this.activeItems = this.ekgResources as DicomWaveform[]
-        this.$nextTick(() => {
-            this.mediaResized()
-        })
     },
 })
 </script>

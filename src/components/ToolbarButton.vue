@@ -57,8 +57,9 @@ export default Vue.extend({
         color: var(--medigi-viewer-text-highlight);
     }
     .medigi-viewer-toolbar-button.medigi-viewer-disabled {
-        opacity: 0.5 !important;
+        opacity: 0.25 !important;
         cursor: initial !important;
+        pointer-events: none;
     }
     .medigi-viewer-toolbar-button.medigi-viewer-toolbar-setfirst {
         margin-left: 10px !important;
