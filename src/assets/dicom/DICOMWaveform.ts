@@ -161,8 +161,8 @@ class DicomWaveform implements SignalResource {
             wfData.elements.x54001010.dataOffset,
             wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length
         )
-        for (let i=0; i<rootEls.x54000100.items[0].rootEls.x003a0200.items.length; i++) {
-            const chanItem = rootEls.x54000100.items[0].rootEls.x003a0200.items[i].dataSet
+        for (let i=0; i<rootEls.x54000100.items[0].dataSet.elements.x003a0200.items.length; i++) {
+            const chanItem = rootEls.x54000100.items[0].dataSet.elements.x003a0200.items[i].dataSet
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
             const chanData = {
                 label: chanItem.string(clTag) || altLabel || '??',

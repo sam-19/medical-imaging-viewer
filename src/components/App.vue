@@ -128,7 +128,10 @@ export default Vue.extend({
                                     }
                                 }
                             } else if (study.scope === 'ekg') {
-
+                                // Add EKG record
+                                this.ekgResources.push(new DicomWaveform(study.name, study.data))
+                                this.scope = 'ekg'
+                                this.toggleColorTheme(true)
                             }
                         })
                         // Attach possible topogram image to all loaded stacks

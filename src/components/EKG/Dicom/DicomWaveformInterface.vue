@@ -14,7 +14,7 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <ekg-sidebar
-                :items="ekgResources"
+                :items="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />
@@ -60,7 +60,7 @@ export default Vue.extend({
         DicomWaveformDisplay: () => import('./DicomWaveformDisplay.vue'),
     },
     props: {
-        ekgResources: Array,
+        resources: Array,
         sidebarOpen: Boolean,
     },
     data () {
@@ -97,9 +97,9 @@ export default Vue.extend({
             this.elementsChanged
             // Array.filter is a pain to make work in TypeScript
             const items = []
-            for (let i=0; i<this.ekgResources.length; i++) {
-                if ((this.ekgResources[i] as DicomWaveform).isActive) {
-                    items.push(this.ekgResources[i] as DicomWaveform)
+            for (let i=0; i<this.resources.length; i++) {
+                if ((this.resources[i] as DicomWaveform).isActive) {
+                    items.push(this.resources[i] as DicomWaveform)
                 }
                 // Make sure we don't exceed predefined grid dimensions
                 if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
