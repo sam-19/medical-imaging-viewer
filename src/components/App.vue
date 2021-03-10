@@ -17,12 +17,12 @@
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
-            :items.sync="dicomElements"
+            :resources="dicomElements"
             :sidebarOpen="sidebarOpen"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
-            :ekgResources.sync="ekgResources"
+            :resources="ekgResources"
             :sidebarOpen="sidebarOpen"
         />
     </div>
@@ -32,9 +32,12 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { ImageResource, ImageStackResource } from '../types/assets'
+import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
+import { ImageResource, ImageStackResource, StudyObject } from '../types/assets'
+import DicomImage from '../assets/dicom/DicomImage'
+import DicomImageStack from '../assets/dicom/DicomImageStack'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
-import GeneralStudyLoader from '../assets/loaders/GeneralStudyLoader'
+import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
 export default Vue.extend({
@@ -76,10 +79,70 @@ export default Vue.extend({
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {
-                    const stuydLoader = new GeneralStudyLoader()
-                    const studies = stuydLoader.loadFromFileSystem(fileTree)
+                    const studyLoader = new GenericStudyLoader()
+                    studyLoader.loadFromFileSystem(fileTree).then(studyDict => {
+                        const studies = Object.values(studyDict)
+                        let topoImage = null as ImageResource | null
+                        studies.forEach((study: any) => {
+                            const types = study.type.split(':')
+                            if (study.scope === 'radiology') {
+                                if (types[0] === 'image') {
+                                    if (study.format === 'dicom') {
+                                        // Data element should always be a loaded file
+                                        const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.data)
+                                        if (imageId) {
+                                            if (types.length === 1) {
+                                                // Add a single image
+                                                (this.dicomElements as ImageResource[]).push(new DicomImage(
+                                                    study.name, study.data.size, imageId
+                                                ))
+                                            } else if (types[1] === 'series') {
+                                                // Add an image stack
+                                                const imgStack = new DicomImageStack(study.files.length, study.name)
+                                                // Add all loaded files
+                                                for (let i=0; i<study.files.length; i++) {
+                                                    const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
+                                                    if (imageId) {
+                                                        imgStack.push(
+                                                            new DicomImage(study.files[i].name, study.files[i].size, imageId)
+                                                        )
+                                                    }
+                                                }
+                                                // Add URLs that haven't been loaded yet
+                                                for (let i=0; i<study.urls.length; i++) {
+                                                    if (imageId) {
+                                                        imgStack.push(
+                                                            new DicomImage(`${study.name}-${i}`, 0, `wadouri:${study.urls[i]}`)
+                                                        )
+                                                    }
+                                                }
+                                                // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
+                                                if (imgStack.length) {
+                                                    (this.dicomElements as ImageStackResource[]).push(imgStack)
+                                                }
+                                            } else if (types[1] === 'topogram') {
+                                                // Add as a topogram image
+                                                topoImage = new DicomImage(study.name, study.data.size, imageId)
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (study.scope === 'ekg') {
+
+                            }
+                        })
+                        // Attach possible topogram image to all loaded stacks
+                        if (topoImage !== null) {
+                            this.dicomElements.forEach((resource: ImageResource | ImageStackResource) => {
+                                if (resource.isStack) {
+                                    (resource as ImageStackResource).topogram = topoImage
+                                    console.log(resource)
+                                }
+                            })
+                        }
+                    })
                 }
-            }).catch((error: Error) => {
+            }).catch((e: Error) => {
                 // TODO: Implement errors in the file loader
             })
         },

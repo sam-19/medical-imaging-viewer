@@ -9,6 +9,7 @@ import DicomDataProperty from './DicomDataProperty'
 
 class DicomWaveform implements SignalResource {
     protected _active: boolean = false
+    protected _annotations: any[] = []
     protected _channels: SignalChannel[] = []
     protected _samples: number = 0
     protected _id: string
@@ -26,6 +27,9 @@ class DicomWaveform implements SignalResource {
         }
     }
     // Getters and setters
+    get annotations () {
+        return this._annotations
+    }
     get channels () {
         return this._channels
     }
@@ -65,54 +69,69 @@ class DicomWaveform implements SignalResource {
     }
     */
     // Methods
-    extractSignalsFromDicomData (data: any) {
+    extractSignalsFromDicomData (dataSet: any) {
+        const rootEls = dataSet.elements
         // Waveform sequence is stored in the 0x5400,0x0100 tag
-        if (!data.hasOwnProperty('x54000100')) {
+        if (!rootEls.hasOwnProperty('x54000100')) {
             console.error("Provided DICOM dataset did not contain a waveform sequence!")
             return
         }
-        if (!data.x54000100.items) {
+        if (!rootEls.x54000100.items) {
             console.error("Provided DICOM dataset did not contain any waveform data items!")
             return
         }
         // Allocated bits
         const baTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1004)?.getTagHex().substring(1)
-        const ba = data.x54000100.items[0].dataSet.uint16(baTag)
+        const ba = rootEls.x54000100.items[0].dataSet.uint16(baTag)
         if (ba !== 16) {
             console.error(`Provided DICOM dataset has incompatible bit allocation (${ba} bits per sample)!`)
             return
         }
         // Sample interpretation (essentially sample data property type)
         const siTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1006)?.getTagHex().substring(1)
-        const si = data.x54000100.items[0].dataSet.string(siTag)
+        const si = rootEls.x54000100.items[0].dataSet.string(siTag)
         if (si !== 'SS') {
             console.error(`Provided DICOM dataset has incompatible sample interpretation (${si})!`)
             return
         }
         // Number of channels (uint)
         const ncTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0005)?.getTagHex().substring(1)
-        const numChans = data.x54000100.items[0].dataSet.uint16(ncTag)
+        const numChans = rootEls.x54000100.items[0].dataSet.uint16(ncTag)
         // Number of samples (uint)
         const nsTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0010)?.getTagHex().substring(1)
-        this._samples = data.x54000100.items[0].dataSet.uint16(nsTag)
+        this._samples = rootEls.x54000100.items[0].dataSet.uint16(nsTag)
         // Sampling frequency (number string)
         const sfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x001A)?.getTagHex().substring(1)
-        this._resolution = parseFloat(data.x54000100.items[0].dataSet.string(sfTag))
-        if (!data.x54000100.items[0].dataSet.elements || !data.x54000100.items[0].dataSet.elements.x003a0200
-            || !data.x54000100.items[0].dataSet.elements.x003a0200.items
+        this._resolution = parseFloat(rootEls.x54000100.items[0].dataSet.string(sfTag))
+        if (!rootEls.x54000100.items[0].dataSet.elements || !rootEls.x54000100.items[0].dataSet.elements.x003a0200
+            || !rootEls.x54000100.items[0].dataSet.elements.x003a0200.items
         ) {
             console.error('Provided DICOM dataset did not contain any valid channel definitions!')
             return
         }
+        // Save possible annotations
+        if (rootEls.x0040b020.items) {
+            for (const annotation of rootEls.x0040b020.items) {
+                for (const annotation of rootEls.x0040b020.items) {
+                    const annChans = annotation.dataSet?.uint16('x0040a0b0')
+                    const annText = annotation.dataSet?.string('x00700006')
+                    const annCode = annotation.dataSet?.elements?.x0040a043?.dataSet?.string('x00080100')
+                    const rangeType = annotation.dataSet?.string('x0040a130')
+                    const samplePos = annotation.dataSet?.string('x0040a132')
+                    const timeOffset = annotation.dataSet?.string('x0040a138')
+                    const dateTime = annotation.dataSet?.string('x0040a13a')
+                }
+            }
+        }
         // Then the actual waveform data
-        if (!data.x54000100.items[0] || !data.x54000100.items[0].dataSet.elements
-            || !data.x54000100.items[0].dataSet.elements.x54001010
+        if (!rootEls.x54000100.items[0] || !rootEls.x54000100.items[0].dataSet.elements
+            || !rootEls.x54000100.items[0].dataSet.elements.x54001010
         ) {
             console.error('Provided DICOM dataset did not contain waveform data!')
             return
         }
         //const wdTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x1010)?.getTagHex().substring(1)
-        const wfData = data.x54000100.items[0].dataSet
+        const wfData = rootEls.x54000100.items[0].dataSet
         // Waveform padding (not sure if this is needed)
         // See: https://dicom.innolitics.com/ciods/ambulatory-ecg/waveform/54000100/5400100a
         //const wpTag = DicomDataProperty.getPropertyByTagPair(0x5400, 0x100A)?.getTagHex().substring(1)
@@ -137,13 +156,13 @@ class DicomWaveform implements SignalResource {
         const fhTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0221)?.getTagHex().substring(1)
         // Channel notch filter frequency
         const nfTag = DicomDataProperty.getPropertyByTagPair(0x003A, 0x0222)?.getTagHex().substring(1)
-        console.log(data)
-        const wfArray = data.x54000100.items[0].dataSet.byteArray.slice(
+        console.log(dataSet)
+        const wfArray = rootEls.x54000100.items[0].dataSet.byteArray.slice(
             wfData.elements.x54001010.dataOffset,
             wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length
         )
-        for (let i=0; i<data.x54000100.items[0].dataSet.elements.x003a0200.items.length; i++) {
-            const chanItem = data.x54000100.items[0].dataSet.elements.x003a0200.items[i].dataSet
+        for (let i=0; i<rootEls.x54000100.items[0].rootEls.x003a0200.items.length; i++) {
+            const chanItem = rootEls.x54000100.items[0].rootEls.x003a0200.items[i].dataSet
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string(alTag)
             const chanData = {
                 label: chanItem.string(clTag) || altLabel || '??',

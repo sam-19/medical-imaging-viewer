@@ -9,15 +9,17 @@ import dicomParser from 'dicom-parser'
 import { FileSystemItem, StudyLoader, StudyObject } from '../../types/assets'
 const CONFIG_FILE_NAME = 'medigi_study_config.json'
 
-class GeneralStudyLoader implements StudyLoader {
+class GenericStudyLoader implements StudyLoader {
     private getStudyObjectTemplate (): StudyObject {
         return {
+            data: null,
             files: [] as File[],
             format: '',
             meta: {},
             name: '',
             scope: '',
             type: '',
+            urls: [] as string[],
             version: '1.0'
         }
     }
@@ -32,8 +34,96 @@ class GeneralStudyLoader implements StudyLoader {
         let study = this.getStudyObjectTemplate()
         if (config) {
             study = Object.assign(study, config)
-        } else {
-            // Load file
+        }
+        // Preperties that are required of a study object
+        const reqProps = ['format', 'meta', 'scope', 'type']
+        for (const prop of reqProps) {
+            if (prop !== 'meta' && !study[prop as keyof StudyObject]
+                || prop === 'meta' && Object.keys(study[prop as keyof StudyObject]).length === 0
+            ) {
+                // Try to load the file, starting with DICOM parser
+                const byteArray = new Uint8Array(await file.arrayBuffer())
+                try {
+                    const dataSet = dicomParser.parseDicom(byteArray)
+                    if (!study.format) {
+                        // DICOM format
+                        study.format = 'dicom'
+                    }
+                    if (!study.meta.instanceId) {
+                        // Save study instance UID
+                        study.meta.instanceId = dataSet.string('x0020000d') || ''
+                    }
+                    if (!study.meta.modality) {
+                        study.meta.modality = (dataSet.string('x00080060') || '').toLowerCase()
+                    }
+                    // First try if this is a DICOM image file
+                    const imageType = dataSet.string('x00080008')
+                    if (imageType !== undefined) {
+                        // This is a radiological image
+                        if (!study.scope) {
+                            study.scope = 'radiology'
+                        }
+                        // Use the file as data object for WADOImageLoader
+                        study.data = file
+                        if (!study.type) {
+                            const typeParts = imageType.split('\\')
+                            // Part 3 defines a possible localizer (topogram) image
+                            if (typeParts[2].toLowerCase() === 'localizer') {
+                                study.type = 'image:topogram'
+                            } else {
+                                study.type = 'image'
+                            }
+                        }
+                        // Add possible related study instances
+                        if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
+                            for (const relItem of dataSet.elements.x00081140.items) {
+                                if (relItem.dataSet) {
+                                    if (!study.meta.relatedStudies) {
+                                        study.meta.relatedStudies = []
+                                    }
+                                    study.meta.relatedStudies.push(relItem.dataSet.string('x00081150'))
+                                }
+                            }
+                        }
+                    } else if (dataSet.elements.x54000100) {
+                        // This is a waveform sequence
+                        if (study.meta.modality === 'ecg') {
+                            if (!study.scope) {
+                                study.scope = 'ekg'
+                            }
+                            if (!study.type) {
+                                study.type = dataSet.string('x00081030') || ''
+                            }
+                            // Use the parsed dataset as data object
+                            study.data = dataSet
+                        }
+                    } else if (dataSet.elements.x00420011) {
+                        // This is an encapsulated document
+                        if (!study.scope) {
+                            study.scope = 'document'
+                        }
+                        if (!study.name) {
+                            study.name = dataSet.string('x00420010') || ''
+                        }
+                        if (!study.meta.mime) {
+                            study.meta.mime = dataSet.string('x00420012') || ''
+                        }
+                        // Document data can be retrieved from x00420011
+                        // study.data = dataSet.string('x00420011')
+                    }
+                } catch (e: any) {
+                    if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
+                        // This was not a DICOM file, try something else
+                    } else {
+                        console.error(e)
+                    }
+                }
+                break
+            }
+        }
+        if (!study.name) {
+            // Use file name as default
+            study.name = file.name
         }
         return study
     }
@@ -44,7 +134,6 @@ class GeneralStudyLoader implements StudyLoader {
      * @return a promise containing the loaded studies as { name: StudyObject }
      */
     public async loadFromFileSystem (fileTree: FileSystemItem, config: any = {}): Promise<any> {
-        console.log(fileTree)
         const studies = {} as any
         if (fileTree) {
             let rootDir = fileTree
@@ -55,7 +144,6 @@ class GeneralStudyLoader implements StudyLoader {
             // Check for possible config file in the root directory
             if (rootDir.files.length) {
                 for (let i=0; i<rootDir.files.length; i++) {
-                    console.log(rootDir.files[i].name, CONFIG_FILE_NAME)
                     if (rootDir.files[i].name === CONFIG_FILE_NAME) {
                         // Remove the config file from the directory
                         const confFile = rootDir.files.splice(i, 1)[0]
@@ -105,7 +193,15 @@ class GeneralStudyLoader implements StudyLoader {
                         Object.assign({ name: rootDir.name }, config.studies[rootDir.name])
                     )
                     for (let i=0; i<rootDir.files.length; i++) {
-                        study.files.push(rootDir.files[i].file as File)
+                        if (rootDir.files[i].file) {
+                            study.files.push(rootDir.files[i].file as File)
+                        } else if (rootDir.files[i].url) {
+                            study.urls.push(rootDir.files[i].url as string)
+                        }
+                    }
+                    // Add a series tag if there is more than one file
+                    if (study.files.length > 1 && !study.type.endsWith(':series')) {
+                        study.type += ':series'
                     }
                     studies[rootDir.name] = study
                 }
@@ -131,7 +227,14 @@ class GeneralStudyLoader implements StudyLoader {
                             )
                         )
                         for (let j=0; j<rootDir.directories[i].files.length; j++) {
-                            study.files.push(rootDir.directories[i].files[j].file as File)
+                            if (rootDir.directories[i].files[j].file) {
+                                study.files.push(rootDir.directories[i].files[j].file as File)
+                            } else if (rootDir.directories[i].files[j].url) {
+                                study.urls.push(rootDir.directories[i].files[j].url as string)
+                            }
+                        }
+                        if (study.files.length > 1 && !study.type.endsWith(':series')) {
+                            study.type += ':series'
                         }
                         studies[rootDir.directories[i].name] = study
                     }
@@ -140,8 +243,8 @@ class GeneralStudyLoader implements StudyLoader {
                 console.warn("Dropped item had an empty root directory!")
             }
         }
-        console.log(studies)
+        return studies
     }
 }
 
-export default GeneralStudyLoader
+export default GenericStudyLoader

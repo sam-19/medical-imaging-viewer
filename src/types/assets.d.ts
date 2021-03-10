@@ -11,6 +11,7 @@ interface FileSystemItem {
     directories: FileSystemItem[]
     files: FileSystemItem[]
     file?: File
+    url?: string
 }
 interface FileLoader {
     readFilesFromSource(source: DragEvent|string): Promise<FileSystemItem|undefined>
@@ -21,12 +22,14 @@ interface StudyLoader {
 }
 // StudyObject version 1.0
 interface StudyObject {
+    data: any
     files: File[]
     format: string
-    meta: object
+    meta: any
     name: string
     scope: string
     type: string
+    urls: string[]
     version: string
 }
 interface MediaResource {
@@ -63,6 +66,7 @@ interface ImageStackResource extends MediaResource {
     images: ImageResource[]
     linkedPosition: number
     masterLinkPosition: number
+    topogram: ImageResource | null
     add(image: ImageResource): void
     getIndexById(id: string): number
     getIndexByUrl(url: string): number
@@ -77,6 +81,7 @@ interface ImageStackResource extends MediaResource {
 }
 
 interface SignalResource {
+    annotations: any[]
     channels: { label: string, signals: number[] }[]
     name: string
     resolution: number // Highest resolution in this resource

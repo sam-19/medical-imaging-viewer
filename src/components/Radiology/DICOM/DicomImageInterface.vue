@@ -16,7 +16,7 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <radiology-sidebar
-                :items="dicomElements"
+                :items="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />
@@ -48,7 +48,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone from 'cornerstone-core'
+import cornerstone, { Image } from 'cornerstone-core'
 import cornerstoneMath from 'cornerstone-math'
 import cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
@@ -79,7 +79,7 @@ export default Vue.extend({
         DicomImagePlaceholder: () => import('./DicomImagePlaceholder.vue'),
     },
     props: {
-        items: Array,
+        resources: Array,
         sidebarOpen: Boolean,
     },
     data () {
@@ -91,7 +91,6 @@ export default Vue.extend({
                 lastUpdatedTopo: null as any,
             },
             // Loaded elements
-            dicomElements: [] as ImageResource[] | ImageStackResource[],
             topogramElement: null as null | ImageResource,
             gridLayout: null as null | number[],
             // Other properties
@@ -109,9 +108,10 @@ export default Vue.extend({
             this.elementsChanged
             // Array.filter is a pain to make work in TypeScript
             const items = []
-            for (let i=0; i<this.dicomElements.length; i++) {
-                if (this.dicomElements[i].isActive) {
-                    items.push(this.dicomElements[i])
+            for (let i=0; i<this.resources.length; i++) {
+                const resource = this.resources[i] as ImageResource
+                if (resource.isActive) {
+                    items.push(resource)
                 }
                 // Make sure we don't exceed predefined grid dimensions
                 if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
@@ -124,7 +124,7 @@ export default Vue.extend({
         },
         allResourcesLinked (): boolean {
             this.elementsChanged
-            if (!this.dicomElements.length) {
+            if (!this.resources.length) {
                 // Show link icon if there are no elements
                 return false
             }
@@ -148,7 +148,7 @@ export default Vue.extend({
                 if (file.name === TOPOGRAM_NAME || overrideName === TOPOGRAM_NAME) {
                     this.topogramElement = new DicomImage(file.name, file.size, imageId)
                 } else {
-                    (this.dicomElements as ImageResource[]).push(new DicomImage(
+                    (this.resources as ImageResource[]).push(new DicomImage(
                         overrideName ? overrideName : file.name,
                         file.size,
                         imageId
@@ -173,7 +173,7 @@ export default Vue.extend({
             // Don't add an empty image stack
             if (imgStack.length) {
                 // Add cover image
-                (this.dicomElements as ImageStackResource[]).push(imgStack)
+                (this.resources as ImageStackResource[]).push(imgStack)
             }
             this.updateElements()
         },
@@ -220,9 +220,10 @@ export default Vue.extend({
             return indices
         },
         getItemById: function (id: string): ImageResource | ImageStackResource | undefined {
-            for (let i=0; i<this.dicomElements.length; i++) {
-                if (this.dicomElements[i].id === id) {
-                    return this.dicomElements[i]
+            for (let i=0; i<this.resources.length; i++) {
+                const resource = this.resources[i] as ImageResource
+                if (resource.id === id) {
+                    return resource
                 }
             }
             return undefined
@@ -310,15 +311,16 @@ export default Vue.extend({
             return false
         },
         linkAllResources: function (value: boolean) {
-            for (let i=0; i<this.dicomElements.length; i++) {
-                if (this.dicomElements[i].isActive && this.dicomElements[i].isStack
-                    && this.dicomElements[i].isLinked !== value
+            for (let i=0; i<this.resources.length; i++) {
+                const resource = this.resources[i] as ImageResource
+                if (resource.isActive && resource.isStack
+                    && resource.isLinked !== value
                 ) {
                     if (value) {
-                        (this.dicomElements[i] as ImageStackResource)
+                        (this.resources[i] as ImageStackResource)
                         .link(this.$store.state.linkedScrollPosition)
                     } else {
-                        (this.dicomElements[i] as ImageStackResource).unlink()
+                        (this.resources[i] as ImageStackResource).unlink()
                     }
                     this.updateElements()
                 }
@@ -337,10 +339,11 @@ export default Vue.extend({
             ]
         },
         removeDICOMResource: function (id: string) {
-            for (let i=0; i<this.dicomElements.length; i++) {
-                if (this.dicomElements[i].id === id) {
-                    this.dicomElements[i].removeFromCache()
-                    this.dicomElements.splice(i, 1)
+            for (let i=0; i<this.resources.length; i++) {
+                const resource = this.resources[i] as ImageResource
+                if (resource.id === id) {
+                    resource.removeFromCache()
+                    this.resources.splice(i, 1)
                     this.updateElements()
                 }
             }
@@ -450,11 +453,12 @@ export default Vue.extend({
                 const srcId = source.id.split('-')
                 const tgtId = target.id.split('-')
                 let srcEl, tgtEl = null
-                for (let i=0; i<this.dicomElements.length; i++) {
-                    if (this.dicomElements[i].id === srcId[1]) {
-                        srcEl = this.dicomElements[i]
-                    } else if (this.dicomElements[i].id === tgtId[1]) {
-                        tgtEl = this.dicomElements[i]
+                for (let i=0; i<this.resources.length; i++) {
+                    const resource = this.resources[i] as ImageResource
+                    if (resource.id === srcId[1]) {
+                        srcEl = this.resources[i]
+                    } else if (resource.id === tgtId[1]) {
+                        tgtEl = this.resources[i]
                     }
                 }
                 // Make sure that this is an actual active element and an actual scroll event

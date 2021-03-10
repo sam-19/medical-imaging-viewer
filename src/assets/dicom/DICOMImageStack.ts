@@ -17,6 +17,7 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
     // to allow scrolling relative to that starting point.
     private _masterLinkPosition: number = -1
     private _preloaded: number = 0
+    private _topogram: null | ImageResource = null
 
     constructor (size: number, name: string) {
         super('', size, 'image:stack', '')
@@ -68,6 +69,12 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
     get size () {
         // Alias for length
         return this.length
+    }
+    get topogram () {
+        return this._topogram
+    }
+    set topogram (img: ImageResource | null) {
+        this._topogram = img
     }
     public add (image: ImageResource) {
         // Alias for push()
