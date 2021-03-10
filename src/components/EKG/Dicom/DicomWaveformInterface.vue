@@ -134,7 +134,7 @@ export default Vue.extend({
     },
     methods: {
         addFileAsRecording: function (file: File) {
-            // This is SO BAD, there has to be a better way
+            // This is SO BAD, change this to a custom method utilizing dicomParser
             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
             if (imageId) {
                 cornerstone.loadImage(imageId).then((image: any) => {
@@ -156,6 +156,8 @@ export default Vue.extend({
             return [[rowPos, layout[0]], [colPos, layout[1]]]
         },
         handleFileDrop: async function (event: DragEvent) {
+            (this.$root as any).handleFileDrop(event)
+            return
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {

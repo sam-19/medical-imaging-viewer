@@ -32,11 +32,10 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
+import { ImageResource, ImageStackResource } from '../types/assets'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
+import GeneralStudyLoader from '../assets/loaders/GeneralStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
-
-const TOPOGRAM_NAME = '_topogram'
 
 export default Vue.extend({
     components: {
@@ -77,45 +76,8 @@ export default Vue.extend({
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {
-                    let rootDir = fileTree
-                    while (rootDir.files && !rootDir.files.length &&
-                           rootDir.directories && rootDir.directories.length === 1
-                    ) {
-                        // Recurse until we arrive at the root folder of the image sets
-                        rootDir = rootDir.directories[0]
-                    }
-                    // Next, check if this is a single file dir or several dirs
-                    if (!rootDir.directories?.length && rootDir.files?.length) {
-                        if (rootDir.files.length > 1) {
-                            if (!rootDir.path) {
-                                // If this is the "pseudo" root directory, add files as separate images
-                                // (as they were dragged as separate files into the viewer)
-                            } else {
-                                // Add multiple files as an image stack
-                            }
-                        } else {
-                            // Single file as an image
-                        }
-                    } else if (rootDir.directories?.length) {
-                        // Try to add each individual dir as an image or image stack
-                        // First check that each directory really contains only files, skip those that don't
-                        for (let i=0; i<rootDir.directories.length; i++) {
-                            if (rootDir.directories[i].directories?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it contained subdirectories.`)
-                                continue
-                            } else if (!rootDir.directories[i].files?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it was empty.`)
-                                continue
-                            } else if (rootDir.directories[i].files?.length === 1) {
-                                // Single file directory as single image
-                                const overrideName = rootDir.directories[i].name === TOPOGRAM_NAME ? TOPOGRAM_NAME : undefined
-                            } else {
-                                // Add several files in a directory as a separate image stack
-                            }
-                        }
-                    } else {
-                        console.warn("Dropped item had an empty root directory!")
-                    }
+                    const stuydLoader = new GeneralStudyLoader()
+                    const studies = stuydLoader.loadFromFileSystem(fileTree)
                 }
             }).catch((error: Error) => {
                 // TODO: Implement errors in the file loader

@@ -8,12 +8,26 @@ interface FileSystemItem {
     name: string
     path: string
     type: 'directory' | 'file'
-    directories?: FileSystemItem[]
-    files?: FileSystemItem[]
+    directories: FileSystemItem[]
+    files: FileSystemItem[]
     file?: File
 }
 interface FileLoader {
-    readFilesFromSource(source: DragEvent | string): Promise<FileSystemItem|undefined>
+    readFilesFromSource(source: DragEvent|string): Promise<FileSystemItem|undefined>
+}
+interface StudyLoader {
+    loadFromFile(file: File, config?: object): Promise<StudyObject>
+    loadFromFileSystem(fileTree: FileSystemItem, config?: object): Promise<any>
+}
+// StudyObject version 1.0
+interface StudyObject {
+    files: File[]
+    format: string
+    meta: object
+    name: string
+    scope: string
+    type: string
+    version: string
 }
 interface MediaResource {
     dimensions: number[]
@@ -83,4 +97,10 @@ interface SignalChannel {
     timeSkew: number
 }
 
-export { FileSystemItem, FileLoader, MediaResource, ImageResource, ImageStackResource, SignalResource, SignalChannel }
+export {
+    FileSystemItem, FileLoader,
+    MediaResource,
+    ImageResource, ImageStackResource,
+    SignalResource, SignalChannel,
+    StudyLoader, StudyObject
+}

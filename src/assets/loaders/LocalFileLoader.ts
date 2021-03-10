@@ -53,7 +53,7 @@ class LocalFileLoader implements FileLoader {
             if (entry.isFile) {
                 // Add files to root directory
                 const file = await new Promise((resolve, reject) => entry.file(resolve, reject)) as File
-                dir.files?.push({ name: file.name, path: `${dir.path}/${file.name}`, type: 'file', file: file})
+                dir.files.push({ name: file.name, path: `${dir.path}/${file.name}`, type: 'file', file: file, directories: [], files: []})
             } else if (entry.isDirectory) {
                 // New directory encountered
                 const dirReader = entry.createReader()

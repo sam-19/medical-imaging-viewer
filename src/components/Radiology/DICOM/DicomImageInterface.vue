@@ -232,6 +232,8 @@ export default Vue.extend({
          * @param event
          */
         handleFileDrop: async function (event: DragEvent) {
+            (this.$root as any).handleFileDrop(event)
+            return
             const fileLoader = new LocalFileLoader()
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {
