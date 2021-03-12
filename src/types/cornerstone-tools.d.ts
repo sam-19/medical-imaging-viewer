@@ -12,6 +12,7 @@ declare module 'cornerstone-tools' {
         Hammer: any
     }
     const toolColors: {
+        getActiveColor (): any
         setActiveColor (color: string): void
         setToolColor (color: string): void
     }
