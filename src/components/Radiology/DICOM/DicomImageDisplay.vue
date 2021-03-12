@@ -640,7 +640,7 @@ export default Vue.extend({
                         cornerstoneTools.setToolActive('OrientationMarkers', {})
                         // Add reference lines tool (must be done after setting up synchronizers!)
                         this.resource.currentPosition = this.resource.currentPosition
-                        const displayDicomImage = () => {
+                        const displayMainImage = () => {
                             // Shorthand for these operations, as they are needed in a few (async) paths
                             this.$store.dispatch('tools:re-enable-active')
                             this.displayImage(true)
@@ -733,13 +733,13 @@ export default Vue.extend({
                                         return refLine
                                     },
                                 })
-                                displayDicomImage()
+                                displayMainImage()
                             }).catch((reason: any) => {
                                 console.error('Loading topogram failed!', reason)
-                                displayDicomImage()
+                                displayMainImage()
                             })
                         } else {
-                            displayDicomImage()
+                            displayMainImage()
                         }
                         this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
                         this.isFirstLoaded = true
