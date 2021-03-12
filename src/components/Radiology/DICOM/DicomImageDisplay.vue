@@ -11,6 +11,42 @@
         >
             {{ $t('Delete') }}
         </div>
+        <div ref="orientation-marker-top"
+            :class="[
+                'medigi-viewer-orientation-marker',
+                'medigi-viewer-orientation-marker-top',
+                { 'medigi-viewer-hidden': !orientationMarkers.top },
+            ]"
+        >
+            {{ orientationMarkers.top }}
+        </div>
+        <div ref="orientation-marker-left"
+            :class="[
+                'medigi-viewer-orientation-marker',
+                'medigi-viewer-orientation-marker-left',
+                { 'medigi-viewer-hidden': !orientationMarkers.left },
+            ]"
+        >
+            {{ orientationMarkers.left }}
+        </div>
+        <div ref="orientation-marker-bottom"
+            :class="[
+                'medigi-viewer-orientation-marker',
+                'medigi-viewer-orientation-marker-bottom',
+                { 'medigi-viewer-hidden': !orientationMarkers.bottom },
+            ]"
+        >
+            {{ orientationMarkers.bottom }}
+        </div>
+        <div ref="orientation-marker-right"
+            :class="[
+                'medigi-viewer-orientation-marker',
+                'medigi-viewer-orientation-marker-right',
+                { 'medigi-viewer-hidden': !orientationMarkers.right },
+            ]"
+        >
+            {{ orientationMarkers.right }}
+        </div>
         <div ref="container" :id="`container-${id}-${instanceNum}`"
             class="medigi-viewer-image-container"
             @contextmenu.prevent
@@ -48,14 +84,12 @@
 <script lang="ts">
 import Vue from 'vue'
 import cornerstone from 'cornerstone-core'
-import cornerstoneTools, { addToolForElement } from 'cornerstone-tools'
+import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneMath from 'cornerstone-math'
 import { ImageResource } from '../../../types/assets'
 import TopogramReferenceLineTool from '../../../assets/tools/TopogramReferenceLineTool'
-
-const draw = cornerstoneTools.importInternal('drawing/draw')
-const drawLine = cornerstoneTools.importInternal('drawing/drawLine')
-const getNewContext = cornerstoneTools.importInternal('drawing/getNewContext')
+// Some additional Cornerstone Tools methods
+const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
 
 let INSTANCE_NUM = 0
 const CLICK_DISTANCE_THRESHOLD = 5
@@ -89,6 +123,7 @@ export default Vue.extend({
             //scrollProgress: 0, // Progress towards a scroll step
             annotationMenu: null as object | null, // Annotation selected by the user
             viewport: null as any, // Save viewport settings for image stacks
+            orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
             mainImageLoaded: false,
             topoImageLoaded: false,
@@ -155,6 +190,7 @@ export default Vue.extend({
             if (this.dicomEl && this.viewport) {
                 this.viewport.hflip = !this.viewport.hflip
                 this.displayImage(false)
+                this.updateOrientationMarkers()
             }
         },
         /**
@@ -398,11 +434,13 @@ export default Vue.extend({
                 //this.topoEl.style.transform = `scale(${Math.min(1, maxW/topoW, maxH/topoH)})`
                 cornerstone.resize(this.topoEl, false)
             }
+            this.updateOrientationMarkers()
         },
         rotateBy: function (angle: number) {
             if (this.dicomEl && this.viewport) {
                 this.viewport.rotation += angle
                 this.displayImage(false)
+                this.updateOrientationMarkers()
             }
         },
         /**
@@ -489,6 +527,140 @@ export default Vue.extend({
             this.linkedOffset = null
         },
          */
+        /**
+         * Update the displayed orientation markers when image orientation has changed.
+         * Cornerstone Tools orientation markers prints the markers at the edges of the image, which can be troublesome
+         * when zooming and panning the image.
+         * This method is mostly copied from the aforementioned tool.
+         */
+        updateOrientationMarkers: function () {
+            if (!this.mainImageLoaded) {
+                return
+            }
+            const imagePlane = cornerstone.metaData.get(
+                'imagePlaneModule',
+                this.resource.currentImage.url
+            ) as any
+            if (!imagePlane || !imagePlane.rowCosines || !imagePlane.columnCosines) {
+                return
+            }
+            const rowVec3 = convertToVector3(imagePlane.rowCosines)
+            const rowAbs = new cornerstoneMath.Vector3(
+                Math.abs(rowVec3.x), Math.abs(rowVec3.y), Math.abs(rowVec3.z)
+            )
+            const ds = [this.$t('orientation.right'), this.$t('orientation.left')]
+            const ap = [this.$t('orientation.anterior'), this.$t('orientation.posterior')]
+            const cc = [this.$t('orientation.cranial'), this.$t('orientation.caudal')]
+            if (rowVec3.x < 0) ds.reverse()
+            if (rowVec3.y < 0) ap.reverse()
+            if (rowVec3.z < 0) cc.reverse()
+            const colVec3 = convertToVector3(imagePlane.columnCosines)
+            const colAbs = new cornerstoneMath.Vector3(
+                Math.abs(colVec3.x), Math.abs(colVec3.y), Math.abs(colVec3.z)
+            )
+            // Here is the main difference: I feel the default tool uses a way too small threshold and shows
+            // confusing values if the image plane is even the slightest bit askew
+            const MIN = 0.5 // About 30 degrees in radians
+            const markers = {
+                bottom: '', left: '', right: '', top: '' // Reset the labels
+            }
+            // First left and right markers
+            for (let i = 0; i < 3; i++) {
+                if (rowAbs.x > MIN && rowAbs.x > rowAbs.y && rowAbs.x > rowAbs.z) {
+                    markers.left += ds[0].toString()
+                    markers.right += ds[1].toString()
+                    rowAbs.x = 0
+                } else if (rowAbs.y > MIN && rowAbs.y > rowAbs.x && rowAbs.y > rowAbs.z) {
+                    markers.left += ap[0].toString()
+                    markers.right += ap[1].toString()
+                    rowAbs.y = 0
+                } else if (rowAbs.z > MIN && rowAbs.z > rowAbs.x && rowAbs.z > rowAbs.y) {
+                    markers.left += cc[0].toString()
+                    markers.right += cc[1].toString()
+                    rowAbs.z = 0
+                } else if (rowAbs.x > MIN && rowAbs.y > MIN && rowAbs.x === rowAbs.y) {
+                    markers.left += ds[0].toString() + ap[0].toString()
+                    markers.right += ds[1].toString() + ap[1].toString()
+                    rowAbs.x = 0
+                    rowAbs.y = 0
+                } else if (rowAbs.x > MIN && rowAbs.z > MIN && rowAbs.x === rowAbs.z) {
+                    markers.left += ds[0].toString() + cc[0].toString()
+                    markers.right += ds[1].toString() + cc[1].toString()
+                    rowAbs.x = 0
+                    rowAbs.z = 0
+                } else if (rowAbs.y > MIN && rowAbs.z > MIN && rowAbs.y === rowAbs.z) {
+                    markers.left += ap[0].toString() + cc[0].toString()
+                    markers.right += ap[1].toString() + cc[1].toString()
+                    rowAbs.y = 0
+                    rowAbs.z = 0
+                } else {
+                    break
+                }
+            }
+            // Then top and bottom markers
+            for (let i = 0; i < 3; i++) {
+                if (colAbs.x > MIN && colAbs.x > colAbs.y && colAbs.x > colAbs.z) {
+                    markers.top += ds[0].toString()
+                    markers.bottom += ds[1].toString()
+                    colAbs.x = 0
+                } else if (colAbs.y > MIN && colAbs.y > colAbs.x && colAbs.y > colAbs.z) {
+                    markers.top += ap[0].toString()
+                    markers.bottom += ap[1].toString()
+                    colAbs.y = 0
+                } else if (colAbs.z > MIN && colAbs.z > colAbs.x && colAbs.z > colAbs.y) {
+                    markers.top += cc[0].toString()
+                    markers.bottom += cc[1].toString()
+                    colAbs.z = 0
+                } else if (colAbs.x > MIN && colAbs.y > MIN && colAbs.x === colAbs.y) {
+                    markers.top += ds[0].toString() + ap[0].toString()
+                    markers.bottom += ds[1].toString() + ap[1].toString()
+                    colAbs.x = 0
+                    colAbs.y = 0
+                } else if (colAbs.x > MIN && colAbs.z > MIN && colAbs.x === colAbs.z) {
+                    markers.top += ds[0].toString() + cc[0].toString()
+                    markers.bottom += ds[1].toString() + cc[1].toString()
+                    colAbs.x = 0
+                    colAbs.z = 0
+                } else if (colAbs.y > MIN && colAbs.z > MIN && colAbs.y === colAbs.z) {
+                    markers.top += ap[0].toString() + cc[0].toString()
+                    markers.bottom += ap[1].toString() + cc[1].toString()
+                    colAbs.y = 0
+                    colAbs.z = 0
+                } else {
+                    break
+                }
+            }
+            // Detect and correct for inversion and rotation of the image.
+            // There should be a way to get the initial vector to include this, but I haven't found it.
+            if (this.viewport) {
+                if (this.viewport.hflip) {
+                    [markers.left, markers.right] = [markers.right, markers.left]
+                }
+                if (this.viewport.vflip) {
+                    [markers.top, markers.bottom] = [markers.bottom, markers.top]
+                }
+                if (this.viewport.rotation > 45) {
+                    for (let i=this.viewport.rotation; i>45; i=i-90) {
+                        // Rotate markers 90 degrees at a time
+                        [markers.top, markers.right, markers.bottom, markers.left]
+                            = [markers.left, markers.top, markers.right, markers.bottom]
+                    }
+                } else if (this.viewport.rotation < -45) {
+                    for (let i=this.viewport.rotation; i<-45; i=i+90) {
+                        [markers.top, markers.right, markers.bottom, markers.left]
+                            = [markers.right, markers.bottom, markers.left, markers.top]
+                    }
+                }
+            }
+            this.orientationMarkers = {...markers}
+            // Update marker positions
+            const leftOffset = `${this.dicomEl.offsetWidth/2 - 20}px`
+            const topOffset = `${this.dicomEl.offsetHeight/2 - 20}px`
+            ;(this.$refs['orientation-marker-top'] as HTMLElement).style.left = leftOffset
+            ;(this.$refs['orientation-marker-bottom'] as HTMLElement).style.left = leftOffset
+            ;(this.$refs['orientation-marker-left'] as HTMLElement).style.top = topOffset
+            ;(this.$refs['orientation-marker-right'] as HTMLElement).style.top = topOffset
+        },
         /**
          * Zoom in our out of the displayed image.
          * @param {number} z zoom amount in percents.
@@ -613,7 +785,7 @@ export default Vue.extend({
             this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
+            //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
@@ -810,7 +982,7 @@ export default Vue.extend({
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
+                //cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
@@ -867,6 +1039,28 @@ export default Vue.extend({
     }
         .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation:hover {
             background-color: var(--medigi-viewer-background-highlight);
+        }
+    .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker {
+        position: absolute;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        z-index: 999; /* Almost on top */
+        pointer-events: none;
+    }
+        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-bottom {
+            bottom: 0;
+        }
+        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-left {
+            left: 0;
+        }
+        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-right {
+            right: 0;
+        }
+        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-top {
+            top: 0;
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;

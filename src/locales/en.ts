@@ -6,6 +6,14 @@
 
 const messagesEN = {
     days_short: "d",
+    orientation: {
+        anterior: 'A',
+        caudal: 'F',
+        cranial: 'H',
+        left: 'L',
+        posterior: 'P',
+        right: 'R'
+    },
     sidebaritem: {
         channelcount: '%{count} channels',
         imagecount: '%{count} images',
