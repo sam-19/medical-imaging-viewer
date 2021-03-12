@@ -265,6 +265,9 @@ body {
     .medigi-viewer div {
         box-sizing: border-box;
     }
+    .medigi-viewer-hidden {
+        display: none;
+    }
     .medigi-viewer-interface-dropdown {
         position: absolute;
         top: 10px;

@@ -583,9 +583,6 @@ export default Vue.extend({
     .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
         width: 80px;
     }
-.medigi-viewer-hidden {
-    display: none;
-}
 /* Do not allow adjusting the range */
 .medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
 .medigi-viewer-waveform-wrapper .rangeslider-grabber-max {

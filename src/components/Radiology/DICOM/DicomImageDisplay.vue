@@ -33,8 +33,11 @@
         <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
         >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
-        <div v-if="resource.topogram && resource.isStack" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
-            class="medigi-viewer-topogram"
+        <div v-if="resource.topogram" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
+            :class="[
+                'medigi-viewer-topogram',
+                { 'medigi-viewer-hidden': !topoImageLoaded }
+            ]"
             @contextmenu.prevent
         >
         </div>
@@ -670,52 +673,30 @@ export default Vue.extend({
                                 // Add event listener for new images to update the topogram
                                 //this.dicomEl.addEventListener('cornerstonenewimage', this.refreshTopogram)
                                 // We need to pass stack tools even to single images to enable reference lines
-                                const stackOpts = {
-                                    currentImageIdIndex: 0,
-                                    imageIds: [this.resource.url]
-                                }
-                                cornerstoneTools.addStackStateManager(this.topoEl, ['stack', 'Crosshairs'])
-                                cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
-                                // Register element to synchronizers
-                                //this.synchronizers.referenceLines.add(this.topoEl)
-                                // The crosshairs tool just doesn't play well with the topogram
-                                //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
-                                // Add reference lines tool (must be done after setting up synchronizers!)
-                                //cornerstoneTools.addToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
+                                //const stackOpts = {
+                                //    currentImageIdIndex: 0,
+                                //    imageIds: [this.resource.url]
+                                //}
+                                //cornerstoneTools.addStackStateManager(this.topoEl, ['stack', 'Crosshairs'])
+                                //cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
+                                // Display the topogram and set up synchronizer
                                 cornerstone.displayImage(this.topoEl, image, vp)
                                 this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
                                     'cornerstonenewimage',
                                     (synchronizer: any, source: any, target: any, event: any) => {
-                                        /*
-                                        const imageId = e.detail.image.imageId
-                                        const corrRefLine = this.resource.getRefLineForImage(imageId)
-                                        const topoEl = cornerstone.getEnabledElement(this.topoEl)
-                                        const context = getNewContext(topoEl.canvas)
-                                        const color = cornerstoneTools.toolColors.getActiveColor()
-                                        if (!imageId || !corrRefLine || !topoEl || !topoEl.canvas || !context || !color) {
-                                            return
-                                        }
-                                        draw(context, (context: any) => {
-                                            drawLine(
-                                                context,
-                                                this.topoEl,
-                                                corrRefLine.start,
-                                                corrRefLine.end,
-                                                { color }
-                                            )
-                                        }) */
                                         cornerstone.updateImage(this.topoEl, false)
                                     }
                                 )
                                 this.topogramSynchronizer.add(this.dicomEl)
                                 cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
+                                    // Unique name to prevent tools from different topograms from conflicting with each other
                                     { name: `TopogramReferenceLines-${this.instanceNum}` }
                                 )
                                 cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
                                     synchronizationContext: this.topogramSynchronizer,
+                                    // Pass a custom method to the reference line tool to get cropped and scaled line dimensions
                                     getReferenceLine: () => {
                                         const refLine = this.resource.getRefLineForImage()
-                                        // We may need to adjust the reference line in topogram dimensions have been scaled down
                                         const topoDims = this.getTopogramDimensions()
                                         if (!refLine || !topoDims) {
                                             return undefined
@@ -851,13 +832,13 @@ export default Vue.extend({
         if (this.resource.topogram && this.topoImageLoaded) {
             try {
                 // Same for topogram
-                cornerstoneTools.clearToolState(this.topoEl, 'stack')
-                cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
+                //cornerstoneTools.clearToolState(this.topoEl, 'stack')
+                //cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
                 cornerstoneTools.setToolDisabled(`TopogramReferenceLines-${this.instanceNum}`)
                 cornerstoneTools.removeToolForElement(this.topoEl, TopogramReferenceLineTool)
                 //cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
-                this.synchronizers.stackScroll.remove(this.topoEl)
-                this.synchronizers.referenceLines.remove(this.topoEl)
+                //this.synchronizers.stackScroll.remove(this.topoEl)
+                //this.synchronizers.referenceLines.remove(this.topoEl)
                 cornerstone.disable(this.topoEl)
             } catch (e) {}
         }
@@ -886,8 +867,6 @@ export default Vue.extend({
     }
         .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation:hover {
             background-color: var(--medigi-viewer-background-highlight);
-        }.medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation.medigi-viewer-hidden {
-            display: none;
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;
