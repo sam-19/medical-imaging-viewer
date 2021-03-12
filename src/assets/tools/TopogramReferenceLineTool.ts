@@ -1,12 +1,12 @@
 /** MEDIGI TOPOGRAM REFERENCE LINE TOOL
- * A replacement for the default reference lines tool specifically
- * for topogram elements.
+ * A replacement for the default reference lines tool specifically for topogram elements.
+ * It includes scaling of the reference line (at the time of writing this tool https://github.com/cornerstonejs/cornerstone/pull/476 was not merged).
  * @package    medigi-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
-import cornerstone, { EnabledElement } from 'cornerstone-core'
+import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 
 const BaseTool = cornerstoneTools.importInternal('base/BaseTool')
@@ -18,7 +18,6 @@ const waitForEnabledElementImageToLoad = cornerstoneTools.importInternal('util/w
 const renderActiveReferenceLine = (context: any, eventData: any, referenceLine: any, targetElement: any) => {
     const imageId = eventData.image.imageId
     const color = cornerstoneTools.toolColors.getActiveColor()
-    console.log(referenceLine)
     if (!imageId || !referenceLine || !targetElement || !context || !color) {
         return
     }
@@ -34,9 +33,9 @@ const renderActiveReferenceLine = (context: any, eventData: any, referenceLine: 
 }
 
 export default class TopogramReferenceLineTool extends BaseTool {
-    constructor(props = {}) {
+    constructor(props: any = {}) {
         const defaultProps = {
-            name: 'TopogramReferenceLines',
+            name: `TopogramReferenceLines`,
             mixins: ['enabledOrDisabledBinaryTool'],
             configuration: {
                 renderer: renderActiveReferenceLine,
@@ -59,7 +58,7 @@ export default class TopogramReferenceLineTool extends BaseTool {
         this.getReferenceLine = conf.getReferenceLine || null
         this.forceImageUpdate(element)
       }
-    
+
     disabledCallback(element: HTMLElement) {
         this.forceImageUpdate(element)
     }

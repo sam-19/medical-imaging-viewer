@@ -165,8 +165,8 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
         let endPoint = projectPatientPointToImagePlane(points.end, topoImagePlane)
         this._topogramIntersections[this._images[0].url] = [ startPoint, endPoint ]
         // Save the first points for bounds calculation (smaller before larger)
-        this._topogramBounds = { 
-            x: [ Math.min(startPoint.x, endPoint.x), Math.max(startPoint.x, endPoint.x) ], 
+        this._topogramBounds = {
+            x: [ Math.min(startPoint.x, endPoint.x), Math.max(startPoint.x, endPoint.x) ],
             y: [ Math.min(startPoint.y, endPoint.y), Math.max(startPoint.y, endPoint.y) ]
         }
         // Loop through rest of the stack images
@@ -242,10 +242,8 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
         if (!rawRefLine || !paddedBounds) {
             return undefined
         }
-        console.log(rawRefLine)
         const deltaX = paddedBounds.x[0]
         const deltaY = paddedBounds.y[0]
-        console.log(paddedBounds)
         return {
             start: { x: rawRefLine[0].x - deltaX, y: rawRefLine[0].y - deltaY },
             end: { x: rawRefLine[1].x - deltaX, y: rawRefLine[1].y - deltaY }

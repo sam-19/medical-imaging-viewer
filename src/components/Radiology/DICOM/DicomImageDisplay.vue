@@ -90,7 +90,7 @@ export default Vue.extend({
             mainImageLoaded: false,
             topoImageLoaded: false,
             topoImageBounds: { x: [0, 0], y: [0, 0] },
-            // Topogram synchronizer
+            // Topogram reference line
             topogramSynchronizer: null as any,
             loadingDotCycle: 0,
             // Don't continue async operations if component has been destroyed
@@ -153,6 +153,31 @@ export default Vue.extend({
                 this.viewport.hflip = !this.viewport.hflip
                 this.displayImage(false)
             }
+        },
+        /**
+         * Get topogram dimensions, scaled down if needed.
+         * @return [width, height, scale]
+         */
+        getTopogramDimensions: function (): any {
+            if (!this.resource.topogram || !this.topoImageLoaded) {
+                return undefined
+            }
+            const dimensions = this.containerSize as number[]
+            const colPos = this.layoutPosition[0] as number[]
+            const rowPos = this.layoutPosition[1] as number[]
+            const isRowFirst = (colPos[0] === 0)
+            const isColLast = (rowPos[0] === rowPos[1] - 1)
+            // Remove 20 px for padding
+            let hPad = isRowFirst ? 20 : 21
+            let vPad = isColLast ? 20 : 21
+            const topoBounds = this.resource.topogramPaddedBounds
+            const topoW = topoBounds.x[1]-topoBounds.x[0]
+            const topoH = topoBounds.y[1]-topoBounds.y[0]
+            // Scale it down for smaller viewports
+            const maxW = (dimensions[0]/colPos[1] - hPad)*0.25
+            const maxH = (dimensions[1]/rowPos[1] - vPad)*0.25
+            const scale = Math.min(1, maxW/topoW, maxH/topoH)
+            return { width: scale*topoW, height: scale*topoH, scale: scale }
         },
         /**
          * Handle right click (or context menu triggering) event on the image.
@@ -363,15 +388,11 @@ export default Vue.extend({
             }
             // Resize possible topogram image
             if (this.resource.topogram && this.topoImageLoaded) {
-                const topoBounds = this.resource.topogramPaddedBounds
-                const defaultW = (dimensions[0]/colPos[1] - hPad)*0.25
-                const defaultH = (dimensions[1]/rowPos[1] - vPad)*0.25
-                const smallerW = (topoBounds.x[1]-topoBounds.x[0] < defaultW)
-                                 ? topoBounds.x[1]-topoBounds.x[0] : defaultW
-                const smallerH = (topoBounds.y[1]-topoBounds.y[0] < defaultH)
-                                 ? topoBounds.y[1]-topoBounds.y[0] : defaultH
-                this.topoEl.style.width = `${smallerW}px`
-                this.topoEl.style.height = `${smallerH}px`
+                const topoSize = this.getTopogramDimensions()
+                // Add 2 pixels for borders
+                this.topoEl.style.width = `${topoSize.width + 2}px`
+                this.topoEl.style.height = `${topoSize.height + 2}px`
+                //this.topoEl.style.transform = `scale(${Math.min(1, maxW/topoW, maxH/topoH)})`
                 cornerstone.resize(this.topoEl, false)
             }
         },
@@ -687,12 +708,30 @@ export default Vue.extend({
                                     }
                                 )
                                 this.topogramSynchronizer.add(this.dicomEl)
-                                cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool)
-                                cornerstoneTools.setToolEnabled('TopogramReferenceLines', {
+                                cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
+                                    { name: `TopogramReferenceLines-${this.instanceNum}` }
+                                )
+                                cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
                                     synchronizationContext: this.topogramSynchronizer,
                                     getReferenceLine: () => {
-                                        return this.resource.getRefLineForImage()
-                                    }
+                                        const refLine = this.resource.getRefLineForImage()
+                                        // We may need to adjust the reference line in topogram dimensions have been scaled down
+                                        const topoDims = this.getTopogramDimensions()
+                                        if (!refLine || !topoDims) {
+                                            return undefined
+                                        }
+                                        if (topoDims.scale < 1) {
+                                            refLine.start = {
+                                                x: refLine.start.x/topoDims.scale,
+                                                y: refLine.start.y/topoDims.scale
+                                            },
+                                            refLine.end = {
+                                                x: refLine.end.x/topoDims.scale,
+                                                y: refLine.end.y/topoDims.scale
+                                            }
+                                        }
+                                        return refLine
+                                    },
                                 })
                                 // Activate reference lines tool
                                 //cornerstoneTools.setToolEnabled('ReferenceLines', {
@@ -818,7 +857,9 @@ export default Vue.extend({
                 // Same for topogram
                 cornerstoneTools.clearToolState(this.topoEl, 'stack')
                 cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
-                cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
+                cornerstoneTools.setToolDisabled(`TopogramReferenceLines-${this.instanceNum}`)
+                cornerstoneTools.removeToolForElement(this.topoEl, TopogramReferenceLineTool)
+                //cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
                 this.synchronizers.stackScroll.remove(this.topoEl)
                 this.synchronizers.referenceLines.remove(this.topoEl)
                 cornerstone.disable(this.topoEl)
@@ -878,6 +919,7 @@ export default Vue.extend({
         pointer-events: none;
         border: solid 1px var(--medigi-viewer-border);
         background-color: var(--medigi-viewer-background);
+        transform-origin: bottom right;
     }
         .medigi-viewer-image-container > div {
             font-size: 24px;
