@@ -558,37 +558,37 @@ export default Vue.extend({
             const colAbs = new cornerstoneMath.Vector3(
                 Math.abs(colVec3.x), Math.abs(colVec3.y), Math.abs(colVec3.z)
             )
-            // Here is the main difference: I feel the default tool uses a way too small threshold and shows
-            // confusing values if the image plane is even the slightest bit askew
-            const MIN = 0.5 // About 30 degrees in radians
+            // Here is the main difference: I feel the default tool uses way too small a threshold for the
+            // image plane angle and shows confusing values if it is even the slightest bit askew
+            const MIN = 1/3 // Has to be at least "one third of the way" in that direction
             const markers = {
                 bottom: '', left: '', right: '', top: '' // Reset the labels
             }
             // First left and right markers
             for (let i = 0; i < 3; i++) {
-                if (rowAbs.x > MIN && rowAbs.x > rowAbs.y && rowAbs.x > rowAbs.z) {
+                if (rowAbs.x >= MIN && rowAbs.x > rowAbs.y && rowAbs.x > rowAbs.z) {
                     markers.left += ds[0].toString()
                     markers.right += ds[1].toString()
                     rowAbs.x = 0
-                } else if (rowAbs.y > MIN && rowAbs.y > rowAbs.x && rowAbs.y > rowAbs.z) {
+                } else if (rowAbs.y >= MIN && rowAbs.y > rowAbs.x && rowAbs.y > rowAbs.z) {
                     markers.left += ap[0].toString()
                     markers.right += ap[1].toString()
                     rowAbs.y = 0
-                } else if (rowAbs.z > MIN && rowAbs.z > rowAbs.x && rowAbs.z > rowAbs.y) {
+                } else if (rowAbs.z >= MIN && rowAbs.z > rowAbs.x && rowAbs.z > rowAbs.y) {
                     markers.left += cc[0].toString()
                     markers.right += cc[1].toString()
                     rowAbs.z = 0
-                } else if (rowAbs.x > MIN && rowAbs.y > MIN && rowAbs.x === rowAbs.y) {
+                } else if (rowAbs.x >= MIN && rowAbs.y >= MIN && rowAbs.x === rowAbs.y) {
                     markers.left += ds[0].toString() + ap[0].toString()
                     markers.right += ds[1].toString() + ap[1].toString()
                     rowAbs.x = 0
                     rowAbs.y = 0
-                } else if (rowAbs.x > MIN && rowAbs.z > MIN && rowAbs.x === rowAbs.z) {
+                } else if (rowAbs.x >= MIN && rowAbs.z >= MIN && rowAbs.x === rowAbs.z) {
                     markers.left += ds[0].toString() + cc[0].toString()
                     markers.right += ds[1].toString() + cc[1].toString()
                     rowAbs.x = 0
                     rowAbs.z = 0
-                } else if (rowAbs.y > MIN && rowAbs.z > MIN && rowAbs.y === rowAbs.z) {
+                } else if (rowAbs.y >= MIN && rowAbs.z >= MIN && rowAbs.y === rowAbs.z) {
                     markers.left += ap[0].toString() + cc[0].toString()
                     markers.right += ap[1].toString() + cc[1].toString()
                     rowAbs.y = 0
@@ -599,29 +599,29 @@ export default Vue.extend({
             }
             // Then top and bottom markers
             for (let i = 0; i < 3; i++) {
-                if (colAbs.x > MIN && colAbs.x > colAbs.y && colAbs.x > colAbs.z) {
+                if (colAbs.x >= MIN && colAbs.x > colAbs.y && colAbs.x > colAbs.z) {
                     markers.top += ds[0].toString()
                     markers.bottom += ds[1].toString()
                     colAbs.x = 0
-                } else if (colAbs.y > MIN && colAbs.y > colAbs.x && colAbs.y > colAbs.z) {
+                } else if (colAbs.y >= MIN && colAbs.y > colAbs.x && colAbs.y > colAbs.z) {
                     markers.top += ap[0].toString()
                     markers.bottom += ap[1].toString()
                     colAbs.y = 0
-                } else if (colAbs.z > MIN && colAbs.z > colAbs.x && colAbs.z > colAbs.y) {
+                } else if (colAbs.z >= MIN && colAbs.z > colAbs.x && colAbs.z > colAbs.y) {
                     markers.top += cc[0].toString()
                     markers.bottom += cc[1].toString()
                     colAbs.z = 0
-                } else if (colAbs.x > MIN && colAbs.y > MIN && colAbs.x === colAbs.y) {
+                } else if (colAbs.x >= MIN && colAbs.y >= MIN && colAbs.x === colAbs.y) {
                     markers.top += ds[0].toString() + ap[0].toString()
                     markers.bottom += ds[1].toString() + ap[1].toString()
                     colAbs.x = 0
                     colAbs.y = 0
-                } else if (colAbs.x > MIN && colAbs.z > MIN && colAbs.x === colAbs.z) {
+                } else if (colAbs.x >= MIN && colAbs.z >= MIN && colAbs.x === colAbs.z) {
                     markers.top += ds[0].toString() + cc[0].toString()
                     markers.bottom += ds[1].toString() + cc[1].toString()
                     colAbs.x = 0
                     colAbs.z = 0
-                } else if (colAbs.y > MIN && colAbs.z > MIN && colAbs.y === colAbs.z) {
+                } else if (colAbs.y >= MIN && colAbs.z >= MIN && colAbs.y === colAbs.z) {
                     markers.top += ap[0].toString() + cc[0].toString()
                     markers.bottom += ap[1].toString() + cc[1].toString()
                     colAbs.y = 0
