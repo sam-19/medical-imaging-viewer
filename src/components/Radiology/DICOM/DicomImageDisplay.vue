@@ -578,9 +578,9 @@ export default Vue.extend({
             )
             // Here is the main difference: I feel the default tool uses way too small a threshold for the
             // image plane angle and shows confusing values if it is even the slightest bit askew
-            const MIN = 1/3 // Has to be at least "one third of the way" in that direction
+            const MIN = 0.5 // Has to be within 60 deg of the axis (cos(60deg))
             const markers = {
-                bottom: '', left: '', right: '', top: '' // Reset the labels
+                bottom: '', left: '', right: '', top: '' // Start with empty labels
             }
             // First left and right markers
             for (let i = 0; i < 3; i++) {
