@@ -232,7 +232,9 @@ export default Vue.extend({
             if (localState) {
                 // Remove annotation method
                 const removeAnnotation = (type: string, index: number) => {
-                    if (type === 'roi') {
+                    if (type === 'ang') {
+                        localState.Angle.data.splice(index, 1)
+                    } else if (type === 'roi') {
                         localState.EllipticalRoi.data.splice(index, 1)
                     } else if (type === 'len') {
                         localState.Length.data.splice(index, 1)
@@ -241,7 +243,22 @@ export default Vue.extend({
                     cornerstone.updateImage(this.dicomEl, false)
                     this.annotationMenu = null
                 }
-                // Check if there are eppieptical RoIs
+                // Check if there are any angles, RoIs or lengths on the active image
+                if (localState.Angle) {
+                    for (let i=0; i<localState.Angle.data.length; i++) {
+                        const ang = localState.Angle.data[i]
+                        if (cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
+                            cornerstoneMath.point.distance(ang.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
+                        ) {
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
+                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
+                            this.annotationMenu = { remove: () => {
+                                removeAnnotation('ang', i)
+                            } }
+                            return
+                        }
+                    }
+                }
                 if (localState.EllipticalRoi) {
                     for (let i=0; i<localState.EllipticalRoi.data.length; i++) {
                         const roi = localState.EllipticalRoi.data[i]
@@ -388,6 +405,7 @@ export default Vue.extend({
          */
         resetViewport: function () {
             this.displayImage(true)
+            this.updateOrientationMarkers()
         },
         /**
          * Resize the displayed image into given dimensions.
@@ -781,6 +799,7 @@ export default Vue.extend({
                 }
             }
             // Set up basic tools
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
             this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
@@ -979,6 +998,7 @@ export default Vue.extend({
         if (this.mainImageLoaded) {
             try {
                 // If the component is destroyed before all of the setup is done, some of these may throw errors
+                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)

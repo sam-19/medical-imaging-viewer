@@ -20,6 +20,7 @@ declare module 'cornerstone-tools' {
         restoreToolState (toolState: any): void
         saveToolState (): any
     }
+    const AngleTool: any
     const CrosshairsTool: any
     const EllipticalRoiTool: any
     const LengthTool: any

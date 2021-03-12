@@ -31,6 +31,7 @@ interface ButtonState {
     enabled: boolean,
 }
 interface ButtonRow {
+    'Angle': ButtonState
     'Crosshairs': ButtonState
     'EllipticalRoi': ButtonState
     'flip': ButtonState
@@ -125,6 +126,13 @@ export default Vue.extend({
                     tooltip: [ this.$t('Measure distance') ],
                 },
                 {
+                    id: 'Angle',
+                    set: 2,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'ruler-triangle'] ],
+                    tooltip: [ this.$t('Measure distance') ],
+                },
+                {
                     id: 'EllipticalRoi',
                     set: 2,
                     groups: ['interact'],
@@ -185,6 +193,7 @@ export default Vue.extend({
             ],
             // Button states
             buttonStates: {
+                'Angle':            { active: false, visible: true, enabled: true } as ButtonState,
                 'Crosshairs':       { active: false, visible: true, enabled: true } as ButtonState,
                 'EllipticalRoi':    { active: false, visible: true, enabled: true } as ButtonState,
                 'flip':             { active: false, visible: true, enabled: true } as ButtonState,
@@ -208,6 +217,10 @@ export default Vue.extend({
             currentLayout: 0,
             // Default options for different tool types
             toolOptions: {
+                'Angle': {
+                    active: { mouseButtonMask: 1 },
+                    default: {},
+                },
                 'Crosshairs': {
                     active: {
                         mouseButtonMask: 1,
@@ -282,36 +295,24 @@ export default Vue.extend({
          * @param buttonId string ID of the button
          */
         buttonClicked: function (buttonId: string) {
-            if (buttonId === 'Crosshairs') {
-                this.toggleCrosshairs()
-            } else if (buttonId === 'EllipticalRoi') {
-                this.toggleArea()
-            } else if (buttonId === 'invert') {
+            if (buttonId === 'invert') {
                 this.invertColors()
             } else if (buttonId === 'flip') {
                 this.flip('x')
             } else if (buttonId === 'layout') {
-                this.toggleGridLayout()
+                this.toggleLayout()
             } else if (buttonId === 'left') {
                 this.rotate(-90)
-            } else if (buttonId === 'Length') {
-                this.toggleDistance()
             } else if (buttonId === 'link') {
                 this.toggleLink()
-            } else if (buttonId === 'Pan') {
-                this.togglePan()
             } else if (buttonId === 'reset') {
                 this.resetAll()
             } else if (buttonId === 'right') {
                 this.rotate(90)
-            } else if (buttonId === 'StackScroll') {
-                this.toggleScroll()
             } else if (buttonId === 'undo') {
                 this.undoLast()
-            } else if (buttonId === 'Wwwc') {
-                this.toggleAdjust()
-            } else if (buttonId === 'Zoom') {
-                this.toggleZoom()
+            } else {
+                this.toggleTool(buttonId as keyof ButtonRow)
             }
             // Deactivate other buttons that share a group with this button
             let button = this.buttons.find((btn) => { return btn.id === buttonId })
@@ -455,43 +456,16 @@ export default Vue.extend({
             // Refresh button row
             this.buttonsUpdated++
         },
-        toggleAdjust: function () {
-            this.buttonStates['Wwwc'].active = !this.buttonStates['Wwwc'].active
-            if (this.buttonStates['Wwwc'].active) {
-                cornerstoneTools.setToolActive('Wwwc', this.toolOptions['Wwwc'].active)
+        toggleTool: function (toolName: keyof ButtonRow) {
+            this.buttonStates[toolName].active = !this.buttonStates[toolName].active
+            if (this.buttonStates[toolName].active) {
+                cornerstoneTools.setToolActive(toolName, (this.toolOptions as any)[toolName].active)
             } else {
-                cornerstoneTools.setToolDisabled('Wwwc')
+                cornerstoneTools.setToolDisabled(toolName)
             }
-            this.$store.commit('set-active-tool', 'Wwwc')
+            this.$store.commit('set-active-tool', toolName)
         },
-        toggleArea: function () {
-            this.buttonStates['EllipticalRoi'].active = !this.buttonStates['EllipticalRoi'].active
-            if (this.buttonStates['EllipticalRoi'].active) {
-                cornerstoneTools.setToolActive('EllipticalRoi', this.toolOptions['EllipticalRoi'].active)
-            } else {
-                cornerstoneTools.setToolPassive('EllipticalRoi')
-            }
-            this.$store.commit('set-active-tool', 'EllipticalRoi')
-        },
-        toggleCrosshairs: function () {
-            this.buttonStates['Crosshairs'].active = !this.buttonStates['Crosshairs'].active
-            if (this.buttonStates['Crosshairs'].active) {
-                cornerstoneTools.setToolActive('Crosshairs', this.toolOptions['Crosshairs'].active)
-            } else {
-                cornerstoneTools.setToolDisabled('Crosshairs')
-            }
-            this.$store.commit('set-active-tool', 'Crosshairs')
-        },
-        toggleDistance: function () {
-            this.buttonStates['Length'].active = !this.buttonStates['Length'].active
-            if (this.buttonStates['Length'].active) {
-                cornerstoneTools.setToolActive('Length', this.toolOptions['Length'].active)
-            } else {
-                cornerstoneTools.setToolPassive('Length')
-            }
-            this.$store.commit('set-active-tool', 'Length')
-        },
-        toggleGridLayout: function () {
+        toggleLayout: function () {
             const layouts = [null, [1, 0], [0, 1]]
             this.currentLayout = this.currentLayout < layouts.length - 1 ? this.currentLayout + 1 : 0
             this.$emit('update:gridLayout', layouts[this.currentLayout])
@@ -504,33 +478,6 @@ export default Vue.extend({
                 // Link stacks
                 this.$emit('link-all-resources', true)
             }
-        },
-        togglePan: function () {
-            this.buttonStates['Pan'].active = !this.buttonStates['Pan'].active
-            if (this.buttonStates['Pan'].active) {
-                cornerstoneTools.setToolActive('Pan', this.toolOptions['Pan'].active)
-            } else {
-                cornerstoneTools.setToolDisabled('Pan')
-            }
-            this.$store.commit('set-active-tool', 'Pan')
-        },
-        toggleScroll: function () {
-            this.buttonStates['StackScroll'].active = !this.buttonStates['StackScroll'].active
-            if (this.buttonStates['StackScroll'].active) {
-                cornerstoneTools.setToolActive('StackScroll', this.toolOptions['StackScroll'].active)
-            } else {
-                cornerstoneTools.setToolDisabled('StackScroll')
-            }
-            this.$store.commit('set-active-tool', 'StackScroll')
-        },
-        toggleZoom: function () {
-            this.buttonStates['Zoom'].active = !this.buttonStates['Zoom'].active
-            if (this.buttonStates['Zoom'].active) {
-                cornerstoneTools.setToolActive('Zoom', this.toolOptions['Zoom'].active)
-            } else {
-                cornerstoneTools.setToolDisabled('Zoom')
-            }
-            this.$store.commit('set-active-tool', 'Zoom')
         },
         undoLast: function () {
 
