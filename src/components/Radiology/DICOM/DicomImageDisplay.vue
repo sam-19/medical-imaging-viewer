@@ -1102,11 +1102,11 @@ export default Vue.extend({
     }
     .medigi-viewer-image-wrapper > .medigi-viewer-topogram {
         position: absolute;
-        right: 0px;
-        bottom: 0px;
+        right: -1px; /* cover the default image border */
+        bottom: -1px;
         height: 20%;
         pointer-events: none;
-        border: solid 1px var(--medigi-viewer-border);
+        border: solid 1px var(--medigi-viewer-border-faint);
         background-color: var(--medigi-viewer-background);
         transform-origin: bottom right;
     }
