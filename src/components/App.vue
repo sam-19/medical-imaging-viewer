@@ -139,7 +139,6 @@ export default Vue.extend({
                             this.dicomElements.forEach((resource: ImageResource | ImageStackResource) => {
                                 if (resource.isStack) {
                                     (resource as ImageStackResource).topogram = topoImage
-                                    console.log(resource)
                                 }
                             })
                         }

@@ -25,6 +25,7 @@ import { faCrosshairs } from '@fortawesome/pro-light-svg-icons/faCrosshairs'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
 import { faDrawCircle as faDrawCircleR } from '@fortawesome/pro-regular-svg-icons/faDrawCircle'
 import { faExpand } from '@fortawesome/pro-regular-svg-icons/faExpand'
+import { faHandPaper } from '@fortawesome/pro-light-svg-icons/faHandPaper'
 import { faLayerGroup as faLayerGroupL } from '@fortawesome/pro-light-svg-icons/faLayerGroup'
 import { faLayerGroup as faLayerGroupR } from '@fortawesome/pro-regular-svg-icons/faLayerGroup'
 import { faLink } from '@fortawesome/pro-light-svg-icons/faLink'
@@ -58,6 +59,7 @@ library.add(faCrosshairs)
 library.add(faDrawCircleL)
 library.add(faDrawCircleR)
 library.add(faExpand)
+library.add(faHandPaper)
 library.add(faLayerGroupL)
 library.add(faLayerGroupR)
 library.add(faLink)

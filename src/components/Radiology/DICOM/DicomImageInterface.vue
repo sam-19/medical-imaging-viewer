@@ -131,13 +131,17 @@ export default Vue.extend({
             let someLinkable = false
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i].isStack && !items[i].isLinked) {
-                    return false
-                } else if (!someLinkable && items[i].isStack) {
-                    someLinkable = true
+                if (items[i].isStack) {
+                    if (!items[i].isLinked) {
+                        return false
+                    } else if (!someLinkable) {
+                        // Check that at least some of the active elements can be linked;
+                        // show the unlinked icon otherwise
+                        someLinkable = true
+                    }
                 }
             }
-            return someLinkable // Show link icon if no linkable elements exist
+            return someLinkable
         },
     },
     methods: {
@@ -322,7 +326,6 @@ export default Vue.extend({
                     } else {
                         (this.resources[i] as ImageStackResource).unlink()
                     }
-                    this.updateElements()
                 }
             }
         },
