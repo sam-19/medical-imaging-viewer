@@ -17,6 +17,8 @@ import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
 import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows'
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
 import { faBorderAll } from '@fortawesome/pro-light-svg-icons/faBorderAll'
+import { faCaretDown } from '@fortawesome/pro-light-svg-icons/faCaretDown'
+import { faCaretUp } from '@fortawesome/pro-solid-svg-icons/faCaretUp'
 import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
 import { faChevronSquareLeft } from '@fortawesome/pro-solid-svg-icons/faChevronSquareLeft'
 import { faChevronSquareRight } from '@fortawesome/pro-solid-svg-icons/faChevronSquareRight'
@@ -51,6 +53,8 @@ library.add(faArrowsAltH)
 library.add(faArrowsL)
 library.add(faArrowsR)
 library.add(faBorderAll)
+library.add(faCaretDown)
+library.add(faCaretUp)
 library.add(faClone)
 library.add(faChevronSquareLeft)
 library.add(faChevronSquareRight)

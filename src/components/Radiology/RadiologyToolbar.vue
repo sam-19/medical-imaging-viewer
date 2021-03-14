@@ -23,6 +23,7 @@
         </div>
         <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
+            :activeGroup="activeGroup"
             :emit="button.emit"
             :enabled="button.enabled"
             :icon="button.icon"

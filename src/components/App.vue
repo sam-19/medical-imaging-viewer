@@ -217,7 +217,7 @@ body {
 }
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
-    --medigi-viewer-background-highlight: #202020;
+    --medigi-viewer-background-highlight: #303030;
     --medigi-viewer-border: #C0C0C0;
     --medigi-viewer-border-faint: #606060;
     --medigi-viewer-border-highlight: #F0F0F0;

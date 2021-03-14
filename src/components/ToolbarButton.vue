@@ -2,9 +2,26 @@
 
     <div
         :id="`${$store.state.appName}-toolbar-button-${id}`"
-        class="medigi-viewer-toolbar-button"
+        :class="[
+            'medigi-viewer-toolbar-button',
+            { 'medigi-viewer-toolbar-group-button': type === 'group' },
+        ]"
         @click="enabled ? $emit('button-clicked', id) : null"
     >
+        <div v-if="type === 'group'"
+            :class="[
+                'medigi-viewer-toolbar-group-button',
+                { 'medigi-viewer-toolbar-group-open': open },
+            ]"
+        >
+            <font-awesome-icon
+                :icon="[
+                    open ? 'fas' : 'fal',
+                    open ? 'caret-up' : 'caret-down'
+                ]"
+                fixed-width
+            />
+        </div>
         <font-awesome-icon
             :icon="icon"
             :title="tooltip"
@@ -26,11 +43,27 @@ export default Vue.extend({
     },
     props: {
         id: String,
+        activeGroup: String,
         enabled: Boolean,
         icon: Array,
         overlay: String,
         tooltip: String,
     },
+    computed: {
+        name () {
+            return this.id.indexOf(':') > 0 ? this.id.split(':')[1] : this.id
+        },
+        type () {
+            return this.id.split(':')[0]
+        },
+        open () {
+            if (this.type !== 'group' || this.name !== this.activeGroup) {
+                return false
+            } else  {
+                return true
+            }
+        },
+    }
 })
 
 </script>
@@ -47,6 +80,9 @@ export default Vue.extend({
     margin-right: 10px;
     opacity: 0.8;
 }
+    .medigi-viewer-toolbar-button.medigi-viewer-toolbar-group-button {
+        width: 90px;
+    }
     .medigi-viewer-toolbar-button:hover, .medigi-viewer-toolbar-button.element-active {
         border-color: var(--medigi-viewer-border-highlight);
         opacity: 1.0;
@@ -77,4 +113,21 @@ export default Vue.extend({
         border-radius: 5px;
         font-size: 40%;
     }
+    .medigi-viewer-toolbar-group-button:not(.medigi-viewer-toolbar-button) {
+        position: relative;
+        width: 30px;
+        height: 56px;
+        border-right: solid 1px var(--medigi-viewer-border);
+        font-size: 24px;
+        float: left;
+    }
+        .medigi-viewer-toolbar-group-button.medigi-viewer-toolbar-group-open:not(.medigi-viewer-toolbar-button) {
+            background-color: var(--medigi-viewer-background-highlight);
+        }
+        .medigi-viewer-toolbar-group-button:not(.medigi-viewer-toolbar-button) > svg {
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+        }
+
 </style>
