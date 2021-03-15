@@ -193,6 +193,13 @@ export default Vue.extend({
                 this.updateOrientationMarkers()
             }
         },
+        flipVertically: function () {
+            if (this.dicomEl && this.viewport) {
+                this.viewport.vflip = !this.viewport.vflip
+                this.displayImage(false)
+                this.updateOrientationMarkers()
+            }
+        },
         /**
          * Get topogram dimensions, scaled down if needed.
          * @return [width, height, scale]
@@ -960,6 +967,9 @@ export default Vue.extend({
                     case 'image:flip-horizontally':
                         this.flipHorizontally()
                         break
+                    case 'image:flip-vertically':
+                        this.flipVertically()
+                        break
                     case 'image:invert-colors':
                         this.invertImage()
                         break
@@ -1067,7 +1077,7 @@ export default Vue.extend({
         height: 40px;
         line-height: 40px;
         text-align: center;
-        z-index: 999; /* Almost on top */
+        z-index: 100; /* Below delete button toolbar button groups */
         pointer-events: none;
     }
         .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-bottom {

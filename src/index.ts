@@ -14,6 +14,7 @@ import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
 import { faArrowAltDown } from '@fortawesome/pro-light-svg-icons/faArrowAltDown'
 import { faArrowAltUp } from '@fortawesome/pro-light-svg-icons/faArrowAltUp'
 import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
+import { faArrowsAltV } from '@fortawesome/pro-regular-svg-icons/faArrowsAltV'
 import { faArrows as faArrowsL } from '@fortawesome/pro-light-svg-icons/faArrows'
 import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArrows'
 import { faBorderAll } from '@fortawesome/pro-light-svg-icons/faBorderAll'
@@ -50,6 +51,7 @@ library.add(faAdjust)
 library.add(faArrowAltDown)
 library.add(faArrowAltUp)
 library.add(faArrowsAltH)
+library.add(faArrowsAltV)
 library.add(faArrowsL)
 library.add(faArrowsR)
 library.add(faBorderAll)

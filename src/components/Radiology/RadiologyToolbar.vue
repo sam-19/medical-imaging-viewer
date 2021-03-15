@@ -5,6 +5,7 @@
             :class="[
                 'medigi-viewer-toolbar-buttongroup',
             ]"
+            :style="`left:${activeGroupOffset}px`"
         >
             <toolbar-button v-for="(button, idx) in activeGroupButtons" :key="`toolbar-button-${activeGroup}-${idx}`"
                 :id="button.id"
@@ -61,7 +62,8 @@ interface ButtonRow {
         'tool:Length': ButtonState
         'tool:SquareRoi': ButtonState
     'group:orientation': ButtonState
-        'action:flip': ButtonState
+        'action:fliph': ButtonState
+        'action:flipv': ButtonState
         'action:left': ButtonState
         'action:right': ButtonState
     'tool:Crosshairs': ButtonState
@@ -125,23 +127,37 @@ export default Vue.extend({
             buttons: [
                 {
                     // A unique identifier for the button, in the format of <type>:<name>. Must match a key in the ButtonRow interface.
-                    id: 'group:layout',
+                    id: 'tool:StackScroll',
                     // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
-                    set: 0,
+                    set: 1,
                     // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
                     // Tools that use the same mouse button must all share the same group as well!
-                    groups: ['layout'],
+                    groups: ['interact'],
                     // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                    icon: [ ['fal', 'border-all'] ],
+                    icon: [ ['fal', 'layer-group'] ],
                     // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                    tooltip: [ this.$t('Layout tools') ],
+                    tooltip:[ this.$t('Scroll image stack') ]
                 },
                 {
-                    id: 'group:measurement',
+                    id: 'tool:Pan',
                     set: 1,
-                    groups: ['measurement'],
-                    icon: null,
-                    tooltip: [ this.$t('Measurement tools') ],
+                    groups: ['interact'],
+                    icon: [ ['fal', 'hand-paper'] ],
+                    tooltip: [ this.$t('Pan image') ]
+                },
+                {
+                    id: 'tool:Zoom',
+                    set: 1,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'search'] ],
+                    tooltip: [ this.$t('Zoom') ],
+                },
+                {
+                    id: 'tool:Crosshairs',
+                    set: 1,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'crosshairs'] ],
+                    tooltip: [ this.$t('Crosshairs') ],
                 },
                 {
                     id: 'group:orientation',
@@ -151,32 +167,11 @@ export default Vue.extend({
                     tooltip: [ this.$t('Orientation tools') ],
                 },
                 {
-                    id: 'tool:StackScroll',
+                    id: 'group:measurement',
                     set: 3,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'layer-group'] ],
-                    tooltip:[ this.$t('Scroll image stack') ]
-                },
-                {
-                    id: 'tool:Pan',
-                    set: 3,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'hand-paper'] ],
-                    tooltip: [ this.$t('Pan image') ]
-                },
-                {
-                    id: 'tool:Zoom',
-                    set: 3,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'search'] ],
-                    tooltip: [ this.$t('Zoom') ],
-                },
-                {
-                    id: 'tool:Crosshairs',
-                    set: 3,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'crosshairs'] ],
-                    tooltip: [ this.$t('Crosshairs') ],
+                    groups: ['measurement'],
+                    icon: null,
+                    tooltip: [ this.$t('Measurement tools') ],
                 },
                 {
                     id: 'action:invert',
@@ -193,8 +188,15 @@ export default Vue.extend({
                     tooltip: [ this.$t('Adjust window') ],
                 },
                 {
-                    id: 'action:link',
+                    id: 'group:layout',
                     set: 5,
+                    groups: ['layout'],
+                    icon: [ ['fal', 'border-all'] ],
+                    tooltip: [ this.$t('Layout tools') ],
+                },
+                {
+                    id: 'action:link',
+                    set: 6,
                     groups: [],
                     icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
                     tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
@@ -208,7 +210,7 @@ export default Vue.extend({
                 //},
                 {
                     id: 'action:reset',
-                    set: 6,
+                    set: 7,
                     groups: ['undo'],
                     icon: [ ['fal', 'reply-all'] ],
                     overlay: null,
@@ -216,69 +218,86 @@ export default Vue.extend({
                 },
             ],
             groups: {
-                layout: [
-                    {
-                        id: 'layout:auto',
-                        set: 0,
-                        groups: [],
-                        icon: [ ['fal', 'border-all'] ],
-                        tooltip: [ this.$t('Change layout') ],
-                    },
-                    {
-                        id: 'layout:custom',
-                        set: 0,
-                        groups: [],
-                        icon: [ ['fal', 'border-all'] ],
-                        tooltip: [ this.$t('Change layout') ],
-                    },
-                ],
-                measurement: [
-                    {
-                        id: 'tool:Length',
-                        set: 0,
-                        groups: ['interact'],
-                        icon: [ ['fal', 'ruler'] ],
-                        tooltip: [ this.$t('Measure distance') ],
-                    },
-                    {
-                        id: 'tool:Angle',
-                        set: 0,
-                        groups: ['interact'],
-                        icon: [ ['fal', 'ruler-triangle'] ],
-                        tooltip: [ this.$t('Measure distance') ],
-                    },
-                    {
-                        id: 'tool:EllipticalRoi',
-                        set: 0,
-                        groups: ['interact'],
-                        icon: [ ['fal', 'draw-circle'] ],
-                        tooltip: [ this.$t('Measure area') ],
-                    },
-                ],
-                orientation: [
-                    {
-                        id: 'action:left',
-                        set: 0,
-                        groups: [],
-                        icon: [ ['far', 'undo-alt'] ],
-                        tooltip: [ this.$t('Rotate counter-clockwise') ],
-                    },
-                    {
-                        id: 'action:right',
-                        set: 0,
-                        groups: [],
-                        // Could also just flip the above icon, but don't want to create an extra option just for this
-                        icon: [ ['far', 'redo-alt'] ],
-                        tooltip: [ this.$t('Rotate clockwise') ],
-                    },
-                    {
-                        id: 'action:flip',
-                        set: 0,
-                        groups: [],
-                        icon: [ ['far', 'arrows-alt-h'] ],
-                        tooltip: [ this.$t('Flip horizontally') ],
-                    },
-                ],
+                layout: {
+                    buttons: [
+                        {
+                            id: 'layout:auto',
+                            set: 0,
+                            groups: [],
+                            icon: [ ['fal', 'border-all'] ],
+                            tooltip: [ this.$t('Change layout') ],
+                        },
+                        {
+                            id: 'layout:custom',
+                            set: 0,
+                            groups: [],
+                            icon: [ ['fal', 'border-all'] ],
+                            tooltip: [ this.$t('Change layout') ],
+                        },
+                    ],
+                    // Offset is the distance from the left end of the toolbar row (in pixels).
+                    offset: 660,
+                },
+                measurement:  {
+                    buttons: [
+                        {
+                            id: 'tool:Length',
+                            set: 0,
+                            groups: ['interact'],
+                            icon: [ ['fal', 'ruler'] ],
+                            tooltip: [ this.$t('Measure distance') ],
+                        },
+                        {
+                            id: 'tool:Angle',
+                            set: 0,
+                            groups: ['interact'],
+                            icon: [ ['fal', 'ruler-triangle'] ],
+                            tooltip: [ this.$t('Measure distance') ],
+                        },
+                        {
+                            id: 'tool:EllipticalRoi',
+                            set: 0,
+                            groups: ['interact'],
+                            icon: [ ['fal', 'draw-circle'] ],
+                            tooltip: [ this.$t('Measure area') ],
+                        },
+                    ],
+                    offset: 400,
+                },
+                orientation:  {
+                    buttons: [
+                        {
+                            id: 'action:left',
+                            set: 0,
+                            groups: [],
+                            icon: [ ['far', 'undo-alt'] ],
+                            tooltip: [ this.$t('Rotate counter-clockwise') ],
+                        },
+                        {
+                            id: 'action:right',
+                            set: 0,
+                            groups: [],
+                            // Could also just flip the above icon, but don't want to create an extra option just for this
+                            icon: [ ['far', 'redo-alt'] ],
+                            tooltip: [ this.$t('Rotate clockwise') ],
+                        },
+                        {
+                            id: 'action:fliph',
+                            set: 0,
+                            groups: [],
+                            icon: [ ['far', 'arrows-alt-h'] ],
+                            tooltip: [ this.$t('Flip horizontally') ],
+                        },
+                        {
+                            id: 'action:flipv',
+                            set: 0,
+                            groups: [],
+                            icon: [ ['far', 'arrows-alt-v'] ],
+                            tooltip: [ this.$t('Flip vertically') ],
+                        },
+                    ],
+                    offset: 290,
+                },
             },
             // Button states
             buttonStates: {
@@ -291,7 +310,8 @@ export default Vue.extend({
                 'tool:EllipticalRoi':   { active: false, visible: true, enabled: true } as ButtonState,
                 'tool:SquareRoi':       { active: false, visible: true, enabled: true } as ButtonState,
                 'group:orientation':    { active: false, visible: true, enabled: true } as ButtonState,
-                'action:flip':          { active: false, visible: true, enabled: true } as ButtonState,
+                'action:fliph':         { active: false, visible: true, enabled: true } as ButtonState,
+                'action:flipv':         { active: false, visible: true, enabled: true } as ButtonState,
                 'action:left':          { active: false, visible: true, enabled: true } as ButtonState,
                 'action:right':         { active: false, visible: true, enabled: true } as ButtonState,
                 'action:invert':        { active: false, visible: true, enabled: true } as ButtonState,
@@ -365,7 +385,7 @@ export default Vue.extend({
             }
             const buttons = [] as ToolbarButton[]
             let buttonSet = null as number | null
-            this.groups[this.activeGroup as keyof ButtonGroups].forEach((button) => {
+            this.groups[this.activeGroup as keyof ButtonGroups].buttons.forEach((button) => {
                 // Add visible buttons
                 if (this.buttonStates[button.id as keyof ButtonRow].visible) {
                     let newSet = false
@@ -387,6 +407,13 @@ export default Vue.extend({
                 }
             })
             return buttons
+        },
+        activeGroupOffset (): number {
+            if (!this.activeGroup) {
+                return 0
+            } else {
+                return this.groups[this.activeGroup as keyof ButtonGroups].offset
+            }
         },
         buttonRow (): ToolbarButton[] {
             this.buttonsUpdated // Trigger refresh when this value changes
@@ -430,8 +457,10 @@ export default Vue.extend({
             } else if (type === 'action') {
                 if (id === 'invert') {
                     this.invertColors()
-                } else if (id === 'flip') {
+                } else if (id === 'fliph') {
                     this.flip('x')
+                } else if (id === 'flipv') {
+                    this.flip('y')
                 } else if (id === 'layout') {
                     this.toggleLayout()
                 } else if (id === 'left') {
@@ -450,7 +479,6 @@ export default Vue.extend({
                 this.toggleTool(id, group)
                 // Deactivate other tools that share a group with this one
                 const button = this.findButtonById(buttonId, group)
-                console.log(button)
                 if (button && button.groups.length) {
                     this.buttons.forEach((btn) => {
                         if (btn.id !== button?.id && btn.groups.length &&
@@ -461,7 +489,7 @@ export default Vue.extend({
                     })
                     const groups = Object.values(this.groups)
                     groups.forEach((group) => {
-                        group.forEach((groupBtn) => {
+                        group.buttons.forEach((groupBtn) => {
                             if (groupBtn.id !== button?.id && groupBtn.groups.length &&
                                 groupBtn.groups.filter((a) => button?.groups.indexOf(a) !== -1).length
                             ) {
@@ -486,7 +514,7 @@ export default Vue.extend({
         },
         findButtonById: function (buttonId: string, group?: keyof ButtonGroups) {
             if (group) {
-                return this.groups[group].find((btn) => { return btn.id === buttonId })
+                return this.groups[group].buttons.find((btn) => { return btn.id === buttonId })
             } else {
                 return this.buttons.find((btn) => { return btn.id === buttonId })
             }
@@ -494,6 +522,8 @@ export default Vue.extend({
         flip: function (axis: 'x' | 'y') {
             if (axis === 'x') {
                 this.$store.dispatch('image:flip-horizontally')
+            } else if (axis === 'y') {
+                this.$store.dispatch('image:flip-vertically')
             }
         },
         /**
@@ -715,12 +745,12 @@ export default Vue.extend({
 .medigi-viewer-toolbar-buttongroup {
     position: absolute;
     top: 80px;
-    left: 1px;
     display: flex;
     background-color: var(--medigi-viewer-background);
+    border-left: solid 1px var(--medigi-viewer-border-faint);
     border-right: solid 1px var(--medigi-viewer-border-faint);
     border-bottom: solid 1px var(--medigi-viewer-border-faint);
     padding: 0px 0px 10px 10px;
-    z-index: 100;
+    z-index: 200;
 }
 </style>

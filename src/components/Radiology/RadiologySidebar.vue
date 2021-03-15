@@ -139,8 +139,8 @@ export default Vue.extend({
     position: relative;
     padding: 0 0 10px 10px;
     width: 300px;
-    height: calc(100% - 80px - 50px);
-    margin-top: 80px;
+    height: calc(100% - 50px);
+    padding-top: 80px;
 }
 .medigi-viewer-sidebar-items {
     display: flex;

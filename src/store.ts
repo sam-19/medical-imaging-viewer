@@ -25,6 +25,7 @@ const getters: GetterTree<State, State> & Getters = {
 // Actions (method calls)
 enum ActionTypes {
     IMAGE_FLIP_HORIZONTALLY = 'image:flip-horizontally',
+    IMAGE_FLIP_VERTICALLY = 'image:flip-vertically',
     IMAGE_INVERT_COLORS = 'image:invert-colors',
     IMAGE_LINK_STACKS = 'image:link-stacks',
     IMAGE_RESTORE_DEFAULT_SETTINGS = 'image:restore-default-settings',
@@ -33,6 +34,7 @@ enum ActionTypes {
 }
 type Actions = {
     [ActionTypes.IMAGE_FLIP_HORIZONTALLY] (): void,
+    [ActionTypes.IMAGE_FLIP_VERTICALLY] (): void,
     [ActionTypes.IMAGE_INVERT_COLORS] (): void,
     [ActionTypes.IMAGE_LINK_STACKS] (value: boolean): void,
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS] (): void,
@@ -41,6 +43,7 @@ type Actions = {
 }
 const actions = {
     [ActionTypes.IMAGE_FLIP_HORIZONTALLY]() {},
+    [ActionTypes.IMAGE_FLIP_VERTICALLY]() {},
     [ActionTypes.IMAGE_INVERT_COLORS]() {},
     [ActionTypes.IMAGE_LINK_STACKS]() {},
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS]() {},
