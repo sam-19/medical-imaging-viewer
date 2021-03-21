@@ -563,9 +563,11 @@ export default Vue.extend({
                 return
             }
             const imagePlane = cornerstone.metaData.get(
-                'imagePlaneModule',
-                this.resource.currentImage.url
-            ) as any
+                                    'imagePlaneModule',
+                                    this.resource.isStack
+                                    ? this.resource.currentImage.url
+                                    : this.resource.url
+                                ) as any
             if (!imagePlane || !imagePlane.rowCosines || !imagePlane.columnCosines) {
                 return
             }
