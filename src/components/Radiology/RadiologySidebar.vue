@@ -51,11 +51,6 @@ export default Vue.extend({
             mediaItems: [] as MediaResource[],
         }
     },
-    watch: {
-        defaultItems (value, old) {
-            console.log('def changed')
-        },
-    },
     computed: {
         cacheImages () {
             return this.$store.state.cacheStatus.count

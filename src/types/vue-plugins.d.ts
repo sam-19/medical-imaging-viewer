@@ -15,8 +15,3 @@ declare module 'vue-fullscreen' {
     const fullscreen: PluginObject<{}>
     export default fullscreen
 }
-declare module 'vuedraggable' {
-    import { PluginObject } from 'vue'
-    const vuedraggable: PluginObject<{}>
-    export default vuedraggable
-}
