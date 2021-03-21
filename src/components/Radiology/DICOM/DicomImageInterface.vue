@@ -16,7 +16,7 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <radiology-sidebar
-                :defaultItems.sync="resources"
+                :dicomItems="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
                 v-on:update-item-order="$emit('update-item-order', $event)"

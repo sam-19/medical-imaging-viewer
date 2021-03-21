@@ -41,7 +41,7 @@ export default Vue.extend({
         VueDraggable,
     },
     props: {
-        defaultItems: Array,
+        dicomItems: Array,
     },
     data () {
         return {
@@ -70,12 +70,12 @@ export default Vue.extend({
             return this.$store.state.cacheStatus.count && !util ? `~${util}` : `${util}`
         },
         dropZoneStyles () {
-            const heightTaken = 10 + 60 + 60 + this.defaultItems.length*149 + 20
+            const heightTaken = 10 + 60 + 60 + this.dicomItems.length*149 + 20
             return `width: 100%; height: calc(100% - ${heightTaken}px`
         },
         items: {
             get (): MediaResource[] {
-                return this.defaultItems as MediaResource[]
+                return this.dicomItems as MediaResource[]
             },
             set (value: MediaResource[]) {
                 // Get the new item order
