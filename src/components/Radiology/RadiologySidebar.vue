@@ -1,19 +1,22 @@
 <template>
     <div :id="`${$store.state.appName}-medigi-viewer-radiology-sidebar`">
         <div class="medigi-viewer-sidebar-items">
-            <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
-                :active="item.isActive"
-                :collation="item.isCollation"
-                :count="item.size"
-                :cover="item.coverImage"
-                :id="item.id"
-                :index="idx"
-                :label="item.modality"
-                :stack="item.isStack"
-                :title="item.name"
-                :type="item.type"
-                v-on:toggle-active-item="toggleActiveItem"
-            />
+            <vue-draggable v-model="items" ref="draggable-list">
+                <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
+                    ref="sidebar-item"
+                    :active="item.isActive"
+                    :count="item.size"
+                    :cover="item.coverImage"
+                    :id="item.id"
+                    :index="idx"
+                    :label="item.modality"
+                    :stack="item.isStack"
+                    :title="item.name"
+                    :type="item.type"
+                    v-on:first-item-mounted="firstItemMounted"
+                    v-on:toggle-active-item="toggleActiveItem"
+                />
+            </vue-draggable>
             <div :id="`${$store.state.appName}-medigi-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
         <div :id="`${$store.state.appName}-medigi-viewer-radiology-statusbar`" class="medigi-viewer-statusbar">
@@ -30,20 +33,28 @@
 
 import Vue from 'vue'
 import { MediaResource, ImageStackResource } from '../../types/assets'
+import VueDraggable from 'vuedraggable'
 
 export default Vue.extend({
     components: {
         RadiologySidebarItem: () => import('./RadiologySidebarItem.vue'),
+        VueDraggable,
     },
     props: {
-        items: Array,
+        defaultItems: Array,
     },
     data () {
         return {
             dropZone: null as HTMLElement | null,
             lastActivated: null as number | null,
+            listSorted: false,
             mediaItems: [] as MediaResource[],
         }
+    },
+    watch: {
+        defaultItems (value, old) {
+            console.log('def changed')
+        },
     },
     computed: {
         cacheImages () {
@@ -64,14 +75,38 @@ export default Vue.extend({
             return this.$store.state.cacheStatus.count && !util ? `~${util}` : `${util}`
         },
         dropZoneStyles () {
-            const heightTaken = 10 + 60 + 60 + this.items.length*149 + 20
+            const heightTaken = 10 + 60 + 60 + this.defaultItems.length*149 + 20
             return `width: 100%; height: calc(100% - ${heightTaken}px`
+        },
+        items: {
+            get (): MediaResource[] {
+                return this.defaultItems as MediaResource[]
+            },
+            set (value: MediaResource[]) {
+                // Get the new item order
+                const order = value.map(item => item.id)
+                this.$emit('update-item-order', order)
+            },
         },
     },
     methods: {
         clearDropZoneHighlight: function () {
             if (this.dropZone) {
                 this.dropZone.classList.remove('medigi-viewer-highlight')
+            }
+        },
+        firstItemMounted: function () {
+            if (!this.listSorted) {
+                this.listSorted = true
+                this.$nextTick(() => {
+                    // This silly hack is needed because otherwise the first dragged item would always
+                    // end up at the start of the list. May probably be removed if:
+                    // https://github.com/SortableJS/Vue.Draggable/issues/419 and/or
+                    // https://github.com/SortableJS/Vue.Draggable/issues/603
+                    // are resolved in the future.
+                    ;(this.$refs['draggable-list'] as any).updatePosition(0, 1)
+                    ;(this.$refs['draggable-list'] as any).updatePosition(1, 0)
+                })
             }
         },
         handleFileDrag: function (event: DragEvent) {

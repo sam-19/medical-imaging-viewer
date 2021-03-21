@@ -19,6 +19,7 @@
             ref="dicom-image-interface"
             :resources="dicomElements"
             :sidebarOpen="sidebarOpen"
+            v-on:update-item-order="updateDicomImageOrder"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
@@ -184,6 +185,21 @@ export default Vue.extend({
         toggleSidebar: function () {
             this.sidebarOpen = !this.sidebarOpen
         },
+        updateDicomImageOrder: function(order: string[]) {
+            if (order.length !== this.dicomElements.length) {
+                return
+            }
+            const names = []
+            for (let i=0; i<order.length; i++) {
+                for (let j=0; j<this.dicomElements.length; j++) {
+                    if (this.dicomElements[j].id === order[i]) {
+                        names.push(this.dicomElements[j].name)
+                        this.dicomElements.push(this.dicomElements.splice(j, 1)[0] as any)
+                        break
+                    }
+                }
+            }
+        }
     },
     mounted () {
         this.$root.$on('add-ekg-resource', (resource: any) => {

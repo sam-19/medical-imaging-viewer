@@ -16,9 +16,10 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <radiology-sidebar
-                :items="resources"
+                :defaultItems.sync="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
+                v-on:update-item-order="$emit('update-item-order', $event)"
             />
         </div>
         <div ref="media" class="medigi-viewer-media">
@@ -392,7 +393,7 @@ export default Vue.extend({
          */
         updateElements: function () {
             this.elementsChanged++
-        }
+        },
     },
     mounted () {
         // Set up Cornerstone Tools
