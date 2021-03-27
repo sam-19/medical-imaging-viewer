@@ -155,7 +155,6 @@ export default Vue.extend({
                     items.push(null)
                 }
             }
-            console.log(items)
             return items
         },
         allResourcesLinked (): boolean {

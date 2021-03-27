@@ -59,7 +59,7 @@
             </div>
         </div>
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
-            :icon="resource.isLinked ? ['fal', 'unlink'] : ['fal', 'link']"
+            :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
             :title="$t('Link this image stack')"
             @click="linkImageStack()"
             :class="{ 'medigi-viewer-link-icon-active' : resource.isLinked }"
