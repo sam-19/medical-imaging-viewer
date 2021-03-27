@@ -675,7 +675,7 @@ export default Vue.extend({
                 } else if (this.viewport.rotation < -45) {
                     for (let i=this.viewport.rotation; i<-45; i=i+90) {
                         [markers.top, markers.right, markers.bottom, markers.left]
-                            = [markers.right, markers.bottom, markers.left, markers.top]
+                        = [markers.right, markers.bottom, markers.left, markers.top]
                     }
                 }
             }

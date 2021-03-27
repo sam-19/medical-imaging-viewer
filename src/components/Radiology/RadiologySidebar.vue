@@ -1,7 +1,7 @@
 <template>
     <div :id="`${$store.state.appName}-medigi-viewer-radiology-sidebar`">
         <div class="medigi-viewer-sidebar-items">
-            <vue-draggable v-model="items" ref="draggable-list">
+            <vue-draggable v-model="items" ref="draggable-list" :sort="allowSorting" @end="itemDropped">
                 <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                     ref="sidebar-item"
                     :active="item.isActive"
@@ -13,7 +13,7 @@
                     :stack="item.isStack"
                     :title="item.name"
                     :type="item.type"
-                    v-on:first-item-mounted="firstItemMounted"
+                    v-on:second-item-mounted="secondItemMounted"
                     v-on:toggle-active-item="toggleActiveItem"
                 />
             </vue-draggable>
@@ -41,13 +41,14 @@ export default Vue.extend({
         VueDraggable,
     },
     props: {
+        allowSorting: Boolean,
         dicomItems: Array,
     },
     data () {
         return {
             dropZone: null as HTMLElement | null,
             lastActivated: null as number | null,
-            listSorted: false,
+            listShuffled: false,
             mediaItems: [] as MediaResource[],
         }
     },
@@ -90,9 +91,10 @@ export default Vue.extend({
                 this.dropZone.classList.remove('medigi-viewer-highlight')
             }
         },
-        firstItemMounted: function () {
-            if (!this.listSorted) {
-                this.listSorted = true
+        secondItemMounted: function () {
+            // Make sure there really are more than one item and that it hasn't been shuffled yet
+            if (this.dicomItems.length > 1 && !this.listShuffled) {
+                this.listShuffled = true
                 this.$nextTick(() => {
                     // This silly hack is needed because otherwise the first dragged item would always
                     // end up at the start of the list. May probably be removed if:
@@ -122,6 +124,16 @@ export default Vue.extend({
             this.clearDropZoneHighlight()
             // Pass file drop event to parent component
             this.$emit('file-dropped', event)
+        },
+        itemDropped: function (evt: any) {
+            const targetId = evt?.originalEvent?.target?.id
+            if (targetId && targetId.startsWith(`${this.$store.state.appName}-medigi-viewer-image-drop-`)) {
+                // Image resource was dropped on one of the placeholder elements
+                const targetIdx = parseInt(targetId.replace(`${this.$store.state.appName}-medigi-viewer-image-drop-`, ''))
+                ;(this.dicomItems[evt.oldIndex] as MediaResource).isActive = true
+                this.$emit('item-dropped', { item: evt.oldIndex, target: targetIdx })
+            }
+            //
         },
         toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
             const item = this.items[itemIdx] as MediaResource

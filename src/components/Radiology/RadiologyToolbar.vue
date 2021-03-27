@@ -461,8 +461,6 @@ export default Vue.extend({
                     this.flip('x')
                 } else if (id === 'flipv') {
                     this.flip('y')
-                } else if (id === 'layout') {
-                    this.toggleLayout()
                 } else if (id === 'left') {
                     this.rotate(-90)
                 } else if (id === 'link') {
@@ -474,6 +472,14 @@ export default Vue.extend({
                 } else if (id === 'undo') {
                     this.undoLast()
                 }
+            } else if (type === 'layout') {
+                if (id === 'auto') {
+                    this.setLayout(null)
+                } else if (id === 'custom') {
+                    this.setLayout(this.customLayout)
+                }
+                // Close the button group
+                this.activeGroup = null
             } else if (type === 'tool') {
                 // Otherwise, toggle the appropriate tool
                 this.toggleTool(id, group)
@@ -660,17 +666,17 @@ export default Vue.extend({
             // Refresh button row
             this.buttonsUpdated++
         },
+        setLayout: function (layout: null | number[]) {
+            //const layouts = [null, [1, 0], [0, 1]]
+            //this.currentLayout = this.currentLayout < layouts.length - 1 ? this.currentLayout + 1 : 0
+            this.$emit('update:gridLayout', layout)
+        },
         toggleGroup: function (id: string) {
             if (id === this.activeGroup) {
                 this.activeGroup = null
             } else {
                 this.activeGroup = id
             }
-        },
-        toggleLayout: function () {
-            const layouts = [null, [1, 0], [0, 1]]
-            this.currentLayout = this.currentLayout < layouts.length - 1 ? this.currentLayout + 1 : 0
-            this.$emit('update:gridLayout', layouts[this.currentLayout])
         },
         toggleLink: function () {
             if (this.isActive('action:link')) {

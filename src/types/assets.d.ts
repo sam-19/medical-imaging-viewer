@@ -20,7 +20,18 @@ interface StudyLoader {
     loadFromFile(file: File, config?: object): Promise<StudyObject>
     loadFromFileSystem(fileTree: FileSystemItem, config?: object): Promise<any>
 }
-// StudyObject version 1.0
+/**
+ * A generic study type returned by the study loader (version 1.0).
+ * @param data any data that should be immediately available, such as the parsed DICOM dataset
+ * @param files an array files contained in the study, such as image files in an image series
+ * @param format file format, such as dicom, edf etc.
+ * @param meta metadata detailing the resource, including file mimetype
+ * @param name study name
+ * @param scope study type scope (radiology, ekg, eeg, emg etc.)
+ * @param type resource type within the scope, such as image
+ * @param urls an array of URLs for files that have not yet been loaded
+ * @param version study object type version
+ */
 interface StudyObject {
     data: any
     files: File[]

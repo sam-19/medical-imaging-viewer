@@ -49,8 +49,8 @@ export default Vue.extend({
         },
     },
     mounted () {
-        if (!this.index) {
-            this.$emit('first-item-mounted')
+        if (this.index === 1) {
+            this.$emit('second-item-mounted')
         }
     },
 })

@@ -16,17 +16,20 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <radiology-sidebar
+                :allowSorting="!gridLayout || !gridLayout[0] || !gridLayout[1]"
                 :dicomItems="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
+                v-on:item-dropped="itemDropped"
                 v-on:update-item-order="$emit('update-item-order', $event)"
             />
         </div>
         <div ref="media" class="medigi-viewer-media">
             <div class="medigi-viewer-images">
-                <!-- Add active DICOM images -->
-                <dicom-image-display v-for="(resource, idx) in activeItems"
-                    :key="`${$store.state.appName}-medigi-viewer-element-${resource.id}`"
+                <!-- Add active DICOM images and placeholders -->
+                <component v-for="(resource, idx) in activeItems"
+                    :is="resource ? 'dicom-image-display' : 'dicom-image-placeholder'"
+                    :key="`${$store.state.appName}-medigi-viewer-element-${resource ? resource.id : idx}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
@@ -49,7 +52,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone, { Image } from 'cornerstone-core'
+import cornerstone from 'cornerstone-core'
 import cornerstoneMath from 'cornerstone-math'
 import cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
@@ -94,6 +97,7 @@ export default Vue.extend({
             // Loaded elements
             topogramElement: null as null | ImageResource,
             gridLayout: null as null | number[],
+            elementPositions: [] as number[],
             // Other properties
             ctrlDown: false,
             ctrlRegistered: false,
@@ -104,23 +108,54 @@ export default Vue.extend({
             elementsChanged: 0,
         }
     },
+    watch: {
+        gridLayout: function (value: any, old: any) {
+            // If we switch from automatic layout to a set layout, reset element positions
+            // and active elements
+            if (value && value[0] && value[1] && (!old || !old[0] || !old[1])) {
+                this.elementPositions = []
+                ;(this.resources as ImageResource[]).forEach((res) => {
+                    res.isActive = false
+                })
+            }
+        },
+    },
     computed: {
-        activeItems (): (ImageResource | ImageStackResource)[] {
+        activeItems (): (ImageResource | ImageStackResource | null)[] {
             this.elementsChanged
             // Array.filter is a pain to make work in TypeScript
             const items = []
-            for (let i=0; i<this.resources.length; i++) {
-                const resource = this.resources[i] as ImageResource
-                if (resource.isActive) {
-                    items.push(resource)
+            if (this.gridLayout === null || !this.gridLayout[0] || !this.gridLayout[1]) {
+                // Now, element display depends on the display mode
+                // For simple, automatic arrangement we will display any active images
+                for (let i=0; i<this.resources.length; i++) {
+                    const resource = this.resources[i] as ImageResource
+                    if (resource.isActive) {
+                        items.push(resource)
+                    }
+                    // Make sure we don't exceed predefined grid dimensions
+                    if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
+                        && i === this.gridLayout[0]*this.gridLayout[1]
+                    ) {
+                        return items
+                    }
                 }
-                // Make sure we don't exceed predefined grid dimensions
-                if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
-                    && i === this.gridLayout[0]*this.gridLayout[1]
-                ) {
-                    return items
+            } else {
+                // For preset grid dimensions, we will have to keep track of image positions
+                // within the grid and fill the gaps with empty elements.
+                layout_loop:
+                for (let i=0; i<this.gridLayout[0]*this.gridLayout[1]; i++) {
+                    // If an element is positioned here, show it; else show a placeholder.
+                    for (let j=0; j<this.resources.length; j++) {
+                        if (this.elementPositions[j] === i) {
+                            items.push(this.resources[j] as ImageResource)
+                            continue layout_loop
+                        }
+                    }
+                    items.push(null)
                 }
             }
+            console.log(items)
             return items
         },
         allResourcesLinked (): boolean {
@@ -132,8 +167,8 @@ export default Vue.extend({
             let someLinkable = false
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i].isStack) {
-                    if (!items[i].isLinked) {
+                if (items[i]?.isStack) {
+                    if (!items[i]?.isLinked) {
                         return false
                     } else if (!someLinkable) {
                         // Check that at least some of the active elements can be linked;
@@ -300,7 +335,7 @@ export default Vue.extend({
         isElementActive: function (id: string): boolean {
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i].id === id) {
+                if (items[i]?.id === id) {
                     return true
                 }
             }
@@ -309,11 +344,16 @@ export default Vue.extend({
         isElementLinked: function (id: string): boolean {
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i].id === id) {
+                if (items[i] && items[i]?.id === id) {
+                    // @ts-ignore: TSLint doesn't understand that items[i] cannot be null
                     return items[i].isStack ? items[i].isLinked : false
                 }
             }
             return false
+        },
+        itemDropped: function (props: any) {
+            this.elementPositions[props.item] = props.target
+            this.elementsChanged++
         },
         linkAllResources: function (value: boolean) {
             for (let i=0; i<this.resources.length; i++) {
@@ -523,7 +563,7 @@ export default Vue.extend({
                 // Refresh linked position and master stack position in each active stack element
                 const items = this.activeItems
                 for (let i=0; i<items.length; i++) {
-                    if (items[i].isStack && items[i].isLinked) {
+                    if (items[i] && items[i]?.isStack && items[i]?.isLinked) {
                         (items[i] as ImageStackResource).link(this.$store.state.linkedScrollPosition)
                     }
                 }

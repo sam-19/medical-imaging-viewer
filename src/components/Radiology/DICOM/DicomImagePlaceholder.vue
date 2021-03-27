@@ -1,20 +1,32 @@
 <template>
 
     <div ref="wrapper" class="medigi-viewer-image-placeholder">
-        <div ref="content"></div>
+        <div ref="content">
+            <vue-draggable v-model="items"
+                :id="`${$store.state.appName}-medigi-viewer-image-drop-${listIndex}`"
+                class="medigi-viewer-image-dropzone"
+            />
+        </div>
     </div>
 
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import VueDraggable from 'vuedraggable'
 
 export default Vue.extend({
     components: {
+        VueDraggable,
     },
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
         layoutPosition: Array, // Element position in layout grid [[colPos, cols], [rowPos, rows]]
+    },
+    data () {
+        return {
+            items: [null],
+        }
     },
     watch: {
         containerSize (value: Array<number>, old: Array<number>) {
@@ -22,6 +34,12 @@ export default Vue.extend({
         },
         layoutPosition (value: Array<number>, old: Array<number>) {
             this.resizeContainer()
+        },
+    },
+    computed: {
+        listIndex () {
+            const pos = [(this.layoutPosition[0] as number[]), (this.layoutPosition[1] as number[])]
+            return pos[0][1]*pos[1][0] + pos[0][0]
         },
     },
     methods: {
@@ -58,5 +76,9 @@ export default Vue.extend({
     position: relative;
     float: left;
     padding: 10px;
+}
+.medigi-viewer-image-dropzone {
+    width: 100%;
+    height: 100%;
 }
 </style>
