@@ -58,6 +58,7 @@
                 <span ref="loading-dot-3" style="visibility: hidden">.</span>
             </div>
         </div>
+        <!-- Image tools -->
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
             :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
             :title="$t('Link this image stack')"
@@ -66,9 +67,17 @@
             class="medigi-viewer-link-icon"
             fixed-width
         />
+        <!-- Metadata -->
+        <span v-if="isFirstLoaded"
+            class="medigi-viewer-image-name"
+        >{{ this.resource.name }}</span>
+        <span v-if="isFirstLoaded"
+            class="medigi-viewer-image-resolution"
+        >{{ this.resource.dimensions[0] }} x {{ this.resource.dimensions[1] }}</span>
         <span v-if="resource.isStack && isFirstLoaded"
             class="medigi-viewer-stack-position"
         >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
+        <!-- Topogram -->
         <div v-if="resource.topogram" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
             :class="[
                 'medigi-viewer-topogram',
@@ -1096,7 +1105,7 @@ export default Vue.extend({
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;
-        top: 10px;
+        top: 40px;
         right: 10px;
         font-size: 20px;
         cursor: pointer;
@@ -1105,12 +1114,27 @@ export default Vue.extend({
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon-active {
         color: var(--medigi-viewer-text-main);
     }
+    .medigi-viewer-image-wrapper > .medigi-viewer-image-name {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        height: 20px;
+        line-height: 20px;
+        pointer-events: none;
+    }
+    .medigi-viewer-image-wrapper > .medigi-viewer-image-resolution {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        height: 20px;
+        line-height: 20px;
+        pointer-events: none;
+    }
     .medigi-viewer-image-wrapper > .medigi-viewer-stack-position {
         position: absolute;
         left: 10px;
         bottom: 10px;
         pointer-events: none;
-        color: var(--medigi-viewer-text-faint);
     }
     .medigi-viewer-image-wrapper > .medigi-viewer-topogram {
         position: absolute;
