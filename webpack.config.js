@@ -1,8 +1,6 @@
 const path = require('path')
 const { VueLoaderPlugin } = require('vue-loader')
 
-const ASSET_PATH = process.env.ASSET_PATH || '/dist/'
-
 module.exports = {
     entry: {
         main: { import: path.join(__dirname, 'src', 'index.ts') },
@@ -12,13 +10,6 @@ module.exports = {
         'cornerstone-tools': 'cornerstone-tools',
         'plotly.js': 'plotly.js',
         */
-    },
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        publicPath: ASSET_PATH,
-        filename: '[name].js',
-        chunkFilename: '[name].js?v=[contenthash]',
-        libraryTarget: 'umd'
     },
     module: {
         rules: [
@@ -88,16 +79,6 @@ module.exports = {
     plugins: [
         new VueLoaderPlugin(),
     ],
-    devServer: {
-        contentBase: path.join(__dirname, 'dist'),
-        compress: true,
-        historyApiFallback: true,
-        port: 8080,
-        publicPath: '/',
-    },
-    performance: {
-        hints: false
-    },
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.json'],
         alias: {

@@ -4,8 +4,7 @@
  * @license    MIT
  */
 
-import { MEDigiI18n, validLocale } from './i18n'
-import { Store } from 'vuex'
+import { MEDigiI18n, ValidLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
 import { MediaResource } from './types/assets'
 
@@ -82,17 +81,62 @@ library.add(faShareAll)
 library.add(faUndoAlt)
 library.add(faUnlink)
 
+const VIEWERS = [] as MEDigiViewer[]
+/**
+ * Create a new viewer instance and add it to the list.
+ * @param config a configration object containing
+ * * appName: unique name for this viewer
+ * * autoStart: start the app immediately
+ * * environment: script environment
+ * * idSuffix: suffix to use after mount div id
+ * * locale: app locale
+ * * url: a single URL, array or URLs or filesystem-like object of file URLs to load (only if autoStart is true)
+ * * wpPublicPath: WebPack publick path for script chunk loading
+ * @param jsonConfig config is a JSON object (default false)
+ * @return the created viewer
+ */
+function createMEDigiViewerInstance (config?: any, jsonConfig = false) {
+    if (jsonConfig && config) {
+        config = JSON.parse(config)
+    }
+    const viewer = new MEDigiViewer(config?.appName, config?.idSuffix, config?.locale, config?.wpPublicPath)
+    if (config?.autoStart) {
+        viewer.show()
+        if (config.url) {
+            viewer.loadUrl(config.url)
+        }
+    }
+    VIEWERS.push(viewer)
+    return viewer
+}
+
+/**
+ * Get the first MEDigiViewer by given appName or if omitted, the last created viewer instance.
+ * @param appName optional app id
+ * @returns MEDigiViewer or undefined
+ */
+function getMEDigiViewerInstance (appName?: string) {
+    if (appName) {
+        for (let i=0; i<VIEWERS.length; i++) {
+            if (VIEWERS[i].appName === appName) {
+                return VIEWERS[i]
+            }
+        }
+    } else if (VIEWERS.length) {
+        return VIEWERS[VIEWERS.length -1]
+    }
+    return undefined
+}
+
 /**
  * This will mount a Vue-based imaging file viewer to an element with the ID 'medigi-viewer'.
  * You may provide an optional suffix for the container ID, e.g. 'xray' will mount the viewer
- * to the element with the ID 'medigi-viewer-xray' (a separating hyphen is required).
+ * to the element with the ID 'medigi-viewer-xray' (a separating hyphen is added automatically).
  */
 class MEDigiViewer {
 
-    __webpack_public_path__ = './'
-
     containerId: string = '#medigi-viewer'
-    appName: string = 'app' // This variable is only used to store the name before the viewer is actually initialized
+    appName: string
     i18n: any
     locale: string
     store: any
@@ -100,18 +144,22 @@ class MEDigiViewer {
 
     /**
      * MEDigi imaging viewer
-     * @param idSuffix string following component ID 'medigi-viewer'
-     * @param appName unique identifier used within the app to ensure uniqueness if several instances of MEDigiViewer are run on the same page
+     * @param appName unique identifier used within the app in case several instances of MEDigiViewer are run on the same page
+     * @param idSuffix string following div element ID 'medigi-viewer-<idSuffix>'
      * @param locale app locale
+     * @param wpPublicPath: WebPack publick path for script chunk loading
      */
     constructor (
-        idSuffix: string | undefined,
-        appName: string | undefined,
-        locale: validLocale | undefined
+        appName: string = 'app',
+        idSuffix?: string,
+        locale: ValidLocale = 'en',
+        wpPublicPath: string = './'
     ) {
-        this.containerId += idSuffix === undefined ? '' : '-' + idSuffix
-        this.appName = appName !== undefined ? appName : this.appName
-        this.locale = locale !== undefined ? locale : 'en'
+        // Set webpack public path for script chunk loading (only has to be done once in fact)
+        __webpack_public_path__ = wpPublicPath
+        this.containerId += idSuffix ? `-${idSuffix}` : ''
+        this.appName = appName
+        this.locale = locale
     }
 
     /**
@@ -132,17 +180,19 @@ class MEDigiViewer {
 
     /**
      * Load DICOM objects from given URLs.
-     * @param url a single url string or an array of url strings
+     * @param url a single url string, array of url strings or a filesystem-like object
      */
-    loadUrl (url: string | string[]): void {
+    loadUrl (url: any): void {
         if (this.viewer === undefined) {
             // Viewer must be initialized first
             return
         }
         if (Array.isArray(url)) {
             // Load a list of URLs
-        } else {
+        } else if (typeof url === 'string') {
             // Load a single URL
+        } else {
+            // Load filesystem of URLs
         }
     }
 
@@ -191,6 +241,6 @@ class MEDigiViewer {
 
 }
 // Default export
-export default MEDigiViewer
+export { createMEDigiViewerInstance, getMEDigiViewerInstance, MEDigiViewer }
 // Set as a property of window
 ;(window as any).MEDigiViewer = MEDigiViewer

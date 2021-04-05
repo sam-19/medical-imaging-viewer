@@ -33,11 +33,11 @@ class MEDigiI18n {
             locale: 'en',
             fallbackLocale: 'en',
             messages: this.messages,
-            dateTimeFormats: this.dateTimeFormats,
+            dateTimeFormats: this.dateTimeFormats as any,
             silentTranslationWarn: true,
         })
     }
 }
 
-type validLocale = 'en' | 'fi' | 'se'
-export { MEDigiI18n, validLocale }
+type ValidLocale = 'en' | 'fi' | 'se'
+export { MEDigiI18n, ValidLocale }

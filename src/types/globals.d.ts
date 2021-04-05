@@ -5,3 +5,5 @@
  */
 
 declare var __webpack_public_path__: string
+// Environment-specific variables
+declare var M: any // Moodle
