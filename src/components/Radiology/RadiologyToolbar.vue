@@ -746,6 +746,7 @@ export default Vue.extend({
 
 <style scoped>
 .medigi-viewer-toolbar > div {
+    position: relative;
     display: flex;
     padding: 10px 10px 10px 11px;
 }

@@ -220,10 +220,6 @@ export default Vue.extend({
 </script>
 
 <style>
-/* Page layout */
-body {
-    margin: 0;
-}
 /* Global app styles */
 .medigi-viewer-theme-change, .medigi-viewer-theme-change * {
     -moz-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
@@ -254,18 +250,23 @@ body {
     --medigi-viewer-text-faint: #909090;
 }
 /* Use prettier and more consistent scrollbars */
-::-webkit-scrollbar {
+.medigi-viewer *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
-::-webkit-scrollbar-thumb {
+.medigi-viewer *::-webkit-scrollbar-thumb {
     color: var(--medigi-viewer-border-faint);
     border-radius: 5px;
 }
-::-webkit-scrollbar-track-piece {
+.medigi-viewer *::-webkit-scrollbar-track-piece {
     background-color: transparent;
 }
 /* Main app view component styles */
+.medigi-viewer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
 .medigi-viewer * {
     /* Don't allow selecting text by default */
     -webkit-user-select: none;
@@ -274,8 +275,6 @@ body {
     user-select: none;
     /* Set scrollbar width for Firefox */
     scrollbar-width: 10px;
-    /* Main layout */
-    position: relative;
 }
     .medigi-viewer div {
         box-sizing: border-box;
