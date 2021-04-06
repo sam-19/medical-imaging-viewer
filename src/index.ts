@@ -81,53 +81,6 @@ library.add(faShareAll)
 library.add(faUndoAlt)
 library.add(faUnlink)
 
-const VIEWERS = [] as MEDigiViewer[]
-/**
- * Create a new viewer instance and add it to the list.
- * @param config a configration object containing
- * * appName: unique name for this viewer
- * * autoStart: start the app immediately
- * * environment: script environment
- * * idSuffix: suffix to use after mount div id
- * * locale: app locale
- * * url: a single URL, array or URLs or filesystem-like object of file URLs to load (only if autoStart is true)
- * * wpPublicPath: WebPack publick path for script chunk loading
- * @param jsonConfig config is a JSON object (default false)
- * @return the created viewer
- */
-function createMEDigiViewerInstance (config?: any, jsonConfig = false) {
-    if (jsonConfig && config) {
-        config = JSON.parse(config)
-    }
-    const viewer = new MEDigiViewer(config?.appName, config?.idSuffix, config?.locale, config?.wpPublicPath)
-    if (config?.autoStart) {
-        viewer.show()
-        if (config.url) {
-            viewer.loadUrl(config.url)
-        }
-    }
-    VIEWERS.push(viewer)
-    return viewer
-}
-
-/**
- * Get the first MEDigiViewer by given appName or if omitted, the last created viewer instance.
- * @param appName optional app id
- * @returns MEDigiViewer or undefined
- */
-function getMEDigiViewerInstance (appName?: string) {
-    if (appName) {
-        for (let i=0; i<VIEWERS.length; i++) {
-            if (VIEWERS[i].appName === appName) {
-                return VIEWERS[i]
-            }
-        }
-    } else if (VIEWERS.length) {
-        return VIEWERS[VIEWERS.length -1]
-    }
-    return undefined
-}
-
 /**
  * This will mount a Vue-based imaging file viewer to an element with the ID 'medigi-viewer'.
  * You may provide an optional suffix for the container ID, e.g. 'xray' will mount the viewer
@@ -240,7 +193,7 @@ class MEDigiViewer {
     }
 
 }
-// Default export
-export { createMEDigiViewerInstance, getMEDigiViewerInstance, MEDigiViewer }
+// Exports
+export default MEDigiViewer
 // Set as a property of window
 ;(window as any).MEDigiViewer = MEDigiViewer
