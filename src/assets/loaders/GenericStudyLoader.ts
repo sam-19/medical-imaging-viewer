@@ -179,31 +179,59 @@ class GenericStudyLoader implements StudyLoader {
                     // (as they were dragged as separate files into the viewer)
                     for (let i=0; i<rootDir.files.length; i++) {
                         const curFile = rootDir.files[i]
-                        const study = await this.loadFromFile(
-                            (curFile.file as File),
-                            Object.assign({ name: curFile.name }, config.studies[curFile.name])
-                        )
+                        let study
+                        if (curFile.file) {
+                            study = await this.loadFromFile(
+                                (curFile.file as File),
+                                Object.assign({ name: curFile.name }, config.studies[curFile.name])
+                            )
+                        } else if (curFile.url) {
+                            // Fetch the file from url
+                            await fetch(curFile.url)
+                            .then(response => response.blob())
+                            .then(async (response: any) => {
+                                study = await this.loadFromFile(
+                                    (new File([response], curFile.name)),
+                                    Object.assign({ name: curFile.name }, config.studies[curFile.name])
+                                )
+                            })
+                        }
                         studies[curFile.name] = study
                     }
                 } else {
                     // Load the first file and add directory contents as study files and
                     // pass the directory name as default study name
-                    const study = await this.loadFromFile(
-                        (rootDir.files[0].file as File),
-                        Object.assign({ name: rootDir.name }, config.studies[rootDir.name])
-                    )
-                    for (let i=0; i<rootDir.files.length; i++) {
-                        if (rootDir.files[i].file) {
-                            study.files.push(rootDir.files[i].file as File)
-                        } else if (rootDir.files[i].url) {
-                            study.urls.push(rootDir.files[i].url as string)
+                    let study
+                    if (rootDir.files[0].file) {
+                        study = await this.loadFromFile(
+                            (rootDir.files[0].file as File),
+                            Object.assign({ name: rootDir.name }, config.studies[rootDir.name])
+                        )
+                    } else if (rootDir.files[0].url) {
+                        // Fetch the file from url
+                        await fetch(rootDir.files[0].url)
+                        .then(response => response.blob())
+                        .then(async (response: any) => {
+                            study = await this.loadFromFile(
+                                (new File([response], rootDir.files[0].name)),
+                                Object.assign({ name: rootDir.name }, config.studies[rootDir.name])
+                            )
+                        })
+                    }
+                    if (study) {
+                        for (let i=0; i<rootDir.files.length; i++) {
+                            if (rootDir.files[i].file) {
+                                study.files.push(rootDir.files[i].file as File)
+                            } else if (rootDir.files[i].url) {
+                                study.urls.push(rootDir.files[i].url as string)
+                            }
                         }
+                        // Add a series tag if there is more than one file
+                        if (study.files.length > 1 || study.urls.length > 1 && !study.type.endsWith(':series')) {
+                            study.type += ':series'
+                        }
+                        studies[rootDir.name] = study
                     }
-                    // Add a series tag if there is more than one file
-                    if (study.files.length > 1 && !study.type.endsWith(':series')) {
-                        study.type += ':series'
-                    }
-                    studies[rootDir.name] = study
                 }
             } else if (rootDir.directories.length) {
                 // Try to add each individual dir as a separate study.
@@ -218,25 +246,37 @@ class GenericStudyLoader implements StudyLoader {
                         continue
                     } else {
                         // Add each directory as separate study
-                        const curFile = rootDir.directories[i].files[0]
-                        const study = await this.loadFromFile(
-                            (curFile.file as File),
-                            Object.assign(
-                                { name: rootDir.directories[i].name },
-                                config.studies[rootDir.directories[i].name]
+                        const curFile = curDir.files[0]
+                        let study
+                        if (curFile.file) {
+                            study = await this.loadFromFile(
+                                (curFile.file as File),
+                                Object.assign({ name: curDir.name }, config.studies[curDir.name])
                             )
-                        )
-                        for (let j=0; j<rootDir.directories[i].files.length; j++) {
-                            if (rootDir.directories[i].files[j].file) {
-                                study.files.push(rootDir.directories[i].files[j].file as File)
-                            } else if (rootDir.directories[i].files[j].url) {
-                                study.urls.push(rootDir.directories[i].files[j].url as string)
+                        } else if (curFile.url) {
+                            // Fetch the file from url
+                            await fetch(curFile.url)
+                            .then(response => response.blob())
+                            .then(async (response: any) => {
+                                study = await this.loadFromFile(
+                                    (new File([response], curFile.name)),
+                                    Object.assign({ name: curDir.name }, config.studies[curDir.name])
+                                )
+                            })
+                        }
+                        if (study) {
+                            for (let j=0; j<curDir.files.length; j++) {
+                                if (curDir.files[j].file) {
+                                    study.files.push(curDir.files[j].file as File)
+                                } else if (curDir.files[j].url) {
+                                    study.urls.push(curDir.files[j].url as string)
+                                }
                             }
+                            if (study.files.length > 1 || study.urls.length > 1 && !study.type.endsWith(':series')) {
+                                study.type += ':series'
+                            }
+                            studies[curDir.name] = study
                         }
-                        if (study.files.length > 1 && !study.type.endsWith(':series')) {
-                            study.type += ':series'
-                        }
-                        studies[rootDir.directories[i].name] = study
                     }
                 }
             } else {

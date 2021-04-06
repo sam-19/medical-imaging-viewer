@@ -6,7 +6,7 @@
 
 import { MEDigiI18n, ValidLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
-import { MediaResource } from './types/assets'
+import { FileSystemItem, MediaResource } from './types/assets'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
@@ -133,9 +133,9 @@ class MEDigiViewer {
 
     /**
      * Load DICOM objects from given URLs.
-     * @param url a single url string, array of url strings or a filesystem-like object
+     * @param url a single url string or an array of url strings
      */
-    loadUrl (url: any): void {
+    loadUrl (url: string | string[]): void {
         if (this.viewer === undefined) {
             // Viewer must be initialized first
             return
@@ -144,11 +144,15 @@ class MEDigiViewer {
             // Load a list of URLs
         } else if (typeof url === 'string') {
             // Load a single URL
-        } else {
-            // Load filesystem of URLs
         }
     }
-
+    /**
+     * Load studies from a filesystem-like object.
+     * @param fsItem a filesystem-like object (FileSystemItem)
+     */
+    loadFsItem (fsItem: FileSystemItem): void {
+        (this.viewer as any).loadStudiesFromFsItem(fsItem)
+    }
     /**
      * Set a new unique identifier to the app. Cannot be called after initialization.
      * @param newName new app name
@@ -166,8 +170,8 @@ class MEDigiViewer {
     /**
      * Load the Vue component and display the viewer.
      */
-    show (): void {
-        Promise.all([
+    async show (): Promise<any> {
+        await Promise.all([
             import(/* webpackChunkName: "vue" */'vue'),
             import(/* webpackChunkName: "fullscreen" */'vue-fullscreen'),
             // @ts-ignore: TSLint doesn't seem to recognize Vue component styles at runtime
@@ -189,11 +193,14 @@ class MEDigiViewer {
                 store,
                 i18n,
             }).$mount(this.containerId)
+            return true
+        }).catch((error) => {
+            return false
         })
     }
 
 }
 // Exports
-export default MEDigiViewer
+export { MEDigiViewer }
 // Set as a property of window
 ;(window as any).MEDigiViewer = MEDigiViewer
