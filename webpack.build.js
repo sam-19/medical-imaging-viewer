@@ -11,7 +11,7 @@ module.exports = merge(common, {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: ASSET_PATH,
-        filename: 'viewer.js',
+        filename: '[name].js',
         chunkFilename: '[name].js?v=[contenthash]',
         libraryTarget: 'umd'
     },
