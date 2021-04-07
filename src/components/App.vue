@@ -95,17 +95,13 @@ export default Vue.extend({
             studyLoader.loadFromFileSystem(fsItem).then(studyDict => {
                 const studies = Object.values(studyDict)
                 let topoImage = null as ImageResource | null
-                console.log(studyDict)
                 studies.forEach((study: any) => {
                     const types = study.type.split(':')
                     if (study.scope === 'radiology') {
                         if (types[0] === 'image') {
                             if (study.format === 'dicom') {
                                 // Data element should always be a loaded file
-                                console.log('wadouri')
-                                console.log(study.data)
                                 const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.data)
-                                console.log(imageId)
                                 if (imageId) {
                                     if (types.length === 1) {
                                         // Add a single image
