@@ -4,7 +4,7 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 import DicomMedia from './DicomMedia'
 import { ImageResource, ImageStackResource } from '../../types/assets'

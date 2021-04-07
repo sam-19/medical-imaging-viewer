@@ -1,6 +1,7 @@
 const path = require('path')
 const { merge } = require('webpack-merge')
 const common = require('./webpack.config.js')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const ASSET_PATH = process.env.ASSET_PATH || '/dist/'
 
@@ -10,8 +11,8 @@ module.exports = merge(common, {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: ASSET_PATH,
-        filename: '[name].js',
-        chunkFilename: '[name].js?v=[contenthash]',
+        filename: 'dev-[name].js',
+        chunkFilename: 'dev-[name].js?v=[contenthash]',
         libraryTarget: 'umd'
     },
     devServer: {
@@ -28,5 +29,6 @@ module.exports = merge(common, {
         ignored: /node_modules/
     },
     plugins: [
+        new BundleAnalyzerPlugin()
     ]
 })

@@ -4,13 +4,17 @@ const { VueLoaderPlugin } = require('vue-loader')
 module.exports = {
     entry: {
         'medigi-viewer': { import: path.join(__dirname, 'src', 'index.ts') },
-        /* These libraries will be very big if compiled independently */
-        'cornerstone-core': 'cornerstone-core',
-        'cornerstone-math': 'cornerstone-math',
-        'cornerstone-tools': 'cornerstone-tools',
-        'cornerstone-wado-image-loader': 'cornerstone-wado-image-loader',
-        'dicom-parser': 'dicom-parser',
-        'plotly.js': 'plotly.js',
+    },
+    externals: {
+        /* These libraries will be very big if compiled into the source */
+        'vue': 'Vue',
+        'plotly': 'Plotly',
+        'hammerjs': 'Hammer',
+        'dicom-parser': 'dicomParser',
+        'cornerstone-core': 'cornerstone',
+        'cornerstone-math': 'cornerstoneMath',
+        'cornerstone-tools': 'cornerstoneTools',
+        'cornerstone-wado-image-loader': 'cornerstoneWADOImageLoader',
     },
     module: {
         rules: [

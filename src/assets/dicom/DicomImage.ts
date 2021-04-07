@@ -4,7 +4,7 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 import DicomDataProperty from './DicomDataProperty'
 import DicomModality from './DicomModality'
 import DicomMedia from './DicomMedia'

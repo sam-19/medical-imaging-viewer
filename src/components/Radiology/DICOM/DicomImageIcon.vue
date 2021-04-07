@@ -25,7 +25,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 
 export default Vue.extend({
     components: {

@@ -47,7 +47,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import ResizeObserver from 'resize-observer-polyfill'
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import DicomWaveform from '../../../assets/dicom/DicomWaveform'
 import LocalFileLoader from '../../../assets/loaders/LocalFileLoader'

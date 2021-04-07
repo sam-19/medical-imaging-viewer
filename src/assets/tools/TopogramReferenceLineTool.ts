@@ -6,7 +6,7 @@
  * @license    MIT
  */
 
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 
 const BaseTool = cornerstoneTools.importInternal('base/BaseTool')

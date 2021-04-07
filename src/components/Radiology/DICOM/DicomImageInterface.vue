@@ -52,7 +52,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstone from 'cornerstone-core'
+import * as cornerstone from 'cornerstone-core'
 import cornerstoneMath from 'cornerstone-math'
 import cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
