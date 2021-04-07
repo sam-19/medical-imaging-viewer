@@ -4,6 +4,7 @@
  * @license    MIT
  */
 
+import Vue from 'vue'
 import { MEDigiI18n, ValidLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
 import { FileSystemItem, MediaResource } from './types/assets'
@@ -172,15 +173,10 @@ class MEDigiViewer {
      */
     async show (): Promise<any> {
         await Promise.all([
-            import(/* webpackChunkName: "vue" */'vue'),
-            import(/* webpackChunkName: "fullscreen" */'vue-fullscreen'),
             // @ts-ignore: TSLint doesn't seem to recognize Vue component styles at runtime
             import(/* webpackChunkName: "viewer" */'./components/App.vue'),
         ]).then((imports) => {
-            const Vue = imports[0].default
-            const Fullscreen = imports[1].default
-            const Viewer = imports[2].default
-            Vue.use(Fullscreen)
+            const Viewer = imports[0].default
             this.i18n = new MEDigiI18n().setup(Vue)
             this.store = new MEDigiStore().setup(Vue)
             this.store.commit(MutationTypes.SET_APP_NAME, this.appName)

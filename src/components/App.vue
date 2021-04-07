@@ -43,8 +43,8 @@ import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 
 export default Vue.extend({
     components: {
-        DicomImageInterface: () => import('./Radiology/DICOM/DicomImageInterface.vue'),
-        DicomWaveformInterface: () => import('./EKG/DICOM/DicomWaveformInterface.vue'),
+        DicomImageInterface: () => import('./Radiology/Dicom/DicomImageInterface.vue'),
+        DicomWaveformInterface: () => import('./EKG/Dicom/DicomWaveformInterface.vue'),
     },
     data () {
         return {

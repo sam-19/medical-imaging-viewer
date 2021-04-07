@@ -334,6 +334,7 @@ export default Vue.extend({
         grid-row-end: divider;
     }
     .medigi-viewer-dicom-waveform-interface > .medigi-viewer-media {
+        position: relative;
         grid-column-start: divider;
         grid-row-start: divider;
         margin: 0 10px 10px 0;

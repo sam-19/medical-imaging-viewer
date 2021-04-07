@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node node_modules/webpack/bin/webpack.js --progress --config webpack.build.js",
-    "build:moodle": "node node_modules/webpack/bin/webpack.js --progress --config webpack.moodle.js",
+    "build:amd": "node node_modules/webpack/bin/webpack.js --progress --config webpack.amd.js",
     "dev": "node node_modules/webpack/bin/webpack.js --progress --watch --config webpack.dev.js",
     "serve": "node node_modules/webpack/bin/webpack.js serve --progress --config webpack.dev.js",
     "test": "npm run test:unit",
