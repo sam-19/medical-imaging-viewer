@@ -19,6 +19,13 @@
             </vue-draggable>
             <div :id="`${$store.state.appName}-medigi-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
+        <div :class="[
+            'medigi-viewer-sidebar-loading',
+            { 'medigi-viewer-hidden': !loadingStudies }
+        ]">
+            <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
+            {{ $t('LOADING STUDIES') }}
+        </div>
         <div :id="`${$store.state.appName}-medigi-viewer-radiology-statusbar`" class="medigi-viewer-statusbar">
             <span>{{ $t('Cache status') }}</span>
             <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
@@ -43,6 +50,7 @@ export default Vue.extend({
     props: {
         allowSorting: Boolean,
         dicomItems: Array,
+        loadingStudies: Boolean,
     },
     data () {
         return {
@@ -183,6 +191,13 @@ export default Vue.extend({
     width: 300px;
     height: calc(100% - 50px);
     padding-top: 80px;
+}
+.medigi-viewer-sidebar-loading {
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--medigi-viewer-text-faint);
 }
 .medigi-viewer-sidebar-items {
     display: flex;

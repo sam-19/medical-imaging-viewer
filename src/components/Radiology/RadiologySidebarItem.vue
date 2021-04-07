@@ -21,7 +21,7 @@ import Vue from 'vue'
 
 export default Vue.extend({
     components: {
-        DicomImageIcon: () => import('./DICOM/DicomImageIcon.vue'),
+        DicomImageIcon: () => import('./Dicom/DicomImageIcon.vue'),
     },
     props: {
         active: Boolean,

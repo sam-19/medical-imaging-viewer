@@ -18,6 +18,7 @@
             <radiology-sidebar
                 :allowSorting="!gridLayout || !gridLayout[0] || !gridLayout[1]"
                 :dicomItems="resources"
+                :loadingStudies="loadingStudies"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
                 v-on:item-dropped="itemDropped"
@@ -83,6 +84,7 @@ export default Vue.extend({
         DicomImagePlaceholder: () => import('./DicomImagePlaceholder.vue'),
     },
     props: {
+        loadingStudies: Boolean,
         resources: Array,
         sidebarOpen: Boolean,
     },

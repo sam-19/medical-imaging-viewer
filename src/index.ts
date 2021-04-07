@@ -42,6 +42,7 @@ import { faSearch as faSearchL } from '@fortawesome/pro-light-svg-icons/faSearch
 import { faSearch as faSearchS } from '@fortawesome/pro-solid-svg-icons/faSearch'
 import { faShare } from '@fortawesome/pro-light-svg-icons/faShare'
 import { faShareAll } from '@fortawesome/pro-light-svg-icons/faShareAll'
+import { faSpinnerThird } from '@fortawesome/pro-duotone-svg-icons/faSpinnerThird'
 import { faUndoAlt } from '@fortawesome/pro-regular-svg-icons/faUndoAlt'
 import { faUnlink } from '@fortawesome/pro-light-svg-icons/faUnlink'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -79,6 +80,7 @@ library.add(faSearchL)
 library.add(faSearchS)
 library.add(faShare)
 library.add(faShareAll)
+library.add(faSpinnerThird)
 library.add(faUndoAlt)
 library.add(faUnlink)
 

@@ -37,6 +37,16 @@ export default Vue.extend({
         stack: Boolean,
         type: String,
     },
+    watch: {
+        cover: function (value: string, old: string) {
+            console.log('cover', value)
+            if (value === 'LOADING') {
+
+            } else {
+                this.displayCoverImage()
+            }
+        },
+    },
     methods: {
         /**
          * Display the image from cover image URL
@@ -89,9 +99,12 @@ export default Vue.extend({
         }
     },
     mounted () {
-        // Attempt to load the cover image
         if (this.cover) {
-            this.displayCoverImage()
+            if (this.cover === 'LOADING') {
+
+            } else {
+                this.displayCoverImage()
+            }
         }
     }
 })

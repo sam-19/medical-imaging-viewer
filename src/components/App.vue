@@ -17,12 +17,14 @@
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
+            :loadingStudies="loadingStudies"
             :resources="dicomElements"
             :sidebarOpen="sidebarOpen"
             v-on:update-item-order="updateDicomImageOrder"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
+            :loadingStudies="loadingStudies"
             :resources="ekgResources"
             :sidebarOpen="sidebarOpen"
         />
@@ -50,6 +52,7 @@ export default Vue.extend({
         return {
             scope: 'radiology',
             sidebarOpen: true,
+            loadingStudies: false,
             // Loaded DICOM elements
             dicomElements: [] as ImageResource[] | ImageStackResource[],
             ekgResources: [] as DicomWaveform[],
@@ -92,6 +95,7 @@ export default Vue.extend({
          */
         loadStudiesFromFsItem: function (fsItem: FileSystemItem) {
             const studyLoader = new GenericStudyLoader()
+            this.loadingStudies = true
             studyLoader.loadFromFileSystem(fsItem).then(studyDict => {
                 const studies = Object.values(studyDict)
                 let topoImage = null as ImageResource | null
@@ -111,6 +115,8 @@ export default Vue.extend({
                                     } else if (types[1] === 'series') {
                                         // Add an image stack
                                         const imgStack = new DicomImageStack(study.files.length, study.name)
+                                        ;(this.dicomElements as ImageStackResource[]).push(imgStack)
+                                        const resourceIdx = this.dicomElements.length - 1
                                         // Add all loaded files
                                         for (let i=0; i<study.files.length; i++) {
                                             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
@@ -129,9 +135,10 @@ export default Vue.extend({
                                             }
                                         }
                                         // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
-                                        if (imgStack.length) {
-                                            (this.dicomElements as ImageStackResource[]).push(imgStack)
+                                        if (!imgStack.length) {
+                                            this.dicomElements.splice(resourceIdx, 1)
                                         }
+                                        console.log("added")
                                     } else if (types[1] === 'topogram') {
                                         // Add as a topogram image
                                         topoImage = new DicomImage(study.name, study.data.size, imageId)
@@ -154,6 +161,9 @@ export default Vue.extend({
                         }
                     })
                 }
+                this.loadingStudies = false
+            }).catch((reason) => {
+                this.loadingStudies = false
             })
         },
         toggleColorTheme: function (light?: boolean) {

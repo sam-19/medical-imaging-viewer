@@ -14,6 +14,13 @@
             />
             <div :id="`${$store.state.appName}-medigi-viewer-ekg-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
+        <div :class="[
+            'medigi-viewer-sidebar-loading',
+            { 'medigi-viewer-hidden': !loadingStudies }
+        ]">
+            <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
+            {{ $t('LOADING STUDIES') }}
+        </div>
     </div>
 </template>
 
@@ -108,6 +115,13 @@ export default Vue.extend({
     width: 300px;
     height: calc(100% - 80px);
     margin-top: 80px;
+}
+.medigi-viewer-sidebar-loading {
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--medigi-viewer-text-faint);
 }
 .medigi-viewer-sidebar-items {
     display: flex;
