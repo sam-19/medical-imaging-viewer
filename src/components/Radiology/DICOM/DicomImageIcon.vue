@@ -102,12 +102,12 @@ export default Vue.extend({
 
 .medigi-viewer-cover-image {
     /* Initial dimensions */
-    height: 125px;
-    width: 125px;
+    height: 75px;
+    width: 75px;
 }
 .medigi-viewer-default-icon {
-    width: 125px; /* Initial width */
-    height: 125px;
+    width: 75px; /* Initial width */
+    height: 75px;
     padding: 10% 20% 20% 10%; /* Apply margins to all the default icons */
 }
     .medigi-viewer-icon-image-single {

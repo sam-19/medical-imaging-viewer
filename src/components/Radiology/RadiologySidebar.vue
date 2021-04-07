@@ -193,7 +193,7 @@ export default Vue.extend({
 .medigi-viewer-dropzone {
     flex-grow: 1;
     margin-bottom: 10px;
-    min-height: 140px;
+    min-height: 100px;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
         background-color: var(--medigi-viewer-background-highlight);
