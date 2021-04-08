@@ -10,6 +10,7 @@
                     :id="item.id"
                     :index="idx"
                     :label="item.modality"
+                    :notice="notices[idx]"
                     :stack="item.isStack"
                     :title="item.name"
                     :type="item.type"
@@ -58,6 +59,7 @@ export default Vue.extend({
             lastActivated: null as number | null,
             listShuffled: false,
             mediaItems: [] as MediaResource[],
+            notices: [] as string[],
         }
     },
     computed: {
@@ -142,6 +144,9 @@ export default Vue.extend({
                 this.$emit('item-dropped', { item: evt.oldIndex, target: targetIdx })
             }
             //
+        },
+        setItemNotice: function (itemIdx: number, message: string) {
+            this.notices[itemIdx] = message
         },
         toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
             const item = this.items[itemIdx] as MediaResource

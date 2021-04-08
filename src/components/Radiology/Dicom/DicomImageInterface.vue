@@ -16,6 +16,7 @@
         </div>
         <div class="medigi-viewer-sidebar">
             <radiology-sidebar
+                ref="sidebar"
                 :allowSorting="!gridLayout || !gridLayout[0] || !gridLayout[1]"
                 :dicomItems="resources"
                 :loadingStudies="loadingStudies"
@@ -37,12 +38,14 @@
                     :resource="resource"
                     :topogram="topogramElement"
                     :synchronizers="synchronizers"
+                    v-on:enable-element-error="enableElementError(idx)"
                 />
                 <!-- Add a necessary amount of placeholder elements -->
                 <dicom-image-placeholder v-for="idx in getEmptyLayoutCells()"
                     :key="`${$store.state.appName}-medigi-viewer-placeholder-${idx}`"
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
+                    :resource="undefined"
                 />
             </div>
         </div>
@@ -100,6 +103,8 @@ export default Vue.extend({
             topogramElement: null as null | ImageResource,
             gridLayout: null as null | number[],
             elementPositions: [] as number[],
+            failedElement: null as number | null,
+            pendingElements: [] as number[],
             // Other properties
             ctrlDown: false,
             ctrlRegistered: false,
@@ -123,10 +128,10 @@ export default Vue.extend({
         },
     },
     computed: {
-        activeItems (): (ImageResource | ImageStackResource | null)[] {
+        activeItems (): (ImageResource | ImageStackResource | null | false)[] {
             this.elementsChanged
             // Array.filter is a pain to make work in TypeScript
-            const items = []
+            const items = [] as (ImageResource | ImageStackResource | null | false)[]
             if (this.gridLayout === null || !this.gridLayout[0] || !this.gridLayout[1]) {
                 // Now, element display depends on the display mode
                 // For simple, automatic arrangement we will display any active images
@@ -149,12 +154,41 @@ export default Vue.extend({
                 for (let i=0; i<this.gridLayout[0]*this.gridLayout[1]; i++) {
                     // If an element is positioned here, show it; else show a placeholder.
                     for (let j=0; j<this.resources.length; j++) {
-                        if (this.elementPositions[j] === i) {
+                        if (this.elementPositions[j] === i && (this.resources[j] as ImageResource).isActive) {
                             items.push(this.resources[j] as ImageResource)
                             continue layout_loop
                         }
                     }
                     items.push(null)
+                }
+            }
+            // Check if we need to reload an element
+            if (this.failedElement !== null) {
+                const failEl = this.gridLayout === null || !this.gridLayout[0] || !this.gridLayout[1]
+                               ? items.splice(this.failedElement, 1)[0]
+                               : items.splice(this.failedElement, 1, false)[0]
+                ;(failEl as ImageResource).isActive = false
+                // Remove from position list
+                //for (let j=0; j<this.resources.length; j++) {
+                //    if (this.elementPositions[j] === this.failedElement) {
+                //        delete this.elementPositions[j]
+                //        break
+                //    }
+                //}
+                const failIdx = this.resources.indexOf(failEl)
+                if (this.pendingElements.indexOf(failIdx) === -1) {
+                    this.pendingElements.push(failIdx)
+                }
+                ;(this.$refs['sidebar'] as any).setItemNotice(failIdx, this.$t('Activate item manually'))
+                this.failedElement = null
+            } else if (this.pendingElements.length) {
+                // Clear possible reactivated pending elements
+                for (let i=0; i<this.pendingElements.length; i++) {
+                    if ((this.resources[this.pendingElements[i]] as ImageResource).isActive) {
+                        ;(this.$refs['sidebar'] as any).setItemNotice(this.pendingElements[i], null)
+                        this.pendingElements.splice(i, 1)
+                        i--
+                    }
                 }
             }
             return items
@@ -168,8 +202,8 @@ export default Vue.extend({
             let someLinkable = false
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i]?.isStack) {
-                    if (!items[i]?.isLinked) {
+                if (items[i] && (items[i] as ImageResource).isStack) {
+                    if (!(items[i] as ImageResource).isLinked) {
                         return false
                     } else if (!someLinkable) {
                         // Check that at least some of the active elements can be linked;
@@ -217,6 +251,12 @@ export default Vue.extend({
                 (this.resources as ImageStackResource[]).push(imgStack)
             }
             this.updateElements()
+        },
+        /**
+         * Enabling an image element failed for some reason, retry
+         */
+        enableElementError: function (idx: number) {
+            this.failedElement = idx
         },
         getElementLayoutPosition: function (idx: number): number[][] {
             const activeNum = this.activeItems.length
@@ -336,7 +376,7 @@ export default Vue.extend({
         isElementActive: function (id: string): boolean {
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i]?.id === id) {
+                if (items[i] && (items[i] as ImageResource).id === id) {
                     return true
                 }
             }
@@ -345,7 +385,7 @@ export default Vue.extend({
         isElementLinked: function (id: string): boolean {
             const items = this.activeItems
             for (let i=0; i<items.length; i++) {
-                if (items[i] && items[i]?.id === id) {
+                if (items[i] && (items[i] as ImageResource).id === id) {
                     // @ts-ignore: TSLint doesn't understand that items[i] cannot be null
                     return items[i].isStack ? items[i].isLinked : false
                 }
@@ -564,7 +604,7 @@ export default Vue.extend({
                 // Refresh linked position and master stack position in each active stack element
                 const items = this.activeItems
                 for (let i=0; i<items.length; i++) {
-                    if (items[i] && items[i]?.isStack && items[i]?.isLinked) {
+                    if (items[i] && (items[i] as ImageResource).isStack && (items[i] as ImageResource).isLinked) {
                         (items[i] as ImageStackResource).link(this.$store.state.linkedScrollPosition)
                     }
                 }

@@ -753,7 +753,16 @@ export default Vue.extend({
                 console.error(reason)
             }
             // Enable the element
-            cornerstone.enable(this.dicomEl)
+            try {
+                cornerstone.enable(this.dicomEl)
+            } catch (e) {
+                // This is a very stange error.
+                // It turns up rarely and I have only ever seen it in the preset layout view, making me think
+                // it is some weird race-condition bug. I haven't found a good way to debug it or a proper solution
+                // yet, so this has to do for now.
+                this.$emit('enable-element-error')
+                return
+            }
             //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
             // Bind mouse interaction listeners
             /*
@@ -878,7 +887,12 @@ export default Vue.extend({
                         }
                         // Display possible topogram
                         if (this.resource.topogram !== null) {
-                            cornerstone.enable(this.topoEl)
+                            try {
+                                cornerstone.enable(this.topoEl)
+                            } catch (e) {
+                                this.$emit('enable-element-error')
+                                return
+                            }
                             cornerstone.loadImage(this.resource.topogram.url).then((image: any) => {
                                 this.topoImageLoaded = true
                                 const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
@@ -1051,9 +1065,13 @@ export default Vue.extend({
                     this.synchronizers.stackScroll.remove(this.dicomEl)
                     this.synchronizers.referenceLines.remove(this.dicomEl)
                 }
-                // Disable the element
-                cornerstone.disable(this.dicomEl)
             } catch (e) {}
+        }
+        // Disable the element
+        try {
+            // This can error if the enable-element errored...
+            cornerstone.disable(this.dicomEl)
+        } catch (e) {
         }
         if (this.resource.topogram && this.topoImageLoaded) {
             try {

@@ -3,6 +3,9 @@
         :class="{ 'medigi-viewer-sidebar-item-active': active }"
         @click="$emit('toggle-active-item', index, $event)"
     >
+        <div v-if="notice" class="medigi-viewer-sidebar-item-notice">
+            <font-awesome-icon :icon="['far', 'exclamation-triangle']" :title="notice" />
+        </div>
         <div class="medigi-viewer-sidebar-icon">
             <dicom-image-icon :count="count" :cover="cover" :label="label" :stack="stack" :type="type"
                 v-on:loading-cover-failed="loadingCoverFailed"
@@ -31,6 +34,7 @@ export default Vue.extend({
         id: String,
         index: Number,
         label: String,
+        notice: String,
         stack: Boolean,
         title: String,
         type: String,
@@ -59,6 +63,7 @@ export default Vue.extend({
 
 <style scoped>
 .medigi-viewer-sidebar-item {
+    position: relative;
     display: flex;
     height: 89px;
     width: 100%;
@@ -74,6 +79,13 @@ export default Vue.extend({
     }
     .medigi-viewer-sidebar-item-active {
         border-color: var(--medigi-viewer-border-highlight);
+    }
+    .medigi-viewer-sidebar-item-notice {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: orange;
+        font-size: 16px;
     }
     .medigi-viewer-sidebar-details {
         height: 60px;

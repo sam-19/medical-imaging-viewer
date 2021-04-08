@@ -27,6 +27,7 @@ import { faCompress } from '@fortawesome/pro-duotone-svg-icons/faCompress'
 import { faCrosshairs } from '@fortawesome/pro-light-svg-icons/faCrosshairs'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
 import { faDrawCircle as faDrawCircleR } from '@fortawesome/pro-regular-svg-icons/faDrawCircle'
+import { faExclamationTriangle } from '@fortawesome/pro-regular-svg-icons/faExclamationTriangle'
 import { faExpand } from '@fortawesome/pro-regular-svg-icons/faExpand'
 import { faHandPaper } from '@fortawesome/pro-light-svg-icons/faHandPaper'
 import { faLayerGroup as faLayerGroupL } from '@fortawesome/pro-light-svg-icons/faLayerGroup'
@@ -65,6 +66,7 @@ library.add(faCompress)
 library.add(faCrosshairs)
 library.add(faDrawCircleL)
 library.add(faDrawCircleR)
+library.add(faExclamationTriangle)
 library.add(faExpand)
 library.add(faHandPaper)
 library.add(faLayerGroupL)

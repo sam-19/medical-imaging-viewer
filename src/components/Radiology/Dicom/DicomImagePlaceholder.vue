@@ -7,6 +7,10 @@
                 class="medigi-viewer-image-dropzone"
             />
         </div>
+        <div ref="info-text" class="medigi-viewer-image-placeholder-info">
+            <span v-if="resource === false">{{ $t('Opening failed, please activate the resource manually') }}</span>
+            <span v-else-if="resource === null">{{ $t('Drop an image resource') }}</span>
+        </div>
     </div>
 
 </template>
@@ -22,6 +26,7 @@ export default Vue.extend({
     props: {
         containerSize: Array, // The size of the entire image media container as [width, height]
         layoutPosition: Array, // Element position in layout grid [[colPos, cols], [rowPos, rows]]
+        resource: Boolean,
     },
     data () {
         return {
@@ -62,6 +67,11 @@ export default Vue.extend({
                 = isRowFirst ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
             ;(this.$refs['wrapper'] as HTMLElement).style.borderBottom
                 = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+            // Update possible info text
+            const loadingText = this.$refs['info-text'] as HTMLDivElement
+            loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
+            loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
+            loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
         },
     },
     mounted () {
@@ -80,5 +90,15 @@ export default Vue.extend({
 .medigi-viewer-image-dropzone {
     width: 100%;
     height: 100%;
+}
+.medigi-viewer-image-placeholder-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    color: var(--medigi-viewer-text-faint);
+    pointer-events: none;
 }
 </style>

@@ -19,6 +19,7 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
     // We need to save the position where the stack is linked if we want
     // to allow scrolling relative to that starting point.
     private _masterLinkPosition: number = -1
+    private _preloadProcess: Promise<any> | null = null
     private _preloaded: number = 0
     private _topogram: null | ImageResource = null
     private _topogramBounds = { x: [-1, -1], y: [-1, -1] }
@@ -279,34 +280,38 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
         if (!this._images.length) {
            return { success: false, reason: "Image stack doesn't contain any images" }
         }
-        this._preloaded = 0 // Reset counter
-        for (let i=0; i<this._images.length; i++) {
-            // Await is DEFINITELY needed here!
-            await cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
-                this._images[i].readMetadataFromImage(image)
-                this._preloaded++
-                if (!i) {
-                    // Store dimensions from the first image
-                    this._dimensions = [image.width, image.height]
-                }
-            }).catch((reason: any) => {
-                console.log('error')
-                return { success: false, reason: reason }
-            })
-            if (this._preloaded === this._images.length) {
-                // All images have been loaded, sort them according to Instance Number
-                this.sortImages('i')
-                // Calculate topogram image bounds if topogram is set
-                if (this._topogram !== null) {
-                    await cornerstone.loadAndCacheImage(this._topogram.url).then((topo: any) => {
-                        this._topogram?.readMetadataFromImage(topo)
-                        this.calculateTopogramIntersectPoints()
+        if (!this._preloadProcess) {
+            this._preloadProcess = new Promise<object> (async (resolve) => {
+                for (let i=0; i<this._images.length; i++) {
+                    // Await is DEFINITELY needed here!
+                    await cornerstone.loadAndCacheImage(this._images[i].url).then((image: any) => {
+                        this._images[i].readMetadataFromImage(image)
+                        this._preloaded++
+                        if (!i) {
+                            // Store dimensions from the first image
+                            this._dimensions = [image.width, image.height]
+                        }
+                    }).catch((reason: any) => {
+                        console.log('error')
+                        resolve({ success: false, reason: reason })
                     })
+                    if (this._preloaded === this._images.length) {
+                        // All images have been loaded, sort them according to Instance Number
+                        this.sortImages('i')
+                        // Calculate topogram image bounds if topogram is set
+                        if (this._topogram !== null) {
+                            await cornerstone.loadAndCacheImage(this._topogram.url).then((topo: any) => {
+                                this._topogram?.readMetadataFromImage(topo)
+                                this.calculateTopogramIntersectPoints()
+                            })
+                        }
+                        resolve({ success: true })
+                    }
                 }
-                return { success: true }
-            }
+                resolve({ success: true })
+            })
         }
-        return { success: true }
+        return this._preloadProcess
     }
     public removeFromCache = () => {
         for (let i=0; i<this._images.length; i++) {
