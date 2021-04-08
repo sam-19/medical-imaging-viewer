@@ -12,14 +12,14 @@
                 :type="item.type"
                 v-on:toggle-active-item="toggleActiveItem"
             />
+            <div :class="[
+                'medigi-viewer-sidebar-loading',
+                { 'medigi-viewer-hidden': !loadingStudies }
+            ]">
+                <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
+                {{ $t('LOADING STUDIES') }}
+            </div>
             <div :id="`${$store.state.appName}-medigi-viewer-ekg-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
-        </div>
-        <div :class="[
-            'medigi-viewer-sidebar-loading',
-            { 'medigi-viewer-hidden': !loadingStudies }
-        ]">
-            <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
-            {{ $t('LOADING STUDIES') }}
         </div>
     </div>
 </template>
