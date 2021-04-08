@@ -57,7 +57,9 @@
                 <span ref="loading-dot-2" style="visibility: hidden">.</span>
                 <span ref="loading-dot-3" style="visibility: hidden">.</span>
                 <br />
-                <div class="medigi-viewer-image-loading-progress"><div ref="loading-progress"></div></div>
+                <div class="medigi-viewer-image-loading-progress" ref="loading-progress">
+                    <div ref="loading-progress-bar"></div>
+                </div>
             </div>
         </div>
         <!-- Image tools -->
@@ -162,8 +164,8 @@ export default Vue.extend({
         resource: {
             deep: true,
             handler (value: any) {
-                if (!this.mainImageLoaded && this.$refs['loading-progress']) {
-                    (this.$refs['loading-progress'] as HTMLDivElement).style.width = `${98*value.preloaded/value.images.length}px`
+                if (!this.mainImageLoaded && this.$refs['loading-progress-bar']) {
+                    (this.$refs['loading-progress-bar'] as HTMLDivElement).style.width = `${148*value.preloaded/value.images.length}px`
                 }
             }
         }
@@ -468,6 +470,7 @@ export default Vue.extend({
                 loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
                 loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
                 loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
+                ;(this.$refs['loading-progress'] as HTMLDivElement).style.top = `-${(dimensions[1]/rowPos[1] - vPad)/2 - 20}px`
             }
             // Resize possible topogram image
             if (this.resource.topogram && this.topoImageLoaded) {
@@ -1116,14 +1119,11 @@ export default Vue.extend({
     .medigi-viewer-image-loading-progress {
         position: relative;
         display: inline-block;
-        width: 100px;
+        width: 150px;
         height: 20px;
         border: solid 1px var(--medigi-viewer-border-faint);
     }
         .medigi-viewer-image-loading-progress > div {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 0px;
             height: 18px;
             background-color: var(--medigi-viewer-background-highlight);
