@@ -1069,8 +1069,12 @@ export default Vue.extend({
             } catch (e) {}
         }
         // Unsubscribe from store
-        this.unsubscribeActions()
-        this.unsubscribeMutations()
+        if (this.unsubscribeActions !== null) {
+            this.unsubscribeActions()
+        }
+        if (this.unsubscribeMutations !== null) {
+            this.unsubscribeMutations()
+        }
     },
 })
 
