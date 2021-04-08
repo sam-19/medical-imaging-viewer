@@ -71,6 +71,9 @@ class DicomImageStack extends DicomMedia implements ImageStackResource {
     get length () {
         return this._images.length
     }
+    get preloaded () {
+        return this._preloaded
+    }
     get size () {
         // Alias for length
         return this.length

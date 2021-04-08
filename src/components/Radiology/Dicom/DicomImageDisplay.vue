@@ -56,6 +56,8 @@
                 <span ref="loading-dot-1" style="visibility: hidden">.</span>
                 <span ref="loading-dot-2" style="visibility: hidden">.</span>
                 <span ref="loading-dot-3" style="visibility: hidden">.</span>
+                <br />
+                <div class="medigi-viewer-image-loading-progress"><div ref="loading-progress"></div></div>
             </div>
         </div>
         <!-- Image tools -->
@@ -157,6 +159,14 @@ export default Vue.extend({
         layoutPosition (value: Array<number>, old: Array<number>) {
             this.resizeImage()
         },
+        resource: {
+            deep: true,
+            handler (value: any) {
+                if (!this.mainImageLoaded && this.$refs['loading-progress']) {
+                    (this.$refs['loading-progress'] as HTMLDivElement).style.width = `${98*value.preloaded/value.images.length}px`
+                }
+            }
+        }
     },
     computed: {
         /**
@@ -1102,6 +1112,21 @@ export default Vue.extend({
         }
         .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-top {
             top: 0;
+        }
+    .medigi-viewer-image-loading-progress {
+        position: relative;
+        display: inline-block;
+        width: 100px;
+        height: 20px;
+        border: solid 1px var(--medigi-viewer-border-faint);
+    }
+        .medigi-viewer-image-loading-progress > div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0px;
+            height: 18px;
+            background-color: var(--medigi-viewer-background-highlight);
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;
