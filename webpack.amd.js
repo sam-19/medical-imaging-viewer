@@ -12,8 +12,8 @@ module.exports = merge(common, {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: ASSET_PATH,
-        filename: 'moodle-[name].js',
-        chunkFilename: 'moodle-[name].js?v=[contenthash]',
+        filename: '[name]-amd.js',
+        chunkFilename: '[name]-amd.js?v=[contenthash]',
         libraryTarget: 'amd'
     },
     optimization: {
