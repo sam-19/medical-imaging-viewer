@@ -393,6 +393,12 @@ export default Vue.extend({
             return false
         },
         itemDropped: function (props: any) {
+            // Check if there is an inactive element already assigned to the slot
+            for (let i=0; i<this.resources.length; i++) {
+                if (this.elementPositions[i] === props.target) {
+                    delete this.elementPositions[i]
+                }
+            }
             this.elementPositions[props.item] = props.target
             this.elementsChanged++
         },
