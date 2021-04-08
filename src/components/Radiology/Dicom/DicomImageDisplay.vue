@@ -52,14 +52,10 @@
             @contextmenu.prevent
         >
             <div v-if="!mainImageLoaded" class="medigi-viewer-image-loading">
-                {{ $t('LOADING') }}
+                {{ $t('Loading') }}
                 <span ref="loading-dot-1" style="visibility: hidden">.</span>
                 <span ref="loading-dot-2" style="visibility: hidden">.</span>
                 <span ref="loading-dot-3" style="visibility: hidden">.</span>
-                <br />
-                <div class="medigi-viewer-image-loading-progress" ref="loading-progress">
-                    <div ref="loading-progress-bar"></div>
-                </div>
             </div>
         </div>
         <!-- Image tools -->
@@ -89,6 +85,13 @@
             ]"
             @contextmenu.prevent
         >
+        </div>
+        <!-- Loading indicator -->
+        <div :class="[
+            'medigi-viewer-image-loading-progress',
+            { 'medigi-viewer-hidden': mainImageLoaded || !resource.isStack }
+        ]">
+            <div ref="loading-progress-bar"></div>
         </div>
     </div>
 
@@ -165,7 +168,7 @@ export default Vue.extend({
             deep: true,
             handler (value: any) {
                 if (!this.mainImageLoaded && this.$refs['loading-progress-bar']) {
-                    (this.$refs['loading-progress-bar'] as HTMLDivElement).style.width = `${148*value.preloaded/value.images.length}px`
+                    (this.$refs['loading-progress-bar'] as HTMLDivElement).style.width = `${100*value.preloaded/value.images.length}%`
                 }
             }
         }
@@ -470,7 +473,6 @@ export default Vue.extend({
                 loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
                 loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
                 loadingText.style.lineHeight = `${dimensions[1]/rowPos[1] - vPad}px`
-                ;(this.$refs['loading-progress'] as HTMLDivElement).style.top = `-${(dimensions[1]/rowPos[1] - vPad)/2 - 20}px`
             }
             // Resize possible topogram image
             if (this.resource.topogram && this.topoImageLoaded) {
@@ -1139,15 +1141,16 @@ export default Vue.extend({
             top: 0;
         }
     .medigi-viewer-image-loading-progress {
-        position: relative;
-        display: inline-block;
-        width: 150px;
-        height: 20px;
-        border: solid 1px var(--medigi-viewer-border-faint);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 10px;
+        border-bottom: solid 1px var(--medigi-viewer-border-faint);
     }
         .medigi-viewer-image-loading-progress > div {
             width: 0px;
-            height: 18px;
+            height: 9px;
             background-color: var(--medigi-viewer-background-highlight);
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
