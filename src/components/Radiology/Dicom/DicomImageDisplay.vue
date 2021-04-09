@@ -858,10 +858,6 @@ export default Vue.extend({
             //const cursorImg = document.createElement('img')
             //cursorImg.src = window.URL.createObjectURL(crosshairCursor.iconSVG)
             //document.querySelector('body')?.appendChild(cursorImg)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
-                { name: `Crosshairs-${this.$store.state.appName}` },
-            )
-            this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool,
                 { name: `EllipticalRoi-${this.$store.state.appName}` },
             )
@@ -890,6 +886,10 @@ export default Vue.extend({
                             currentImageIdIndex: this.resource.currentPosition,
                             imageIds
                         }
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
+                            { name: `Crosshairs-${this.$store.state.appName}` },
+                        )
+                        this.synchronizers.crosshairs.add(this.dicomEl)
                         cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
                         cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
@@ -1052,7 +1052,6 @@ export default Vue.extend({
             try {
                 // If the component is destroyed before all of the setup is done, some of these may throw errors
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
@@ -1062,6 +1061,7 @@ export default Vue.extend({
                     // Remove stack-specific tools
                     cornerstoneTools.clearToolState(this.dicomEl, 'stack')
                     cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
+                    cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
                     // Unregister synchronizers
