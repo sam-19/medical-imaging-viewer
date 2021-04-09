@@ -1,30 +1,34 @@
 <template>
 
     <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div ref="container" :id="`container-${resource.id}-${instanceNum}`"
-            @contextmenu.prevent
-        ></div>
-        <div ref="mousedrag" :class="[
-            'medigi-viewer-ekg-mousedrag',
-            { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
-            { 'medigi-viewer-hidden': !mouseDragIndicator },
-            { 'medigi-viewer-ekg-ruler': $store.state.showEkgRuler },
-        ]"></div>
-        <div ref="measurements"
-            :class="[
-                'medigi-viewer-ekg-measurements',
-                { 'medigi-viewer-hidden': !measurements }
-            ]"
-            @contextmenu.prevent
-        >
-            <div>
-                <span>{{ $t('Distance') }}</span>
-                <span v-if="measurements">{{ measurements.distance }} ms</span>
+        <div class="medi-viewer-wavefor-trace">
+            <div ref="container" @contextmenu.prevent></div>
+            <div ref="mousedrag" :class="[
+                'medigi-viewer-ekg-mousedrag',
+                { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
+                { 'medigi-viewer-hidden': !mouseDragIndicator },
+                { 'medigi-viewer-ekg-ruler': $store.state.showEkgRuler },
+            ]"></div>
+            <div ref="measurements"
+                :class="[
+                    'medigi-viewer-ekg-measurements',
+                    { 'medigi-viewer-hidden': !measurements }
+                ]"
+                @contextmenu.prevent
+            >
+                <div>
+                    <span>{{ $t('Distance') }}</span>
+                    <span v-if="measurements">{{ measurements.distance }} ms</span>
+                </div>
+                <div>
+                    <span>{{ $t('Amplitude') }}</span>
+                    <span v-if="measurements">{{ measurements.amplitude > 0 ? '+' : '' }}{{ measurements.amplitude }} µV</span>
+                </div>
             </div>
-            <div>
-                <span>{{ $t('Amplitude') }}</span>
-                <span v-if="measurements">{{ measurements.amplitude > 0 ? '+' : '' }}{{ measurements.amplitude }} µV</span>
-            </div>
+        </div>
+        <!-- Navigator -->
+        <div class="medigi-viewer-waveform-navigator">
+            <div ref="navigator" @contextmenu.prevent></div>
         </div>
     </div>
 
@@ -59,6 +63,7 @@ export default Vue.extend({
             chart: null as any,
             chartConfig: {
                 // Props are initialized before data
+                width: 0,
                 margin: { t: 0, r: 0, b: this.marginBottom, l: this.marginLeft },
                 showlegend: false,
                 dragmode: false,
@@ -111,10 +116,44 @@ export default Vue.extend({
                 displayModeBar: false,
                 responsive: false,
             },
+            navigator: null as any,
+            navigatorConfig: {
+                width: 0,
+                height: 100,
+                margin: { t: 20, r: 20, b: 30, l: this.marginLeft },
+                showlegend: false,
+                dragmode: false,
+                xaxis: {
+                    tickmode: 'array',
+                    ticklen: 5,
+                    tickcolor: 'rgba(0,0,0,0)',
+                    rangemode: 'tozero',
+                    gridcolor: 'rgba(0,0,0,0)',
+                    zerolinecolor: 'rgba(0,0,0,0)',
+                    fixedrange: true,
+                },
+                yaxis: {
+                    autorange: true,
+                    tickmode: 'array',
+                    ticklen: 10, // This serves as padding between axis and label
+                    tickcolor: 'rgba(0,0,0,0)',
+                    rangemode: 'tozero',
+                    gridcolor: 'rgba(0,0,0,0)',
+                    zerolinecolor: 'rgba(0,0,0,0)',
+                    fixedrange: true,
+                },
+            },
+            navigatorOptions: {
+                displayModeBar: false,
+                responsive: false,
+            },
             sensitivityAdjust: 1,
             viewStart: 0,
             viewEnd: 0,
+            lastViewBounds: [0, 0],
             downSampleFactor: 1,
+            navigatorMaxSamples: 1000,
+            navigatorMaxWidth: 0,
             // Keep track of some event data for chart interaction
             //lastHoverPoint: { x: -1, y: -1 },
             mouseDownPoint: { x: -1, y: -1 },
@@ -166,6 +205,62 @@ export default Vue.extend({
             // Require at least two mm of mouse movement to register a drag event
             return this.$root.screenDPI/17.7
         },
+        navigatorSignal (): any {
+            const navigatorColor = '#303030'
+            const signal = {
+                name: 'I',
+                type: 'scattergl',
+                mode: 'lines',
+                x: [...Array(this.navigatorMaxSamples).keys()],
+                y: [],
+                line: { color: navigatorColor, width: 1 },
+                hoverinfo: 'none',
+            }
+            return signal
+        },
+        navigatorTicks (): number[] {
+            const step = this.navigatorMaxSamples/(this.resource.sampleCount/this.resource.resolution)
+            const ticks = []
+            let i = 0
+            while (i*step < this.navigatorMaxSamples) {
+                ticks.push(Math.floor(i*step))
+                i++
+            }
+            return ticks
+        },
+        navigatorValues (): string[] {
+            const range = this.navigatorTicks
+            const values = [''] // Skip 0-value and last value
+            for (let i=1; i<range.length; i++) {
+                let hrs: number = Math.floor(i/60/60)
+                let mins: number = Math.floor((i - hrs*60*60)/60)
+                let secs: number = i - hrs*60*60 - mins*60
+                let timestamp = ''
+                if (hrs) {
+                    timestamp = hrs.toString() + ':'
+                }
+                if (mins) {
+                    if (hrs) {
+                        timestamp += mins.toString().padStart(2, '0') + ':'
+                    } else {
+                        timestamp += mins + ':'
+                    }
+                } else {
+                    if (hrs) {
+                        timestamp += '00:'
+                    } else {
+                        timestamp = '0:'
+                    }
+                }
+                if (secs) {
+                    timestamp += secs.toString().padStart(2, '0')
+                } else {
+                    timestamp += '00'
+                }
+                values.push(timestamp)
+            }
+            return values
+        },
         xAxisRange (): number[] {
             return this.viewEnd > this.viewStart
                     ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
@@ -196,10 +291,11 @@ export default Vue.extend({
             const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const values = []
             for (let i=0; i<range; i++) {
-                if (!i || i%5) {
+                // Only print empty labels
+                //if (!i || i%5) {
                     values.push('')
                     continue
-                }
+                //}
                 let point = this.viewStart/this.downscaledResolution + i/5
                 let hrs: number = Math.floor(point/60/60)
                 let mins: number = Math.floor((point - hrs*60*60)/60)
@@ -443,22 +539,30 @@ export default Vue.extend({
 
         },
         recalculateViewBounds: function ()  {
-            // Deduct the chart's left and right margins
+            // Calculate the chart's left and right margins
             let viewWidth: number = -this.marginLeft
             if (document.fullscreenElement === null) {
                 viewWidth += this.containerSize[0] as number
             } else {
                 viewWidth += screen.width
             }
-            const newWidth = this.downscaledResolution*(viewWidth/(this.pxPerHorizontalSquare*5))
+            const finalWidth = viewWidth > this.navigatorMaxWidth ? viewWidth : this.navigatorMaxWidth
+            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
             this.viewEnd = this.viewStart + newWidth
         },
         recalibrateChart: function () {
             this.recalculateViewBounds()
+            // Redrawing the plot is slow, so only do it if necessary
+            if (this.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
+                return
+            }
+            this.lastViewBounds = [this.viewStart, this.viewEnd]
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const y2TickVals = this.yAxisTicks2
+            const traceWidth = (this.containerSize[0] as number) > this.navigatorMaxWidth + this.marginLeft
+                               ? this.containerSize[0] : this.navigatorMaxWidth + this.marginLeft
             const chartLayout = {
-                width: this.containerSize[0],
+                width: traceWidth,
                 height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
                     range: [0, this.yAxisRange],
@@ -474,6 +578,17 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['container'], chartLayout)
             this.refreshTraces()
         },
+        redrawNavigator: function () {
+            this.navigator = Plotly.newPlot(
+                this.$refs['navigator'],
+                [this.navigatorSignal],
+                this.navigatorConfig,
+                this.navigatorOptions
+            ).then(() => {
+                // Render Y-axis signal data
+                this.refreshNavigator()
+            })
+        },
         redrawPlot: function () {
             this.chart = Plotly.newPlot(
                 this.$refs['container'],
@@ -484,6 +599,42 @@ export default Vue.extend({
                 // Render Y-axis signal labels and signal data
                 this.recalibrateChart()
             })
+        },
+        refreshNavigator: function () {
+            const signalLen = this.navigatorSignal.x.length
+            const downSampleFactor = Math.ceil(this.resource.sampleCount/this.navigatorMaxSamples)
+            const signal = [] as (number|null)[]
+            for (let i=0; i<this.resource.channels.length; i++) {
+                const chanLabel: string = this.resource.channels[i].label
+                if (chanLabel.toLowerCase().indexOf('ii') === -1 && chanLabel.toLowerCase().indexOf('i') !== -1) {
+                    // Use the I-channel signal
+                    for (let j=0; j<signalLen; j++) {
+                        const corrVal = this.getCorrectedSignalValue(i, j*downSampleFactor)
+                        if (corrVal !== undefined) {
+                            signal.push(corrVal)
+                        } else {
+                            signal.push(null)
+                        }
+                    }
+                }
+            }
+            Plotly.restyle(this.$refs['navigator'], 'y', [signal])
+            const availableWidth = document.fullscreenElement === null
+                                   ? this.containerSize[0] : screen.width
+            const naviWidth = (availableWidth as number) > this.navigatorMaxWidth + this.marginLeft + 20
+                              ? this.navigatorMaxWidth + this.marginLeft + 20 : availableWidth
+            const naviLayout = {
+                width: naviWidth,
+                xaxis: Object.assign({}, this.navigatorConfig.xaxis, {
+                    tickvals: this.navigatorTicks,
+                    ticktext: this.navigatorValues,
+                }),
+                yaxis: Object.assign({}, this.navigatorConfig.yaxis, {
+                    tickvals: [0],
+                    ticktext: ['I'],
+                }),
+            }
+            Plotly.relayout(this.$refs['navigator'], naviLayout)
         },
         refreshTraces: function () {
             // Y-axis values for each channel
@@ -538,11 +689,18 @@ export default Vue.extend({
         const vSqr = this.pxPerVerticalSquare
         ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
             = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
+        // Calculate max width for the navigator
+        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerHorizontalSquare*5
+        // Load navigator
+        this.redrawNavigator()
     }
 })
 </script>
 
 <style>
+.medi-viewer-wavefor-trace {
+    overflow-x: auto;
+}
 .medigi-viewer-ekg-mousedrag {
     position: absolute;
     background-color: rgba(255, 0, 0, 0.2);

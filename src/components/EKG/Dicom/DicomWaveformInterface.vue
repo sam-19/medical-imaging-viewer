@@ -77,7 +77,7 @@ export default Vue.extend({
             mediaContainerSize: [0, 0],
             pxPerHorizontalSquare: 0,
             pxPerVerticalSquare: 0,
-            traceMarginBottom: 50,
+            traceMarginBottom: 20,
             traceMarginLeft: 50,
             traceSpacing: 6, // The number of squares (0.5cm) between traces
             yAxisRange: 0,
@@ -218,9 +218,9 @@ export default Vue.extend({
                 mediaEl.offsetHeight - 2
             ]
             // Display either all 12, 6, 4, 2 or just one trace at a time
-            // Required height is trace spacing plus padding
+            // Required height is trace spacing plus padding plus navigator trace height
             const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
-            const pad = (this.yPad*this.pxPerVerticalSquare)*2 + this.traceMarginBottom
+            const pad = (this.yPad*this.pxPerVerticalSquare)*2 + this.traceMarginBottom + 100
             let traceCount = 12
             if ((this.mediaContainerSize[1] as number) < traceHeight*1 + pad) {
                 traceCount = 1
@@ -264,9 +264,11 @@ export default Vue.extend({
             if (Array.isArray(this.$refs['waveform-element'])) {
                 this.$refs['waveform-element'].forEach((item: any) => {
                     item.recalibrateChart()
+                    item.refreshNavigator()
                 })
             } else {
-                (this.$refs['waveform-element'] as any).recalibrateChart()
+                ;(this.$refs['waveform-element'] as any).recalibrateChart()
+                ;(this.$refs['waveform-element'] as any).refreshNavigator()
             }
         },
         /**
