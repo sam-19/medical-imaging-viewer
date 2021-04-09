@@ -277,10 +277,10 @@ export default Vue.extend({
         redrawCharts: function () {
             if (Array.isArray(this.$refs['waveform-element'])) {
                 this.$refs['waveform-element'].forEach((item: any) => {
-                    item.redrawPlot()
+                    item.redrawPlot(true)
                 })
             } else {
-                (this.$refs['waveform-element'] as any).redrawPlot()
+                (this.$refs['waveform-element'] as any).redrawPlot(true)
             }
         },
         updateElements: function () {

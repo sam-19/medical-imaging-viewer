@@ -550,13 +550,16 @@ export default Vue.extend({
             const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
             this.viewEnd = this.viewStart + newWidth
         },
-        recalibrateChart: function () {
+        recalibrateChart: function (force=false) {
             this.recalculateViewBounds()
             // Redrawing the plot is slow, so only do it if necessary
             if (this.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
-                return
+                if (!force) {
+                    return
+                }
+            } else {
+                this.lastViewBounds = [this.viewStart, this.viewEnd]
             }
-            this.lastViewBounds = [this.viewStart, this.viewEnd]
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const y2TickVals = this.yAxisTicks2
             const traceWidth = (this.containerSize[0] as number) > this.navigatorMaxWidth + this.marginLeft
@@ -589,7 +592,7 @@ export default Vue.extend({
                 this.refreshNavigator()
             })
         },
-        redrawPlot: function () {
+        redrawPlot: function (force=false) {
             this.chart = Plotly.newPlot(
                 this.$refs['container'],
                 this.channelSignals,
@@ -597,7 +600,7 @@ export default Vue.extend({
                 this.chartOptions
             ).then(() => {
                 // Render Y-axis signal labels and signal data
-                this.recalibrateChart()
+                this.recalibrateChart(force)
             })
         },
         refreshNavigator: function () {
