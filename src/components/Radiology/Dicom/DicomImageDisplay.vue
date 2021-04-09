@@ -903,15 +903,6 @@ export default Vue.extend({
                                 vp.displayedArea.rowPixelSpacing = 1
                                 vp.displayedArea.presentationSizeMode = 'SCALE TO FIT'
                                 cornerstone.setViewport(this.topoEl, vp)
-                                // Add event listener for new images to update the topogram
-                                //this.dicomEl.addEventListener('cornerstonenewimage', this.refreshTopogram)
-                                // We need to pass stack tools even to single images to enable reference lines
-                                //const stackOpts = {
-                                //    currentImageIdIndex: 0,
-                                //    imageIds: [this.resource.url]
-                                //}
-                                //cornerstoneTools.addStackStateManager(this.topoEl, ['stack', 'Crosshairs'])
-                                //cornerstoneTools.addToolState(this.topoEl, 'stack', stackOpts)
                                 // Display the topogram and set up synchronizer
                                 cornerstone.displayImage(this.topoEl, image, vp)
                                 this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
@@ -973,13 +964,6 @@ export default Vue.extend({
                 this.displayImage(true).then(image => {
                     window.clearInterval(this.loadingDotCycle)
                     this.mainImageLoaded = true
-                    // We need to pass stack tools even to single images to enable reference lines
-                    //const stackOpts = {
-                    //    currentImageIdIndex: 0,
-                    //    imageIds: [this.resource.url]
-                    //}
-                    //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
-                    //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
                     // Re-enable the active tool to include this image
                     this.$store.dispatch('tools:re-enable-active')
                     this.isFirstLoaded = true
@@ -1041,7 +1025,6 @@ export default Vue.extend({
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-                //cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ZoomTool)
