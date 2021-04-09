@@ -690,6 +690,10 @@ export default Vue.extend({
         toggleTool: function (toolName: string, group?: keyof ButtonGroups) {
             const toolId = `tool:${toolName}` as keyof ButtonRow
             this.buttonStates[toolId].active = !this.buttonStates[toolId].active
+            // Check if this is the crosshairs tool
+            if (toolName === 'Crosshairs') {
+                toolName = `Crosshairs-${this.$store.state.appName}`
+            }
             if (this.buttonStates[toolId].active) {
                 cornerstoneTools.setToolActive(toolName, (this.toolOptions as any)[toolId].active)
             } else {

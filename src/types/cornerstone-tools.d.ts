@@ -41,7 +41,7 @@ declare module 'cornerstone-tools' {
     function getElementToolStateManager (element: any): void
     function getToolState (element: any, tool: string): any
     function importInternal (module: string): any
-    function init (): void
+    function init (config: any): void
     function removeTool (tool: any): void
     function removeToolForElement (element: any, tool: any): void
     function setToolActive (tool: string, options: any): void

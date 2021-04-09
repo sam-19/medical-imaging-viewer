@@ -487,7 +487,9 @@ export default Vue.extend({
         cornerstoneTools.external.cornerstone = cornerstone
         cornerstoneTools.external.cornerstoneMath = cornerstoneMath
         cornerstoneTools.external.Hammer = Hammer
-        cornerstoneTools.init()
+        cornerstoneTools.init({
+            showSVGCursors: true
+        })
         // Set a more neutral tool color
         // TODO: Allow selecting the tool color?
         cornerstoneTools.toolColors.setToolColor(TOOL_COLORS.YELLOW)
@@ -503,7 +505,6 @@ export default Vue.extend({
                 if (source === target) {
                     return
                 }
-                console.log(this.$store.state.appName)
                 // Get the item id from element id
                 const srcId = source.id.split('-')
                 const tgtId = target.id.split('-')

@@ -842,7 +842,16 @@ export default Vue.extend({
             }
             // Set up basic tools
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool)
+            // Set up crosshairs cursor to use with the crosshairs tool
+            //const crosshairCursor = cornerstoneTools.importInternal('tools/cursors').crosshairCursor
+            //const cursorImg = document.createElement('img')
+            //cursorImg.src = window.URL.createObjectURL(crosshairCursor.iconSVG)
+            //document.querySelector('body')?.appendChild(cursorImg)
+            cornerstoneTools.addToolForElement(
+                this.dicomEl,
+                cornerstoneTools.CrosshairsTool,
+                { name: `Crosshairs-${this.$store.state.appName}` },
+            )
             this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
