@@ -592,7 +592,7 @@ export default Vue.extend({
                 this.refreshNavigator()
             })
         },
-        redrawPlot: function (force=false) {
+        redrawPlot: function () {
             this.chart = Plotly.newPlot(
                 this.$refs['container'],
                 this.channelSignals,
@@ -600,7 +600,7 @@ export default Vue.extend({
                 this.chartOptions
             ).then(() => {
                 // Render Y-axis signal labels and signal data
-                this.recalibrateChart(force)
+                this.recalibrateChart(true)
             })
         },
         refreshNavigator: function () {

@@ -280,7 +280,7 @@ export default Vue.extend({
                     item.redrawPlot(true)
                 })
             } else {
-                (this.$refs['waveform-element'] as any).redrawPlot(true)
+                (this.$refs['waveform-element'] as any).redrawPlot()
             }
         },
         updateElements: function () {
