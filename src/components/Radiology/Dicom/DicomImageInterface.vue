@@ -503,6 +503,7 @@ export default Vue.extend({
                 if (source === target) {
                     return
                 }
+                console.log(this.$store.state.appName)
                 // Get the item id from element id
                 const srcId = source.id.split('-')
                 const tgtId = target.id.split('-')
@@ -510,24 +511,6 @@ export default Vue.extend({
                 if (!this.isElementLinked(srcId[1]) || !this.isElementLinked(tgtId[1])) {
                     // Source or target is not linked, or they are the same element
                     // This doesn't work at the moment, because an update is triggered via the reference line synchronizer
-                    return
-                }
-                cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)
-            }
-        )
-        // Reference lines synchronizer
-        this.synchronizers.referenceLines = new cornerstoneTools.Synchronizer(
-            'cornerstonenewimage',
-            (synchronizer: any, source: any, target: any, event: any) => {
-                if (source === target) {
-                    return
-                }
-                // Right now there seems to be now way to prevent the reference lines from any synchronized
-                // elements from showing up
-                // const srcId = source.id.split('-')
-                const tgtId = target.id.split('-')
-                // Only pass update events to topogram elements
-                if (tgtId[0] !== 'topogram') {
                     return
                 }
                 cornerstoneTools.updateImageSynchronizer(synchronizer, source, target, event)

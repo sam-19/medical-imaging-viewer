@@ -846,7 +846,6 @@ export default Vue.extend({
             this.synchronizers.crosshairs.add(this.dicomEl)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-            //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.OrientationMarkersTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
@@ -871,10 +870,6 @@ export default Vue.extend({
                         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
                         // Register element to synchronizers
                         this.synchronizers.stackScroll.add(this.dicomEl)
-                        this.synchronizers.referenceLines.add(this.dicomEl)
-                        // Display orietation markers (must be called after image is loaded
-                        cornerstoneTools.setToolActive('OrientationMarkers', {})
-                        // Add reference lines tool (must be done after setting up synchronizers!)
                         this.resource.currentPosition = this.resource.currentPosition
                         const displayMainImage = () => {
                             // Shorthand for these operations, as they are needed in a few (async) paths
@@ -985,12 +980,6 @@ export default Vue.extend({
                     //}
                     //cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
                     //cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                    // Register element to synchronizers
-                    //this.$root.synchronizers.referenceLines.add(this.dicomEl)
-                    // Add reference lines tool (must be done after setting up synchronizers!)
-                    //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
-                    // Display orietation markers (must be called after image is loaded
-                    cornerstoneTools.setToolActive('OrientationMarkers', {})
                     // Re-enable the active tool to include this image
                     this.$store.dispatch('tools:re-enable-active')
                     this.isFirstLoaded = true
@@ -1062,10 +1051,8 @@ export default Vue.extend({
                     cornerstoneTools.clearToolState(this.dicomEl, 'Crosshairs')
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
                     cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
-                    cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.ReferenceLinesTool)
                     // Unregister synchronizers
                     this.synchronizers.stackScroll.remove(this.dicomEl)
-                    this.synchronizers.referenceLines.remove(this.dicomEl)
                 }
             } catch (e) {}
         }
@@ -1082,9 +1069,7 @@ export default Vue.extend({
                 //cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
                 cornerstoneTools.setToolDisabled(`TopogramReferenceLines-${this.instanceNum}`)
                 cornerstoneTools.removeToolForElement(this.topoEl, TopogramReferenceLineTool)
-                //cornerstoneTools.removeToolForElement(this.topoEl, cornerstoneTools.ReferenceLinesTool)
                 //this.synchronizers.stackScroll.remove(this.topoEl)
-                //this.synchronizers.referenceLines.remove(this.topoEl)
                 cornerstone.disable(this.topoEl)
             } catch (e) {}
         }

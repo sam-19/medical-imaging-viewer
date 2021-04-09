@@ -9,14 +9,13 @@ import { VueConstructor } from 'vue'
 import Vuex, { ActionTree, ActionContext, CommitOptions, DispatchOptions, GetterTree, MutationTree, Store } from 'vuex'
 
 // State defines store properties
-const state = {
-    activeTool: null as null | string,
-    appName: '' as string,
-    cacheStatus: { count: 0, max: 0, size: 0 },
-    linkedScrollPosition: 0,
-    showEkgRuler: false,
+type State = {
+    activeTool: null | string,
+    appName: string,
+    cacheStatus: { count: number, max: number, size: number },
+    linkedScrollPosition: number,
+    showEkgRuler: boolean,
 }
-type State = typeof state
 // Getters
 type Getters = {
 }
@@ -112,8 +111,19 @@ type MDStore = Omit<
 }
 // MEDigiStore class implementing the above
 class MEDigiStore {
+    constructor () {
+
+    }
     setup = function (vueInstance: VueConstructor) {
         vueInstance.use(Vuex)
+        // Create a local state to keep multiple instances isolated
+        const state: State = {
+            activeTool: null as null | string,
+            appName: '' as string,
+            cacheStatus: { count: 0, max: 0, size: 0 },
+            linkedScrollPosition: 0,
+            showEkgRuler: false,
+        }
         const store: MDStore = new Store({
             state,
             actions,
