@@ -1,6 +1,6 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-image-wrapper" @mouseleave="hideAnnotationMenu">
+    <div ref="wrapper" class="medigi-viewer-image-wrapper" @mouseleave="mouseLeftImageArea">
         <div ref="annotation-menu"
             :class="[
                 'medigi-viewer-delete-annotation',
@@ -422,6 +422,14 @@ export default Vue.extend({
             }
         },
         /**
+         * Mouse has left the image area.
+         */
+        mouseLeftImageArea: function () {
+            this.hideAnnotationMenu()
+            // Re-enable currently active tool (this is not really needed for all tools)
+            this.$store.dispatch('tools:re-enable-active')
+        },
+        /**
          * Pan image by given coordinates.
          * @param {number} x distance on the x-axis.
          * @param {number} y distance on the y-axis.
@@ -833,6 +841,7 @@ export default Vue.extend({
             this.viewport = cornerstone.getViewport(this.dicomEl)
             // Conerstone tool options
             const zoomOpts = {
+                name: `Zoom-${this.$store.state.appName}`,
                 configuration: {
                     invert: true,
                     preventZoomOutsideImage: false,
@@ -841,22 +850,30 @@ export default Vue.extend({
                 }
             }
             // Set up basic tools
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool,
+                { name: `Angle-${this.$store.state.appName}` }
+            )
             // Set up crosshairs cursor to use with the crosshairs tool
             //const crosshairCursor = cornerstoneTools.importInternal('tools/cursors').crosshairCursor
             //const cursorImg = document.createElement('img')
             //cursorImg.src = window.URL.createObjectURL(crosshairCursor.iconSVG)
             //document.querySelector('body')?.appendChild(cursorImg)
-            cornerstoneTools.addToolForElement(
-                this.dicomEl,
-                cornerstoneTools.CrosshairsTool,
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
                 { name: `Crosshairs-${this.$store.state.appName}` },
             )
             this.synchronizers.crosshairs.add(this.dicomEl)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool)
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool)
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool,
+                { name: `EllipticalRoi-${this.$store.state.appName}` },
+            )
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.LengthTool,
+                { name: `Length-${this.$store.state.appName}` },
+            )
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.PanTool,
+                { name: `Pan-${this.$store.state.appName}` },
+            )
+            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.WwwcTool,
+                { name: `Wwwc-${this.$store.state.appName}` },
+            )
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
@@ -875,8 +892,12 @@ export default Vue.extend({
                         }
                         cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
                         cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool)
-                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool)
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
+                            { name: `StackScroll-${this.$store.state.appName}` }
+                        )
+                        cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool,
+                            { name: `StackScrollMouseWheel-${this.$store.state.appName}` }
+                        )
                         // Register element to synchronizers
                         this.synchronizers.stackScroll.add(this.dicomEl)
                         this.resource.currentPosition = this.resource.currentPosition

@@ -514,9 +514,9 @@ export default Vue.extend({
             this.buttonsUpdated++
         },
         enableDefaults: function () {
-            cornerstoneTools.setToolActive('Pan', this.toolOptions['tool:Pan'].default)
-            cornerstoneTools.setToolActive('Wwwc', this.toolOptions['tool:Wwwc'].default)
-            cornerstoneTools.setToolActive('Zoom', this.toolOptions['tool:Zoom'].default)
+            cornerstoneTools.setToolActive(`Pan-${this.$store.state.appName}`, this.toolOptions['tool:Pan'].default)
+            cornerstoneTools.setToolActive(`Wwwc-${this.$store.state.appName}`, this.toolOptions['tool:Wwwc'].default)
+            cornerstoneTools.setToolActive(`Zoom-${this.$store.state.appName}`, this.toolOptions['tool:Zoom'].default)
         },
         findButtonById: function (buttonId: string, group?: keyof ButtonGroups) {
             if (group) {
@@ -690,16 +690,14 @@ export default Vue.extend({
         toggleTool: function (toolName: string, group?: keyof ButtonGroups) {
             const toolId = `tool:${toolName}` as keyof ButtonRow
             this.buttonStates[toolId].active = !this.buttonStates[toolId].active
-            // Check if this is the crosshairs tool
-            if (toolName === 'Crosshairs') {
-                toolName = `Crosshairs-${this.$store.state.appName}`
-            }
+            this.$store.commit('set-active-tool', toolName)
+            // Add app name after the tool for containment
+            toolName = `${toolName}-${this.$store.state.appName}`
             if (this.buttonStates[toolId].active) {
                 cornerstoneTools.setToolActive(toolName, (this.toolOptions as any)[toolId].active)
             } else {
                 cornerstoneTools.setToolPassive(toolName)
             }
-            this.$store.commit('set-active-tool', toolName)
             // Close possible button group
             if (group) {
                 this.activeGroup = null
@@ -719,19 +717,13 @@ export default Vue.extend({
                         const toolOpts = this.toolOptions
                         type optType = typeof toolOpts; // Typescript gimmics
                         cornerstoneTools.setToolActive(
-                            this.$store.state.activeTool,
+                            `${this.$store.state.activeTool}-${this.$store.state.appName}`,
                             this.toolOptions[`tool:${this.$store.state.activeTool}` as keyof optType].active
                         )
                     } else {
                         this.enableDefaults()
                     }
-                    cornerstoneTools.setToolActive('StackScrollMouseWheel', { })
-                    // Refresh reference lines tool
-                    cornerstoneTools.setToolEnabled('ReferenceLines', {
-                        synchronizationContext: this.synchronizers.referenceLines,
-                        /* TODO: Config option to change the line color, if this tool is retained */
-                        color: '#C0C0C0',
-                    })
+                    cornerstoneTools.setToolActive(`StackScrollMouseWheel-${this.$store.state.appName}`, { })
                     break
             }
         })
