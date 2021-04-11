@@ -268,8 +268,8 @@ export default Vue.extend({
 }
 /* Use prettier and more consistent scrollbars */
 .medigi-viewer *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 0px;
+    height: 0px;
 }
 .medigi-viewer *::-webkit-scrollbar-thumb {
     color: var(--medigi-viewer-border-faint);
@@ -291,7 +291,7 @@ export default Vue.extend({
     -ms-user-select: none;
     user-select: none;
     /* Set scrollbar width for Firefox */
-    scrollbar-width: 10px;
+    scrollbar-width: 0px;
 }
     .medigi-viewer div {
         box-sizing: border-box;

@@ -29,6 +29,9 @@
         <!-- Navigator -->
         <div class="medigi-viewer-waveform-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
+            <div class="medigi-viewer-waveform-navigator-overlay-left" ref="navigator-overlay-left"></div>
+            <div class="medigi-viewer-waveform-navigator-overlay-active" ref="navigator-overlay-active"></div>
+            <div class="medigi-viewer-waveform-navigator-overlay-right" ref="navigator-overlay-right"></div>
         </div>
     </div>
 
@@ -400,6 +403,18 @@ export default Vue.extend({
             }
             return sigVal
         },
+        getViewEnd: function (clip=false): number  {
+            // Calculate the chart's left and right margins
+            let viewWidth: number = -this.marginLeft
+            if (document.fullscreenElement === null) {
+                viewWidth += this.containerSize[0] as number
+            } else {
+                viewWidth += screen.width
+            }
+            const finalWidth = viewWidth > this.navigatorMaxWidth || clip ? viewWidth : this.navigatorMaxWidth
+            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
+            return this.viewStart + newWidth
+        },
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
@@ -538,20 +553,9 @@ export default Vue.extend({
         hideAnnotationMenu: function () {
 
         },
-        recalculateViewBounds: function ()  {
-            // Calculate the chart's left and right margins
-            let viewWidth: number = -this.marginLeft
-            if (document.fullscreenElement === null) {
-                viewWidth += this.containerSize[0] as number
-            } else {
-                viewWidth += screen.width
-            }
-            const finalWidth = viewWidth > this.navigatorMaxWidth ? viewWidth : this.navigatorMaxWidth
-            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
-            this.viewEnd = this.viewStart + newWidth
-        },
         recalibrateChart: function (force=false) {
-            this.recalculateViewBounds()
+            this.viewEnd = this.getViewEnd()
+            this.refreshNavigatorOverlay()
             // Redrawing the plot is slow, so only do it if necessary
             if (this.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
                 if (!force) {
@@ -639,6 +643,25 @@ export default Vue.extend({
             }
             Plotly.relayout(this.$refs['navigator'], naviLayout)
         },
+        refreshNavigatorOverlay: function () {
+            const viewEnd = this.getViewEnd(true)
+            const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
+            const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
+            if (viewEnd >= this.resource.sampleCount) {
+                ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `0px`
+                ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${this.marginLeft}px`
+                ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${naviWidth}px`
+                ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `0px`
+                return
+            }
+            const leftWidth = (this.viewStart/this.resource.sampleCount)*naviWidth
+            const actWidth = ((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth
+            const rightWidth = ((this.resource.sampleCount - viewEnd)/this.resource.sampleCount)*naviWidth
+            ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `${leftWidth}px`
+            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + this.marginLeft}px`
+            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${actWidth}px`
+            ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `${rightWidth}px`
+        },
         refreshTraces: function () {
             // Y-axis values for each channel
             const yValues = []
@@ -680,8 +703,10 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Calculate max width for the navigator as a reference
+        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerHorizontalSquare*5
         // Calculate view bounds
-        this.recalculateViewBounds()
+        this.viewEnd = this.getViewEnd()
         this.redrawPlot()
         // Bind event listeners
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
@@ -692,10 +717,10 @@ export default Vue.extend({
         const vSqr = this.pxPerVerticalSquare
         ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
             = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
-        // Calculate max width for the navigator
-        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerHorizontalSquare*5
         // Load navigator
+        ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
         this.redrawNavigator()
+        this.refreshNavigatorOverlay()
     }
 })
 </script>
@@ -743,6 +768,36 @@ export default Vue.extend({
     }
     .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
         width: 80px;
+    }
+.medigi-viewer-waveform-navigator {
+    position: relative;
+}
+    .medigi-viewer-waveform-navigator-overlay-left {
+        position: absolute;
+        top: 20px;
+        height: 50px;
+        background-color: #FFFFFF;
+        opacity: 0.75;
+        pointer-events: none;
+        cursor: default;
+    }
+    .medigi-viewer-waveform-navigator-overlay-active {
+        position: absolute;
+        top: 20px;
+        height: 50px;
+        background-color: #000000;
+        opacity: 0.025;
+        cursor: pointer;
+    }
+    .medigi-viewer-waveform-navigator-overlay-right {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        height: 50px;
+        background-color: #FFFFFF;
+        opacity: 0.75;
+        pointer-events: none;
+        cursor: default;
     }
 /* Do not allow adjusting the range */
 .medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
