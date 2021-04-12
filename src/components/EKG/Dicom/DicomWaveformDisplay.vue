@@ -1,7 +1,7 @@
 <template>
 
     <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div class="medi-viewer-wavefor-trace">
+        <div ref="trace" class="medi-viewer-waveform-trace">
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
                 'medigi-viewer-ekg-mousedrag',
@@ -159,6 +159,7 @@ export default Vue.extend({
             navigatorMaxWidth: 0,
             // Keep track of some event data for chart interaction
             //lastHoverPoint: { x: -1, y: -1 },
+            traceLeftPos: 0,
             mouseDownPoint: { x: -1, y: -1 },
             mouseDownTrace: 0,
             // Display an indicator when mouse is dragged on the trace
@@ -172,6 +173,9 @@ export default Vue.extend({
     watch: {
     },
     computed: {
+        downscaledResolution (): number {
+            return Math.floor(this.resource.resolution/this.downSampleFactor)
+        },
         channelSignals (): any[] {
             const signals: any[] = []
             const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
@@ -200,9 +204,6 @@ export default Vue.extend({
                 hoverinfo: 'none',
             })
             return signals
-        },
-        downscaledResolution (): number {
-            return Math.floor(this.resource.resolution/this.downSampleFactor)
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
@@ -418,7 +419,12 @@ export default Vue.extend({
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
-            this.mouseDownPoint = { x: e.offsetX, y: e.offsetY }
+            if (!this.$store.state.activeTool) {
+                this.mouseDownPoint = { x: e.clientX, y: e.clientY }
+                this.traceLeftPos = (this.$refs['trace'] as HTMLDivElement).scrollLeft
+            } else if (this.$store.state.activeTool === 'measure') {
+                this.mouseDownPoint = { x: e.offsetX, y: e.offsetY }
+            }
             // Unregister mouseout or it will trigger when the cover layer is drawn
             ;(this.$refs['wrapper'] as HTMLDivElement).removeEventListener('mouseout', this.handleMouseOut)
             this.$nextTick(() => {
@@ -452,58 +458,66 @@ export default Vue.extend({
             if (this.mouseDownPoint.x < 0 || this.mouseDownPoint.y < 0) {
                 return
             }
-            if (this.$store.state.activeTool !== 'measure') {
-                // Only measurements require this right now
-                return
-            }
             const wrapperPos = (this.$refs['wrapper'] as HTMLDivElement).getBoundingClientRect()
-            // Do not allow dragging outside the wrapper
-            if (e.offsetX < wrapperPos.left + this.marginLeft || e.offsetX > wrapperPos.right
-                || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.marginBottom
-            ) {
-                this.handleMouseOut(e)
-                return
-            }
-            if (Math.abs(e.offsetX - wrapperPos.left - this.mouseDownPoint.x) >= this.mouseDragThreshold
-                || this.mouseDragIndicator
-            ) {
-                // Check which trace the mouse down event happened at
-                const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
-                const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
-                this.mouseDownTrace = Math.floor((this.mouseDownPoint.y - startPos)/traceHeight)
-                if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1) {
-                    // Mouse down position is out of bounds
+            // If no tool is active, use drag to scroll the trace
+            if (!this.$store.state.activeTool) {
+                // No need to scroll if the entire trace is already visible
+                if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
                     return
                 }
-                const dragEl = (this.$refs['mousedrag'] as HTMLDivElement)
-                if (!this.mouseDragIndicator) {
-                    const yOffset = this.$store.state.showEkgRuler ? 1 : 0
-                    const top = startPos + this.mouseDownTrace*traceHeight - yOffset
-                    dragEl.style.top = top > 0 ? `${top}px` : '0px'
-                    dragEl.style.height = `${traceHeight + yOffset}px`
-                    this.mouseDragIndicator = true
+                const dX = e.clientX - this.mouseDownPoint.x
+                ;(this.$refs['trace'] as HTMLDivElement).scrollLeft = this.traceLeftPos - dX
+                this.updateViewStart()
+                this.refreshNavigatorOverlay()
+            } else if (this.$store.state.activeTool === 'measure') {
+                // Do not allow dragging outside the wrapper
+                if (e.offsetX < wrapperPos.left + this.marginLeft || e.offsetX > wrapperPos.right
+                    || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.marginBottom
+                ) {
+                    this.handleMouseOut(e)
+                    return
                 }
-                // The drag cover div spans the entire page, so have to adjust before comparing values
-                const relXOffset = e.offsetX - wrapperPos.left
-                const wrapperWidth = wrapperPos.right - wrapperPos.left
-                if (this.mouseDownPoint.x < relXOffset) {
-                    // Dragging from left to right
-                    // Place static left marker to mouse down position
-                    dragEl.style.left = `${this.mouseDownPoint.x}px`
-                    // Update right position dynamically
-                    dragEl.style.right = `${wrapperWidth - relXOffset - 1}px`
-                } else {
-                    // Dragging from right to left
-                    // Place static right marker to mouse down position
-                    dragEl.style.right = `${wrapperWidth - this.mouseDownPoint.x - 1}px`
-                    // Update left position dynamically
-                    dragEl.style.left = `${relXOffset}px`
+                if (Math.abs(e.offsetX - wrapperPos.left - this.mouseDownPoint.x) >= this.mouseDragThreshold
+                    || this.mouseDragIndicator
+                ) {
+                    // Check which trace the mouse down event happened at
+                    const traceHeight = this.pxPerVerticalSquare*this.traceSpacing
+                    const startPos = this.pxPerVerticalSquare*this.yPad - traceHeight/2
+                    this.mouseDownTrace = Math.floor((this.mouseDownPoint.y - startPos)/traceHeight)
+                    if (this.mouseDownTrace < 0 || this.mouseDownTrace >= (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1) {
+                        // Mouse down position is out of bounds
+                        return
+                    }
+                    const dragEl = (this.$refs['mousedrag'] as HTMLDivElement)
+                    if (!this.mouseDragIndicator) {
+                        const yOffset = this.$store.state.showEkgRuler ? 1 : 0
+                        const top = startPos + this.mouseDownTrace*traceHeight - yOffset
+                        dragEl.style.top = top > 0 ? `${top}px` : '0px'
+                        dragEl.style.height = `${traceHeight + yOffset}px`
+                        this.mouseDragIndicator = true
+                    }
+                    // The drag cover div spans the entire page, so have to adjust before comparing values
+                    const relXOffset = e.offsetX - wrapperPos.left
+                    const wrapperWidth = wrapperPos.right - wrapperPos.left
+                    if (this.mouseDownPoint.x < relXOffset) {
+                        // Dragging from left to right
+                        // Place static left marker to mouse down position
+                        dragEl.style.left = `${this.mouseDownPoint.x}px`
+                        // Update right position dynamically
+                        dragEl.style.right = `${wrapperWidth - relXOffset - 1}px`
+                    } else {
+                        // Dragging from right to left
+                        // Place static right marker to mouse down position
+                        dragEl.style.right = `${wrapperWidth - this.mouseDownPoint.x - 1}px`
+                        // Update left position dynamically
+                        dragEl.style.left = `${relXOffset}px`
+                    }
+                    // Update last hover position (Plotly doesn't pass hover event through when dragging)
+                    //this.lastHoverPoint = {
+                    //    x: e.offsetX - wrapperPos.left,
+                    //    y: e.offsetY - wrapperPos.top
+                    //}
                 }
-                // Update last hover position (Plotly doesn't pass hover event through when dragging)
-                //this.lastHoverPoint = {
-                //    x: e.offsetX - wrapperPos.left,
-                //    y: e.offsetY - wrapperPos.top
-                //}
             }
         },
         /**
@@ -647,7 +661,7 @@ export default Vue.extend({
             const viewEnd = this.getViewEnd(true)
             const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
             const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
-            if (viewEnd >= this.resource.sampleCount) {
+            if (this.viewStart === 0 && viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                 ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `0px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${this.marginLeft}px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${naviWidth}px`
@@ -701,6 +715,10 @@ export default Vue.extend({
             //;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
+        updateViewStart: function () {
+            const xPxRatio = this.resource.resolution/(this.pxPerHorizontalSquare*5)
+            this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
+        },
     },
     mounted () {
         // Calculate max width for the navigator as a reference
@@ -726,7 +744,7 @@ export default Vue.extend({
 </script>
 
 <style>
-.medi-viewer-wavefor-trace {
+.medi-viewer-waveform-trace {
     overflow-x: auto;
 }
 .medigi-viewer-ekg-mousedrag {
