@@ -264,20 +264,20 @@ export default Vue.extend({
                 // Remove annotation method
                 const removeAnnotation = (type: string, index: number) => {
                     if (type === 'ang') {
-                        localState.Angle.data.splice(index, 1)
+                        localState[`Angle-${this.$store.state.appName}`].data.splice(index, 1)
                     } else if (type === 'roi') {
-                        localState.EllipticalRoi.data.splice(index, 1)
+                        localState[`EllipticalRoi-${this.$store.state.appName}`].data.splice(index, 1)
                     } else if (type === 'len') {
-                        localState.Length.data.splice(index, 1)
+                        localState[`Length-${this.$store.state.appName}`].data.splice(index, 1)
                     }
                     cornerstoneTools.globalImageIdSpecificToolStateManager.restoreToolState(toolStates)
                     cornerstone.updateImage(this.dicomEl, false)
                     this.annotationMenu = null
                 }
                 // Check if there are any angles, RoIs or lengths on the active image
-                if (localState.Angle) {
-                    for (let i=0; i<localState.Angle.data.length; i++) {
-                        const ang = localState.Angle.data[i]
+                if (localState[`Angle-${this.$store.state.appName}`]) {
+                    for (let i=0; i<localState[`Angle-${this.$store.state.appName}`].data.length; i++) {
+                        const ang = localState[`Angle-${this.$store.state.appName}`].data[i]
                         if (cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(ang.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
@@ -290,9 +290,9 @@ export default Vue.extend({
                         }
                     }
                 }
-                if (localState.EllipticalRoi) {
-                    for (let i=0; i<localState.EllipticalRoi.data.length; i++) {
-                        const roi = localState.EllipticalRoi.data[i]
+                if (localState[`EllipticalRoi-${this.$store.state.appName}`]) {
+                    for (let i=0; i<localState[`EllipticalRoi-${this.$store.state.appName}`].data.length; i++) {
+                        const roi = localState[`EllipticalRoi-${this.$store.state.appName}`].data[i]
                         if (cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(roi.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
@@ -305,9 +305,9 @@ export default Vue.extend({
                         }
                     }
                 }
-                if (localState.Length) {
-                    for (let i=0; i<localState.Length.data.length; i++) {
-                        const len = localState.Length.data[i]
+                if (localState[`Length-${this.$store.state.appName}`]) {
+                    for (let i=0; i<localState[`Length-${this.$store.state.appName}`].data.length; i++) {
+                        const len = localState[`Length-${this.$store.state.appName}`].data[i]
                         if (cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(len.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
