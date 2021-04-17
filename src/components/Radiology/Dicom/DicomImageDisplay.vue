@@ -993,6 +993,7 @@ export default Vue.extend({
                 // Display first image with default settings
                 this.displayImage(true).then(image => {
                     window.clearInterval(this.loadingDotCycle)
+                    this.resource.readMetadataFromImage(image)
                     this.mainImageLoaded = true
                     // Re-enable the active tool to include this image
                     this.$store.dispatch('tools:re-enable-active')
