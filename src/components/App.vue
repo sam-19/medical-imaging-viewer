@@ -5,32 +5,40 @@
             'medigi-viewer-interface-dropdown',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
-            <span v-if="visits.length">{{ activeVisit.title }}</span>
-            <span v-else>{{ $t('No visits loaded') }}</span>
+            <span v-if="activeVisit">{{ activeVisit.title }}</span>
+            <span v-else>{{ $t('No visit selected') }}</span>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
                 :title="sidebarOpen ? $t('Close sidebar') : $t('Open sidebar')"
                 @click="toggleSidebar"
             />
             <ul>
-                <li v-for="(inactive, idx) in inactiveVisits" :key="`${$store.state.appName}-visit-option-${idx}`"
-                    @click="selectActiveVisit(inactive.index)"
-                >
-                    {{ inactive.visit.title }}
+                <li v-for="(visit, idx) in visits" :key="`${$store.state.appName}-visit-option-${idx}`">
+                    <div>{{ visit.title }}</div>
+                    <div v-if="visit.studies.ekg.length"
+                        @click="selectActiveResource(visit, 'ekg')"
+                    >
+                        {{ visit.studies.ekg.length + $t(' EKG studies') }}
+                    </div>
+                    <div v-if="visit.studies.radiology.length"
+                         @click="selectActiveResource(visit, 'radiology')"
+                    >
+                        {{ visit.studies.radiology.length + $t(' radiology studies') }}
+                    </div>
                 </li>
             </ul>
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
             :loadingStudies="loadingStudies"
-            :resources="visits.length ? activeVisit.studies.radiology : []"
+            :resources="activeVisit ? activeVisit.studies.radiology : []"
             :sidebarOpen="sidebarOpen"
             v-on:update-item-order="updateDicomImageOrder"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
             :loadingStudies="loadingStudies"
-            :resources="visits.length ? activeVisit.studies.ekg : []"
+            :resources="activeVisit ? activeVisit.studies.ekg : []"
             :sidebarOpen="sidebarOpen"
         />
     </div>
@@ -60,7 +68,7 @@ export default Vue.extend({
             sidebarOpen: true,
             loadingStudies: false,
             visits: [] as PatientVisit[],
-            selectedVisit: 0,
+            selectedVisit: null as PatientVisit|null,
             // Theme change trigger
             themeChange: 0,
             // Screen DPI
@@ -68,18 +76,9 @@ export default Vue.extend({
         }
     },
     computed: {
-        activeVisit (): PatientVisit {
-            return this.visits[this.selectedVisit]
+        activeVisit (): PatientVisit | null {
+            return this.selectedVisit
         },
-        inactiveVisits (): { visit: PatientVisit, index: number }[] {
-            const result = []
-            for (let i=0; i<this.visits.length; i++) {
-                if (i !== this.selectedVisit) {
-                    result.push({ visit: this.visits[i], index: i })
-                }
-            }
-            return result
-        }
     },
     methods: {
         handleFileDrag: function (event: DragEvent) {
@@ -195,8 +194,13 @@ export default Vue.extend({
                 this.loadingStudies = false
             })
         },
-        selectActiveVisit(idx: number) {
-            this.selectedVisit = idx
+        selectActiveResource(visit: PatientVisit, scope: string) {
+            if (visit !== this.selectedVisit) {
+                this.selectedVisit = visit
+            }
+            if (scope !== this.scope) {
+                this.scope = scope
+            }
             if (this.$refs['dicom-image-interface']) {
                 (this.$refs['dicom-image-interface'] as any).updateElements()
             }
@@ -241,7 +245,7 @@ export default Vue.extend({
             this.sidebarOpen = !this.sidebarOpen
         },
         updateDicomImageOrder: function(order: string[]) {
-            if (order.length !== this.activeVisit.studies.radiology.length) {
+            if (!this.activeVisit || order.length !== this.activeVisit.studies.radiology.length) {
                 return
             }
             const names = []
@@ -260,9 +264,11 @@ export default Vue.extend({
     },
     mounted () {
         this.$root.$on('add-ekg-resource', (resource: any) => {
-            this.activeVisit.studies.ekg.push(resource)
-            this.scope = 'ekg'
-            this.toggleColorTheme(true)
+            if (this.activeVisit) {
+                this.activeVisit.studies.ekg.push(resource)
+                this.scope = 'ekg'
+                this.toggleColorTheme(true)
+            }
         })
         // Measure 1 inch in pixels for later trace calibration
         //const el = document.createElement('div')
@@ -386,12 +392,19 @@ export default Vue.extend({
             margin-block-end: 0;
             padding-inline-start: 0;
         }
-            .medigi-viewer-interface-dropdown > ul > li {
+            .medigi-viewer-interface-dropdown > ul > li > div {
                 height: 40px;
                 line-height: 40px;
                 padding: 0 10px;
             }
-                .medigi-viewer-interface-dropdown > ul > li:hover {
+                .medigi-viewer-interface-dropdown > ul > li > div:nth-child(1) {
+                    font-weight: bold;
+                    cursor: default;
+                }
+                .medigi-viewer-interface-dropdown > ul > li > div:not(:nth-child(1)) {
+                    padding-left: 20px;
+                }
+                .medigi-viewer-interface-dropdown > ul > li > div:not(:nth-child(1)):hover {
                     background-color: var(--medigi-viewer-background-highlight);
                 }
         .medigi-viewer-interface-dropdown:hover > ul {
