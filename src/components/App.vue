@@ -5,27 +5,32 @@
             'medigi-viewer-interface-dropdown',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
-            <span>DROP A FILE BELOW</span>
+            <span v-if="visits.length">{{ activeVisit.title }}</span>
+            <span v-else>{{ $t('No visits loaded') }}</span>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
                 :title="sidebarOpen ? $t('Close sidebar') : $t('Open sidebar')"
                 @click="toggleSidebar"
             />
             <ul>
-                <!--<li>LIST OF OPTIONS</li>-->
+                <li v-for="(inactive, idx) in inactiveVisits" :key="`${$store.state.appName}-visit-option-${idx}`"
+                    @click="selectActiveVisit(inactive.index)"
+                >
+                    {{ inactive.visit.title }}
+                </li>
             </ul>
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
             :loadingStudies="loadingStudies"
-            :resources="dicomElements"
+            :resources="visits.length ? activeVisit.studies.radiology : []"
             :sidebarOpen="sidebarOpen"
             v-on:update-item-order="updateDicomImageOrder"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
             :loadingStudies="loadingStudies"
-            :resources="ekgResources"
+            :resources="visits.length ? activeVisit.studies.ekg : []"
             :sidebarOpen="sidebarOpen"
         />
     </div>
@@ -36,7 +41,8 @@
 
 import Vue from 'vue'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
-import { FileSystemItem, ImageResource, ImageStackResource, StudyObject } from '../types/assets'
+import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
+import { PatientVisit } from '../types/viewer'
 import DicomImage from '../assets/dicom/DicomImage'
 import DicomImageStack from '../assets/dicom/DicomImageStack'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
@@ -53,9 +59,8 @@ export default Vue.extend({
             scope: 'radiology',
             sidebarOpen: true,
             loadingStudies: false,
-            // Loaded DICOM elements
-            dicomElements: [] as ImageResource[] | ImageStackResource[],
-            ekgResources: [] as DicomWaveform[],
+            visits: [] as PatientVisit[],
+            selectedVisit: 0,
             // Theme change trigger
             themeChange: 0,
             // Screen DPI
@@ -63,6 +68,18 @@ export default Vue.extend({
         }
     },
     computed: {
+        activeVisit (): PatientVisit {
+            return this.visits[this.selectedVisit]
+        },
+        inactiveVisits (): { visit: PatientVisit, index: number }[] {
+            const result = []
+            for (let i=0; i<this.visits.length; i++) {
+                if (i !== this.selectedVisit) {
+                    result.push({ visit: this.visits[i], index: i })
+                }
+            }
+            return result
+        }
     },
     methods: {
         handleFileDrag: function (event: DragEvent) {
@@ -96,75 +113,96 @@ export default Vue.extend({
         loadStudiesFromFsItem: function (fsItem: FileSystemItem) {
             const studyLoader = new GenericStudyLoader()
             this.loadingStudies = true
-            studyLoader.loadFromFileSystem(fsItem).then(studyDict => {
-                const studies = Object.values(studyDict)
-                let topoImage = null as ImageResource | null
-                studies.forEach((study: any) => {
-                    const types = study.type.split(':')
-                    if (study.scope === 'radiology') {
-                        if (types[0] === 'image') {
-                            if (study.format === 'dicom') {
-                                // Data element should always be a loaded file
-                                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.data)
-                                if (imageId) {
-                                    if (types.length === 1) {
-                                        // Add a single image
-                                        (this.dicomElements as ImageResource[]).push(new DicomImage(
-                                            study.name, study.data.size, imageId
-                                        ))
-                                    } else if (types[1] === 'series') {
-                                        // Add an image stack
-                                        const imgStack = new DicomImageStack(study.files.length, study.name)
-                                        ;(this.dicomElements as ImageStackResource[]).push(imgStack)
-                                        const resourceIdx = this.dicomElements.length - 1
-                                        // Add all loaded files
-                                        for (let i=0; i<study.files.length; i++) {
-                                            const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
-                                            if (imageId) {
-                                                imgStack.push(
-                                                    new DicomImage(study.files[i].name, study.files[i].size, imageId)
-                                                )
+            studyLoader.loadFromFileSystem(fsItem).then(visits => {
+                let visitCounter = 1
+                for (const studyDict of visits) {
+                    const visit = {
+                        title: this.$t(`Visit #${visitCounter++}`),
+                        studies: { ekg: [], radiology: [] },
+                    } as any
+                    const studies = Object.values(studyDict)
+                    console.log(studies)
+                    let topoImage = null as ImageResource | null
+                    for (const study of studies) {
+                        console.log(study)
+                        const types = study.type.split(':')
+                        if (study.scope === 'radiology') {
+                            if (types[0] === 'image') {
+                                if (study.format === 'dicom') {
+                                    // Data element should always be a loaded file
+                                    const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.data)
+                                    if (imageId) {
+                                        if (types.length === 1) {
+                                            // Add a single image
+                                            (visit.studies.radiology as ImageResource[]).push(new DicomImage(
+                                                study.name, study.data.size, imageId
+                                            ))
+                                        } else if (types[1] === 'series') {
+                                            // Add an image stack
+                                            const imgStack = new DicomImageStack(study.files.length, study.name)
+                                            ;(visit.studies.radiology as ImageStackResource[]).push(imgStack)
+                                            const resourceIdx = visit.studies.radiology.length - 1
+                                            // Add all loaded files
+                                            for (let i=0; i<study.files.length; i++) {
+                                                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
+                                                if (imageId) {
+                                                    imgStack.push(
+                                                        new DicomImage(study.files[i].name, study.files[i].size, imageId)
+                                                    )
+                                                }
                                             }
-                                        }
-                                        // Add URLs that haven't been loaded yet
-                                        for (let i=0; i<study.urls.length; i++) {
-                                            if (imageId) {
-                                                imgStack.push(
-                                                    new DicomImage(`${study.name}-${i}`, 0, `wadouri:${study.urls[i]}`)
-                                                )
+                                            // Add URLs that haven't been loaded yet
+                                            for (let i=0; i<study.urls.length; i++) {
+                                                if (imageId) {
+                                                    imgStack.push(
+                                                        new DicomImage(`${study.name}-${i}`, 0, `wadouri:${study.urls[i]}`)
+                                                    )
+                                                }
                                             }
+                                            // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
+                                            if (!imgStack.length) {
+                                                visit.studies.radiology.splice(resourceIdx, 1)
+                                            }
+                                            console.log("added")
+                                        } else if (types[1] === 'topogram') {
+                                            // Add as a topogram image
+                                            topoImage = new DicomImage(study.name, study.data.size, imageId)
                                         }
-                                        // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
-                                        if (!imgStack.length) {
-                                            this.dicomElements.splice(resourceIdx, 1)
-                                        }
-                                        console.log("added")
-                                    } else if (types[1] === 'topogram') {
-                                        // Add as a topogram image
-                                        topoImage = new DicomImage(study.name, study.data.size, imageId)
                                     }
                                 }
                             }
+                        } else if (study.scope === 'ekg') {
+                            // Add EKG record
+                            visit.studies.ekg.push(new DicomWaveform(study.name, study.data))
+                            this.scope = 'ekg'
+                            this.toggleColorTheme(true)
                         }
-                    } else if (study.scope === 'ekg') {
-                        // Add EKG record
-                        this.ekgResources.push(new DicomWaveform(study.name, study.data))
-                        this.scope = 'ekg'
-                        this.toggleColorTheme(true)
                     }
-                })
-                // Attach possible topogram image to all loaded stacks
-                if (topoImage !== null) {
-                    this.dicomElements.forEach((resource: ImageResource | ImageStackResource) => {
-                        if (resource.isStack) {
-                            (resource as ImageStackResource).topogram = topoImage
-                        }
-                    })
+                    // Attach possible topogram image to all loaded stacks
+                    if (topoImage !== null) {
+                        visit.studies.radiology.forEach((resource: ImageResource | ImageStackResource) => {
+                            if (resource.isStack) {
+                                (resource as ImageStackResource).topogram = topoImage
+                            }
+                        })
+                    }
+                    this.visits.push(visit)
                 }
                 this.loadingStudies = false
+                console.log(this.visits)
             }).catch((reason) => {
+                console.error(reason)
                 this.loadingStudies = false
             })
+        },
+        selectActiveVisit(idx: number) {
+            this.selectedVisit = idx
+            if (this.$refs['dicom-image-interface']) {
+                (this.$refs['dicom-image-interface'] as any).updateElements()
+            }
+            if (this.$refs['dicom-waveform-interface']) {
+                (this.$refs['dicom-waveform-interface'] as any).updateElements()
+            }
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.$store.state.appName}-medigi-viewer`)
@@ -203,15 +241,17 @@ export default Vue.extend({
             this.sidebarOpen = !this.sidebarOpen
         },
         updateDicomImageOrder: function(order: string[]) {
-            if (order.length !== this.dicomElements.length) {
+            if (order.length !== this.activeVisit.studies.radiology.length) {
                 return
             }
             const names = []
             for (let i=0; i<order.length; i++) {
-                for (let j=0; j<this.dicomElements.length; j++) {
-                    if (this.dicomElements[j].id === order[i]) {
-                        names.push(this.dicomElements[j].name)
-                        this.dicomElements.push(this.dicomElements.splice(j, 1)[0] as any)
+                for (let j=0; j<this.activeVisit.studies.radiology.length; j++) {
+                    if (this.activeVisit.studies.radiology[j].id === order[i]) {
+                        names.push(this.activeVisit.studies.radiology[j].name)
+                        this.activeVisit.studies.radiology.push(
+                            this.activeVisit.studies.radiology.splice(j, 1)[0] as any
+                        )
                         break
                     }
                 }
@@ -220,7 +260,7 @@ export default Vue.extend({
     },
     mounted () {
         this.$root.$on('add-ekg-resource', (resource: any) => {
-            this.ekgResources.push(resource)
+            this.activeVisit.studies.ekg.push(resource)
             this.scope = 'ekg'
             this.toggleColorTheme(true)
         })

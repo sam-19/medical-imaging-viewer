@@ -4,7 +4,7 @@
  * @license    MIT
  */
 
-import { Image } from "cornerstone-core"
+import { ImageResource, ImageStackResource, SignalResource } from './assets'
 
 const MOUSE_BUTTON = {
     LEFT: 0,
@@ -17,7 +17,19 @@ type ImageModality = 'US' | 'XR' | 'CT' | 'MRI' | 'PET' | 'SPECT' | 'UNKNOWN'
 type BiosignalModality = 'ECG' | 'EEG' | 'EOG' | 'UNKNOWN'
 type AnyModality = BiosignalModality | ImageModality
 
- interface ToolbarButton {
+interface PatientVisit {
+    conclusion: string,
+    context: string,
+    date: number,
+    examination: string,
+    history: string,
+    studies: {
+        ekg: SignalResource[],
+        radiology: (ImageResource|ImageStackResource)[],
+    },
+}
+
+interface ToolbarButton {
     id: string
     active: boolean,
     enabled: boolean
@@ -34,5 +46,6 @@ export {
     // Types
     AnyModality, MediaType, ImageModality, BiosignalModality,
     // Interfaces
+    PatientVisit,
     ToolbarButton,
 }
