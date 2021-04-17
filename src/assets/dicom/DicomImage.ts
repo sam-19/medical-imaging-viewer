@@ -5,7 +5,6 @@
  * @license    MIT
  */
 import * as cornerstone from 'cornerstone-core'
-import DicomDataProperty from './DicomDataProperty'
 import DicomModality from './DicomModality'
 import DicomMedia from './DicomMedia'
 import { ImageResource } from '../../types/assets'
@@ -22,27 +21,6 @@ class DicomImage extends DicomMedia implements ImageResource {
     private _sopInstanceUID?: string
     private _studyID?: string
     private _studyNumber?: number
-    // Store tag values for metadata retrieval (remove the prefixed 0 for cornerstone)
-    private TAGS = {
-        /** Study ID */
-        stID: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0010)?.getTagHex().substring(1),
-        /** Study Number */
-        sNum: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0011)?.getTagHex().substring(1),
-        /** Instance Length (number of items in the instance) */
-        iLen: DicomDataProperty.getPropertyByTagPair(0x0020, 0x1208)?.getTagHex().substring(1),
-        /** Instance Number */
-        iNum: DicomDataProperty.getPropertyByTagPair(0x0020, 0x0013)?.getTagHex().substring(1),
-        /** Number of Frames */
-        fNum: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0008)?.getTagHex().substring(1),
-        /** SOP Class UID */
-        sopC: DicomDataProperty.getPropertyByTagPair(0x0008, 0x0016)?.getTagHex().substring(1),
-        /** SOP Instance UID */
-        sopI: DicomDataProperty.getPropertyByTagPair(0x0008, 0x0018)?.getTagHex().substring(1),
-        /** Rows */
-        rows: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0010)?.getTagHex().substring(1),
-        /** Columns */
-        cols: DicomDataProperty.getPropertyByTagPair(0x0028, 0x0011)?.getTagHex().substring(1),
-    }
 
     constructor (name: string, size: number, url: string) {
         super(name, size, 'image', url)
@@ -143,15 +121,15 @@ class DicomImage extends DicomMedia implements ImageResource {
         }
         // Store image metadata
         this._dimensions = [image.width, image.height]
-        this._studyID = image.data.string(this.TAGS.stID) || undefined
-        this._studyNumber = parseInt(image.data.string(this.TAGS.sNum), 10) || undefined
-        this._instanceLength = parseInt(image.data.string(this.TAGS.iLen), 10) || undefined
-        this._instanceNumber = parseInt(image.data.string(this.TAGS.iNum), 10) || undefined
-        this._numberOfFrames = image.data.string(this.TAGS.fNum) || undefined
-        this._sopClassUID = image.data.string(this.TAGS.sopC) || undefined
-        this._sopInstanceUID = image.data.string(this.TAGS.sopI) || undefined
-        this._rows = image.data.string(this.TAGS.rows) || undefined
-        this._columns = image.data.string(this.TAGS.cols) || undefined
+        this._studyID = image.data.string('x00200010') || undefined
+        this._studyNumber = parseInt(image.data.string('x00200011'), 10) || undefined
+        this._instanceLength = parseInt(image.data.string('x00201208'), 10) || undefined
+        this._instanceNumber = parseInt(image.data.string('x00200013'), 10) || undefined
+        this._numberOfFrames = image.data.string('x00280008') || undefined
+        this._sopClassUID = image.data.string('x00080016') || undefined
+        this._sopInstanceUID = image.data.string('x00080018') || undefined
+        this._rows = image.data.string('x00280010') || undefined
+        this._columns = image.data.string('x00280011') || undefined
         return true
     }
     public removeFromCache = () => {
