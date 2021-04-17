@@ -291,7 +291,7 @@ export default Vue.extend({
     -ms-user-select: none;
     user-select: none;
     /* Set scrollbar width for Firefox */
-    scrollbar-width: 0px;
+    scrollbar-width: none;
 }
     .medigi-viewer div {
         box-sizing: border-box;
