@@ -138,7 +138,6 @@ class GenericStudyLoader implements StudyLoader {
             return []
         }
         const visits = [] as any[]
-        let studies = {} as any
         let rootDir = fileTree
         while (!rootDir.files.length && rootDir.directories.length === 1) {
             // Recurse until we arrive at the root folder of the image sets
@@ -177,6 +176,7 @@ class GenericStudyLoader implements StudyLoader {
         }
         // Next, check if this is a single file dir or several dirs
         if (!rootDir.directories.length && rootDir.files.length) {
+            const studies = {} as any
             if (!rootDir.path) {
                 // If this is the "pseudo" root directory, add each file as a separate study
                 // (as they were dragged as separate files into the viewer)
@@ -252,6 +252,7 @@ class GenericStudyLoader implements StudyLoader {
             // Try to add each individual dir as a separate study.
             // First check that each directory really contains only files, skip those that don't.
             for (let visitDir of visitDirs) {
+                const studies = {} as any
                 for (let i=0; i<visitDir.directories.length; i++) {
                     const curDir = visitDir.directories[i]
                     if (curDir.directories.length) {
