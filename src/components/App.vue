@@ -114,12 +114,11 @@ export default Vue.extend({
             this.loadingStudies = true
             studyLoader.loadFromFileSystem(fsItem).then(visits => {
                 let visitCounter = 1
-                for (const studyDict of visits) {
+                for (const { title, studies } of visits) {
                     const visit = {
-                        title: this.$t(`Visit #${visitCounter++}`),
+                        title: title || this.$t(`Visit #${visitCounter++}`),
                         studies: { ekg: [], radiology: [] },
                     } as any
-                    const studies = Object.values(studyDict)
                     console.log(studies)
                     let topoImage = null as ImageResource | null
                     for (const study of studies) {
