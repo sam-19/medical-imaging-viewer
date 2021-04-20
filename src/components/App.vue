@@ -5,7 +5,7 @@
             'medigi-viewer-interface-dropdown',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
-            <span v-if="activeVisit">{{ activeVisit.title }}</span>
+            <span v-if="activeVisit" class="medigi-viewer-oneliner">{{ activeVisit.title }}</span>
             <span v-else>{{ $t('No visit selected') }}</span>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
@@ -14,13 +14,20 @@
             />
             <ul>
                 <li v-for="(visit, idx) in visits" :key="`${$store.state.appName}-visit-option-${idx}`">
-                    <div>{{ visit.title }}</div>
+                    <div class="medigi-viewer-visit-title medigi-viewer-oneliner">
+                        {{ visit.title }}
+                        <div v-if="visit.date" class="medigi-viewer-visit-date medigi-viewer-oneliner">
+                            {{ getLocalDatetime(visit.date) }}
+                        </div>
+                    </div>
                     <div v-if="visit.studies.ekg.length"
+                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                         @click="selectActiveResource(visit, 'ekg')"
                     >
                         {{ visit.studies.ekg.length + $t(' EKG studies') }}
                     </div>
                     <div v-if="visit.studies.radiology.length"
+                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                          @click="selectActiveResource(visit, 'radiology')"
                     >
                         {{ visit.studies.radiology.length + $t(' radiology studies') }}
@@ -81,6 +88,17 @@ export default Vue.extend({
         },
     },
     methods: {
+        getLocalDatetime: function (datetimeStr: string): string {
+            if (datetimeStr.length !== 12) {
+                return datetimeStr
+            }
+            const y = datetimeStr.substring(0, 4)
+            const m = datetimeStr.substring(4, 6)
+            const d = datetimeStr.substring(6, 8)
+            const hr = datetimeStr.substring(8, 10)
+            const min = datetimeStr.substring(10)
+            return `${d.replace(/^0/, '')}.${m.replace(/^0/, '')}.${y} ${hr}:${min}`
+        },
         handleFileDrag: function (event: DragEvent) {
             // Prevent default event effects
             event.stopPropagation()
@@ -114,9 +132,14 @@ export default Vue.extend({
             this.loadingStudies = true
             studyLoader.loadFromFileSystem(fsItem).then(visits => {
                 let visitCounter = 1
-                for (const { title, studies } of visits) {
+                for (const { title, date, studies } of visits) {
+                    // Don't add empty visits
+                    if (!studies.length) {
+                        continue
+                    }
                     const visit = {
                         title: title || this.$t(`Visit #${visitCounter++}`),
+                        date: date || '',
                         studies: { ekg: [], radiology: [] },
                     } as any
                     console.log(studies)
@@ -291,6 +314,7 @@ export default Vue.extend({
 }
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
+    --medigi-viewer-background-emphasize: #181818;
     --medigi-viewer-background-highlight: #303030;
     --medigi-viewer-border: #C0C0C0;
     --medigi-viewer-border-faint: #606060;
@@ -302,6 +326,7 @@ export default Vue.extend({
 }
 .medigi-viewer-light-mode, .medigi-viewer-light-mode * {
     --medigi-viewer-background: #FFFFFF;
+    --medigi-viewer-background-emphasize: #F8F8F8;
     --medigi-viewer-background-highlight: #F0F0F0;
     --medigi-viewer-border: #808080;
     --medigi-viewer-border-faint: #A0A0A0;
@@ -344,6 +369,11 @@ export default Vue.extend({
     .medigi-viewer-hidden {
         display: none !important;
     }
+    .medigi-viewer-oneliner {
+	overflow: hidden !important;
+    text-overflow: ellipsis !important;
+	white-space: nowrap !important;
+    }
     .medigi-viewer-interface-dropdown {
         position: absolute;
         top: 10px;
@@ -370,6 +400,8 @@ export default Vue.extend({
             left: -230px;
         }
         .medigi-viewer-interface-dropdown > span {
+            display: inline-block;
+            width: 220px;
             margin: 0 10px;
             font-size: 18px;
         }
@@ -392,18 +424,27 @@ export default Vue.extend({
             padding-inline-start: 0;
         }
             .medigi-viewer-interface-dropdown > ul > li > div {
-                height: 40px;
-                line-height: 40px;
-                padding: 0 10px;
+                line-height: 30px;
+                padding: 5px 10px;
             }
-                .medigi-viewer-interface-dropdown > ul > li > div:nth-child(1) {
+                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-title {
                     font-weight: bold;
                     cursor: default;
+                    border-top: solid 1px var(--medigi-viewer-border-faint);
+                    background-color: var(--medigi-viewer-background-emphasize);
                 }
-                .medigi-viewer-interface-dropdown > ul > li > div:not(:nth-child(1)) {
-                    padding-left: 20px;
+                .medigi-viewer-interface-dropdown > ul > li .medigi-viewer-visit-date {
+                    height: 20px;
+                    line-height: 20px;
+                    font-size: 80%;
+                    font-weight: normal;
+                    color: var(--medigi-viewer-text-minor);
+                    background-color: var(--medigi-viewer-background-emphasize);
                 }
-                .medigi-viewer-interface-dropdown > ul > li > div:not(:nth-child(1)):hover {
+                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-studies {
+                    padding-left: 15px;
+                }
+                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-studies:hover {
                     background-color: var(--medigi-viewer-background-highlight);
                 }
         .medigi-viewer-interface-dropdown:hover > ul {
