@@ -3,13 +3,34 @@
     <div ref="wrapper" class="medigi-viewer-image-wrapper" @mouseleave="mouseLeftImageArea">
         <div ref="annotation-menu"
             :class="[
-                'medigi-viewer-delete-annotation',
+                'medigi-viewer-annotation-menu',
                 { 'medigi-viewer-hidden': !annotationMenu },
             ]"
-            @click="annotationMenu.remove()"
+            :style="getAnnotationMenuStyles()"
             @contextmenu.prevent
         >
-            {{ $t('Delete') }}
+            <div v-if="annotationMenu && annotationMenu.select !== undefined && (!selectedAnnotation || selectedAnnotation.data !== annotationMenu.data)"
+                class="medigi-viewer-annotation-action"
+                @click="annotationMenu.select()"
+            >
+                {{ $t('Select') }}
+            </div>
+            <div v-else-if="annotationMenu && annotationMenu.select !== undefined && selectedAnnotation && selectedAnnotation.data === annotationMenu.data">
+                {{ $t('Selected') }}
+            </div>
+            <div v-if="annotationMenu && selectedAnnotation && annotationMenu.type === selectedAnnotation.type && selectedAnnotation.data !== annotationMenu.data">
+                <div class="medigi-viewer-annotation-compare-row">
+                    <span>{{ $t('Length') }}</span>
+                    <span>{{ getAnnotationLengthDiff(selectedAnnotation.data, annotationMenu.data) }}</span>
+                </div>
+                <div class="medigi-viewer-annotation-compare-row">
+                    <span>{{ $t('Angle') }}</span>
+                    <span>{{ getAnnotationAngleBetween(selectedAnnotation.data, annotationMenu.data) }}</span>
+                </div>
+            </div>
+            <div @click="annotationMenu.remove()" class="medigi-viewer-annotation-action">
+                {{ $t('Delete') }}
+            </div>
         </div>
         <div ref="orientation-marker-top"
             :class="[
@@ -137,7 +158,8 @@ export default Vue.extend({
             //mouseMBtnDown: false, // Is the middle mouse button down (depressed)
             //mouseRBtnDown: false, // Is the right mouse button down (depressed)
             //scrollProgress: 0, // Progress towards a scroll step
-            annotationMenu: null as object | null, // Annotation selected by the user
+            annotationMenu: null as any, // Annotation selected by the user
+            selectedAnnotation: null as any,
             viewport: null as any, // Save viewport settings for image stacks
             orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
@@ -224,6 +246,40 @@ export default Vue.extend({
                 this.updateOrientationMarkers()
             }
         },
+        getAnnotationAngleBetween: function (ref: any, act: any) {
+            // Calculate active line angle to x-axis
+            const actX = act.handles.end.x - act.handles.start.x
+            const actY = act.handles.end.y - act.handles.start.y
+            const actAng = actY !== 0 || actX > 0 ? 2*Math.atan(actY/(actX + Math.sqrt(actX**2 + actY**2)))*180/Math.PI
+                           : actX === 0 ? 0 : 180 // Special cases
+            // Calculate reference line angle to x-axis
+            const refX = ref.handles.end.x - ref.handles.start.x
+            const refY = ref.handles.end.y - ref.handles.start.y
+            const refAng = refY !== 0 || refX > 0 ? 2*Math.atan(refY/(refX + Math.sqrt(refX**2 + refY**2)))*180/Math.PI
+                           : refX === 0 ? 0 : 180
+            const angBtwn = (actAng - refAng + 360)%360
+            const angMinMax = [angBtwn%180, 180 - angBtwn%180]
+            return (Math.min(...angMinMax)).toFixed(1) + '° / ' + (Math.max(...angMinMax)).toFixed(1) + '°';
+        },
+        getAnnotationLengthDiff: function (ref: any, act: any) {
+            if (act.unit !== ref.unit) {
+                return '???'
+            }
+            const lenDiff = Math.abs(act.length - ref.length)
+            const diffSign = ref.length > act.length ? '-' : '+'
+            return `${diffSign}${lenDiff.toFixed(1)}${act.unit} (${diffSign}${(lenDiff/ref.length*100).toFixed(1)}%)`
+        },
+        getAnnotationMenuStyles () {
+            if (!this.annotationMenu) {
+                return 'display: none'
+            } else {
+                const offset = cornerstone.pageToPixel(this.dicomEl, 0, 0)
+                const top = (this.annotationMenu.anchor.y - offset.y)*this.viewport.scale - 60
+                const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - 280
+                console.log(this.viewport)
+                return `top: ${top}px; left: ${left}px`
+            }
+        },
         /**
          * Get topogram dimensions, scaled down if needed.
          * @return [width, height, scale]
@@ -274,6 +330,18 @@ export default Vue.extend({
                     cornerstone.updateImage(this.dicomEl, false)
                     this.annotationMenu = null
                 }
+                // Select annotation method
+                const selectAnnotation = (type: string, index: number) => {
+                    if (type === 'roi') {
+                        console.log(localState[`EllipticalRoi-${this.$store.state.appName}`].data[index])
+                    } else if (type === 'len') {
+                        console.log(localState[`Length-${this.$store.state.appName}`].data[index])
+                        this.selectedAnnotation = {
+                            type: 'len',
+                            data: localState[`Length-${this.$store.state.appName}`].data[index]
+                        }
+                    }
+                }
                 // Check if there are any angles, RoIs or lengths on the active image
                 if (localState[`Angle-${this.$store.state.appName}`]) {
                     for (let i=0; i<localState[`Angle-${this.$store.state.appName}`].data.length; i++) {
@@ -281,11 +349,15 @@ export default Vue.extend({
                         if (cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(ang.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
-                            this.annotationMenu = { remove: () => {
-                                removeAnnotation('ang', i)
-                            } }
+                            this.annotationMenu = {
+                                anchor: cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
+                                        ? ang.handles.start : ang.handles.end,
+                                data: ang,
+                                remove: () => {
+                                    removeAnnotation('ang', i)
+                                },
+                                type: 'ang',
+                            }
                             return
                         }
                     }
@@ -296,11 +368,18 @@ export default Vue.extend({
                         if (cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(roi.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
-                            this.annotationMenu = { remove: () => {
-                                removeAnnotation('roi', i)
-                            } }
+                            this.annotationMenu = {
+                                anchor: cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
+                                        ? roi.handles.start : roi.handles.end,
+                                data: roi,
+                                remove: () => {
+                                    removeAnnotation('roi', i)
+                                },
+                                select: () => {
+                                    selectAnnotation('roi', i)
+                                },
+                                type: 'roi',
+                            }
                             return
                         }
                     }
@@ -311,11 +390,18 @@ export default Vue.extend({
                         if (cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
                             cornerstoneMath.point.distance(len.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
                         ) {
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.top = `${e.lastPoints.canvas.y + 20}px`
-                            ;(this.$refs['annotation-menu'] as HTMLElement).style.left = `${e.lastPoints.canvas.x + 20}px`
-                            this.annotationMenu = { remove: () => {
-                                removeAnnotation('len', i)
-                            } }
+                            this.annotationMenu = {
+                                anchor: cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
+                                        ? len.handles.start : len.handles.end,
+                                data: len,
+                                remove: () => {
+                                    removeAnnotation('len', i)
+                                },
+                                select: () => {
+                                    selectAnnotation('len', i)
+                                },
+                                type: 'len',
+                            }
                             return
                         }
                     }
@@ -1105,18 +1191,32 @@ export default Vue.extend({
     float: left;
     padding: 10px;
 }
-    .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation {
+    .medigi-viewer-image-wrapper > .medigi-viewer-annotation-menu {
         position: absolute;
         display: inline-block;
         border: 2px solid var(--medigi-viewer-border);
         background-color: var(--medigi-viewer-background);
-        padding: 10px;
         cursor: pointer;
         z-index: 1000; /* ALWAYS on top */
     }
-        .medigi-viewer-image-wrapper > .medigi-viewer-delete-annotation:hover {
+        .medigi-viewer-image-wrapper > .medigi-viewer-annotation-menu > div {
+            line-height: 30px;
+            padding: 0 10px;
+        }
+        .medigi-viewer-image-wrapper .medigi-viewer-annotation-action {
+            color: var(--medigi-viewer-text-highlight);
+        }
+        .medigi-viewer-image-wrapper .medigi-viewer-annotation-action:hover {
             background-color: var(--medigi-viewer-background-highlight);
         }
+        .medigi-viewer-image-wrapper .medigi-viewer-annotation-compare-row {
+            width: 200px;
+            opacity: 0.9;
+            font-size: 90%;
+        }
+            .medigi-viewer-image-wrapper .medigi-viewer-annotation-compare-row > span:nth-child(2) {
+                float: right;
+            }
     .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker {
         position: absolute;
         display: inline-block;
