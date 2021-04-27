@@ -276,7 +276,6 @@ export default Vue.extend({
                 const offset = cornerstone.pageToPixel(this.dicomEl, 0, 0)
                 const top = (this.annotationMenu.anchor.y - offset.y)*this.viewport.scale - 60
                 const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - 280
-                console.log(this.viewport)
                 return `top: ${top}px; left: ${left}px`
             }
         },
