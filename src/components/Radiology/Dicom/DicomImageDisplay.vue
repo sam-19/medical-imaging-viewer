@@ -9,23 +9,21 @@
             :style="getAnnotationMenuStyles()"
             @contextmenu.prevent
         >
-            <div v-if="annotationMenu && annotationMenu.select !== undefined && (!selectedAnnotation || selectedAnnotation.data !== annotationMenu.data)"
-                class="medigi-viewer-annotation-action"
-                @click="annotationMenu.select()"
-            >
+            <div v-if="!isSelectedAnnotation"  class="medigi-viewer-annotation-action" @click="annotationMenu.select()">
                 {{ $t('Select') }}
             </div>
-            <div v-else-if="annotationMenu && annotationMenu.select !== undefined && selectedAnnotation && selectedAnnotation.data === annotationMenu.data">
-                {{ $t('Selected') }}
+            <div v-else class="medigi-viewer-annotation-action" @click="annotationMenu.unselect()">
+                {{ $t('Unselect reference #') + getReferenceNumber() }}
             </div>
-            <div v-if="annotationMenu && selectedAnnotation && annotationMenu.type === selectedAnnotation.type && selectedAnnotation.data !== annotationMenu.data">
-                <div class="medigi-viewer-annotation-compare-row">
+            <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medigi-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
+                <div v-if="ref" class="medigi-viewer-annotation-compare-title">{{ $t('Compared to reference #') + (idx + 1) }}</div>
+                <div v-if="ref" class="medigi-viewer-annotation-compare-row">
                     <span>{{ $t('Length') }}</span>
-                    <span>{{ getAnnotationLengthDiff(selectedAnnotation.data, annotationMenu.data) }}</span>
+                    <span>{{ getAnnotationLengthDiff(ref, annotationMenu.data) }}</span>
                 </div>
-                <div class="medigi-viewer-annotation-compare-row">
+                <div v-if="ref" class="medigi-viewer-annotation-compare-row">
                     <span>{{ $t('Angle') }}</span>
-                    <span>{{ getAnnotationAngleBetween(selectedAnnotation.data, annotationMenu.data) }}</span>
+                    <span>{{ getAnnotationAngleBetween(ref, annotationMenu.data) }}</span>
                 </div>
             </div>
             <div @click="annotationMenu.remove()" class="medigi-viewer-annotation-action">
@@ -159,7 +157,11 @@ export default Vue.extend({
             //mouseRBtnDown: false, // Is the right mouse button down (depressed)
             //scrollProgress: 0, // Progress towards a scroll step
             annotationMenu: null as any, // Annotation selected by the user
-            selectedAnnotation: null as any,
+            referenceAnnotations: {
+                ang: [] as any[],
+                len: [] as any[],
+                roiE: [] as any[],
+            },
             viewport: null as any, // Save viewport settings for image stacks
             orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
@@ -201,7 +203,19 @@ export default Vue.extend({
          */
         id () {
             return this.resource.id
-        }
+        },
+        isSelectedAnnotation () {
+            if (!this.annotationMenu) {
+                return false
+            }
+            const refs = this.referenceAnnotations // Stupid trick to avoid TS error
+            if (!this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length ||
+                this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) === -1
+            ) {
+                return false
+            }
+            return true
+        },
     },
     methods: {
         /**
@@ -279,6 +293,29 @@ export default Vue.extend({
                 return `top: ${top}px; left: ${left}px`
             }
         },
+        getReferenceAnnotations () {
+            if (!this.annotationMenu) {
+                return []
+            }
+            const refs = this.referenceAnnotations
+            const valid = []
+            for (const anno of this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs]) {
+                if (anno !== this.annotationMenu.data) {
+                    valid.push(anno)
+                } else {
+                    valid.push(null)
+                }
+            }
+            console.log(valid)
+            return valid
+        },
+        getReferenceNumber () {
+            if (!this.annotationMenu) {
+                return 0
+            }
+            const refs = this.referenceAnnotations
+            return this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) + 1
+        },
         /**
          * Get topogram dimensions, scaled down if needed.
          * @return [width, height, scale]
@@ -316,15 +353,19 @@ export default Vue.extend({
             // Clicked image coordinates
             const coords = {...e.lastPoints.image}
             if (localState) {
+                const annoTypes = {
+                    ang: `Angle-${this.$store.state.appName}`,
+                    len: `Length-${this.$store.state.appName}`,
+                    roiE: `EllipticalRoi-${this.$store.state.appName}`,
+                }
                 // Remove annotation method
                 const removeAnnotation = (type: string, index: number) => {
-                    if (type === 'ang') {
-                        localState[`Angle-${this.$store.state.appName}`].data.splice(index, 1)
-                    } else if (type === 'roi') {
-                        localState[`EllipticalRoi-${this.$store.state.appName}`].data.splice(index, 1)
-                    } else if (type === 'len') {
-                        localState[`Length-${this.$store.state.appName}`].data.splice(index, 1)
+                    const anno = localState[annoTypes[type as keyof typeof annoTypes]].data[index]
+                    const annoIdx = this.referenceAnnotations[type as keyof typeof annoTypes].indexOf(anno)
+                    if (annoIdx !== -1) {
+                        this.referenceAnnotations[type as keyof typeof annoTypes].splice(annoIdx, 1)
                     }
+                    localState[annoTypes[type as keyof typeof annoTypes]].data.splice(index, 1)
                     cornerstoneTools.globalImageIdSpecificToolStateManager.restoreToolState(toolStates)
                     cornerstone.updateImage(this.dicomEl, false)
                     this.annotationMenu = null
@@ -332,76 +373,45 @@ export default Vue.extend({
                 // Select annotation method
                 const selectAnnotation = (type: string, index: number) => {
                     if (type === 'roi') {
-                        console.log(localState[`EllipticalRoi-${this.$store.state.appName}`].data[index])
+                        const anno = localState[`EllipticalRoi-${this.$store.state.appName}`].data[index]
+                        if (this.referenceAnnotations.roiE.indexOf(anno) === -1) {
+                            this.referenceAnnotations.roiE.push(anno)
+                        }
                     } else if (type === 'len') {
-                        console.log(localState[`Length-${this.$store.state.appName}`].data[index])
-                        this.selectedAnnotation = {
-                            type: 'len',
-                            data: localState[`Length-${this.$store.state.appName}`].data[index]
+                        const anno = localState[`Length-${this.$store.state.appName}`].data[index]
+                        if (this.referenceAnnotations.len.indexOf(anno) === -1) {
+                            this.referenceAnnotations.len.push(anno)
                         }
                     }
                 }
                 // Check if there are any angles, RoIs or lengths on the active image
-                if (localState[`Angle-${this.$store.state.appName}`]) {
-                    for (let i=0; i<localState[`Angle-${this.$store.state.appName}`].data.length; i++) {
-                        const ang = localState[`Angle-${this.$store.state.appName}`].data[i]
-                        if (cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
-                            cornerstoneMath.point.distance(ang.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
-                        ) {
-                            this.annotationMenu = {
-                                anchor: cornerstoneMath.point.distance(ang.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
-                                        ? ang.handles.start : ang.handles.end,
-                                data: ang,
-                                remove: () => {
-                                    removeAnnotation('ang', i)
-                                },
-                                type: 'ang',
+                for (const [key, index] of Object.entries(annoTypes)) {
+                    if (localState[index]) {
+                        for (let i=0; i<localState[index].data.length; i++) {
+                            const anno = localState[index].data[i]
+                            if (cornerstoneMath.point.distance(anno.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
+                                cornerstoneMath.point.distance(anno.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
+                            ) {
+                                this.annotationMenu = {
+                                    anchor: cornerstoneMath.point.distance(anno.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
+                                            ? anno.handles.start : anno.handles.end,
+                                    data: anno,
+                                    remove: () => {
+                                        removeAnnotation(key, i)
+                                    },
+                                    select: () => {
+                                        selectAnnotation(key, i)
+                                    },
+                                    type: key,
+                                    unselect: () => {
+                                        const annoIdx = this.referenceAnnotations[key as keyof typeof annoTypes].indexOf(anno)
+                                        if (annoIdx !== -1) {
+                                            this.referenceAnnotations[key as keyof typeof annoTypes].splice(annoIdx, 1)
+                                        }
+                                    },
+                                }
+                                return
                             }
-                            return
-                        }
-                    }
-                }
-                if (localState[`EllipticalRoi-${this.$store.state.appName}`]) {
-                    for (let i=0; i<localState[`EllipticalRoi-${this.$store.state.appName}`].data.length; i++) {
-                        const roi = localState[`EllipticalRoi-${this.$store.state.appName}`].data[i]
-                        if (cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
-                            cornerstoneMath.point.distance(roi.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
-                        ) {
-                            this.annotationMenu = {
-                                anchor: cornerstoneMath.point.distance(roi.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
-                                        ? roi.handles.start : roi.handles.end,
-                                data: roi,
-                                remove: () => {
-                                    removeAnnotation('roi', i)
-                                },
-                                select: () => {
-                                    selectAnnotation('roi', i)
-                                },
-                                type: 'roi',
-                            }
-                            return
-                        }
-                    }
-                }
-                if (localState[`Length-${this.$store.state.appName}`]) {
-                    for (let i=0; i<localState[`Length-${this.$store.state.appName}`].data.length; i++) {
-                        const len = localState[`Length-${this.$store.state.appName}`].data[i]
-                        if (cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
-                            cornerstoneMath.point.distance(len.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
-                        ) {
-                            this.annotationMenu = {
-                                anchor: cornerstoneMath.point.distance(len.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
-                                        ? len.handles.start : len.handles.end,
-                                data: len,
-                                remove: () => {
-                                    removeAnnotation('len', i)
-                                },
-                                select: () => {
-                                    selectAnnotation('len', i)
-                                },
-                                type: 'len',
-                            }
-                            return
                         }
                     }
                 }
