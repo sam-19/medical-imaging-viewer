@@ -10,7 +10,7 @@
             @contextmenu.prevent
         >
             <div v-if="!isSelectedAnnotation"  class="medigi-viewer-annotation-action" @click="annotationMenu.select()">
-                {{ $t('Select') }}
+                {{ $t('Select as reference #') + getNextFreeReferenceNum() }}
             </div>
             <div v-else class="medigi-viewer-annotation-action" @click="annotationMenu.unselect()">
                 {{ $t('Unselect reference #') + getReferenceNumber() }}
@@ -292,6 +292,13 @@ export default Vue.extend({
                 const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - 280
                 return `top: ${top}px; left: ${left}px`
             }
+        },
+        getNextFreeReferenceNum () {
+            if (!this.annotationMenu) {
+                return 0
+            }
+            const refs = this.referenceAnnotations
+            return this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length + 1
         },
         getReferenceAnnotations () {
             if (!this.annotationMenu) {
