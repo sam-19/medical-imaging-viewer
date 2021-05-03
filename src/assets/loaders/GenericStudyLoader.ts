@@ -6,6 +6,7 @@
  */
 
 import dicomParser from 'dicom-parser'
+import * as edfdecoder from 'edfdecoder'
 import { FileSystemItem, StudyLoader, StudyObject } from '../../types/assets'
 const CONFIG_FILE_NAME = 'medigi_study_config.json'
 
@@ -47,9 +48,40 @@ class GenericStudyLoader implements StudyLoader {
             if (prop !== 'meta' && !study[prop as keyof StudyObject]
                 || prop === 'meta' && Object.keys(study[prop as keyof StudyObject]).length === 0
             ) {
-                // Try to load the file, starting with DICOM parser
-                const byteArray = new Uint8Array(await file.arrayBuffer())
+                // Try to load the file, according to extension
+                if (file.name.endsWith('.edf')) {
+                    // EDF Decoder is very handy forf small files, but cannot be used to pipe data from large files
+                    if (file.size < 50*1024*1024) {
+                        try {
+                            const decoder = new (edfdecoder as any).EdfDecoder()
+                            decoder.setInput(await file.arrayBuffer())
+                            decoder.decode()
+                            const edfData = decoder.getOutput()
+                            if (!study.format) {
+                                // EDF format
+                                study.format = 'edf'
+                            }
+                            // Try to fetch metadata from header
+                            // Saving metadata separately is important in case libraries are added or changed later
+                            let eegSignalCount = 0
+                            study.meta.patientId = study.meta.patientId || edfData.getPatientID() || null
+                            study.meta.recordId = study.meta.recordId || edfData.getRecordingID() || null
+                            study.meta.startDate = study.meta.startDate || edfData.getRecordingStartDate() || null
+                            study.meta.nRecords = edfData.getNumberOfRecords() || null
+                            study.meta.recordLen = edfData.getRecordDuration() || null
+                            study.meta.nSignals = edfData.getNumberOfSignals() || null
+                            study.data = edfData
+                            study.meta.loader = 'edf-decoder'
+                        } catch (e) {
+                            console.log("EDF ERROR", e)
+                            // Not a regular EDF file, perhaps EDF+?
+                        }
+                    } else {
+                        // Need something else for larger files
+                    }
+                }
                 try {
+                    const byteArray = new Uint8Array(await file.arrayBuffer())
                     const dataSet = dicomParser.parseDicom(byteArray)
                     if (!study.format) {
                         // DICOM format
@@ -186,7 +218,7 @@ class GenericStudyLoader implements StudyLoader {
         const studyName = rootDir.name
         // Next, check if this is a single file dir or several dirs
         if (!rootDir.directories.length && rootDir.files.length) {
-            const studies = {} as any
+            const studies = []
             if (!rootDir.path) {
                 // If this is the "pseudo" root directory, add each file as a separate study
                 // (as they were dragged as separate files into the viewer)

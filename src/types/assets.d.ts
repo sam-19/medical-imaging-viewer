@@ -101,16 +101,19 @@ interface SignalResource {
     //url: string
 }
 interface SignalChannel {
-    baseline: number
-    filterLow: number
-    filterHigh: number
-    filterNotch: number
     label: string
     resolution: number
     sensitivity: number
-    sensitivityCF: number
     signals: number[]
-    timeSkew: number
+    // DICOM signal properties
+    baseline?: number
+    filterLow?: number
+    filterHigh?: number
+    filterNotch?: number
+    sensitivityCF?: number
+    timeSkew?: number
+    // EDF signal properties
+
 }
 
 export {
