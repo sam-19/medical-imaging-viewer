@@ -4,6 +4,11 @@
  * @license    MIT
  */
 
+
+//////////////////////////////////////////////////////////////////
+//                     GENERAL INTERFACES                       //
+//////////////////////////////////////////////////////////////////
+
 interface FileSystemItem {
     name: string
     path: string
@@ -43,6 +48,15 @@ interface StudyObject {
     urls: string[]
     version: string
 }
+
+//////////////////////////////////////////////////////////////////
+//                     MEDIA INTERFACES                         //
+//////////////////////////////////////////////////////////////////
+/**
+ * MediaResource is a parent interface holding the properties that are common
+ * to all different types of media.
+ * TODO: Some of these need to be moved to ImageResource, I think
+ */
 interface MediaResource {
     dimensions: number[]
     id: string
@@ -56,6 +70,11 @@ interface MediaResource {
     type: string
     url: string        // Download URL or Cornerstone image ID for the resource
 }
+
+//////////////////////////////////////////////////////////////////
+//                     IMAGE INTERFACES                         //
+//////////////////////////////////////////////////////////////////
+// TODO: Combine ImageResource and ImageStackResource to just one interface
 
 interface ImageResource extends MediaResource {
     columns?: number
@@ -91,20 +110,32 @@ interface ImageStackResource extends MediaResource {
     unlink(): void
 }
 
+//////////////////////////////////////////////////////////////////
+//                     SIGNAL INTERFACES                        //
+//////////////////////////////////////////////////////////////////
+
 interface SignalResource {
+    // Properties
     annotations: any[]
-    channels: { label: string, signals: number[] }[]
+    channels: SignalChannel[]
+    montages: SignalMontage[]
     name: string
     resolution: number // Highest resolution in this resource
     sampleCount: number
+    setup: SignalSetup | null
     type: string
-    //url: string
+    url: string
+    // Methods
+    getAllMontageSignals(montage: number | string, range: number[]): number[][]
+    getAllRawSignals(range: number[]): number[][]
+    getMontageSignal(montage: number | string, range: number[], channel: number | string): number[]
+    getRawSignal(range: number[], channel: number | string): number[]
 }
 interface SignalChannel {
     label: string
     resolution: number
     sensitivity: number
-    signals: number[]
+    signal: number[]
     // DICOM signal properties
     baseline?: number
     filterLow?: number
@@ -115,11 +146,71 @@ interface SignalChannel {
     // EDF signal properties
 
 }
+/**
+ * Configuration for a single signal channel in SignalSetup.
+ * @param label identifying label used to match signals in SignalMontage
+ * @param name descriptive name for the channel
+ * @param type signal type
+ * @param index matched signal index in recording data, optional
+ * @param avgRef is the raw signal already referenced to signal average (so we don't average twice), optional
+ */
+interface SignalSetupChannel {
+    label: string
+    name: string
+    type: 'eeg' | 'eog' | 'ekg'
+    index?: number
+    avgRef?: boolean
+}
+/**
+ * Setup for interpreting a particular signal resource.
+ * @param name descriptive name for the setup
+ * @param channels configuration for each matched channel in the setup
+ * @param expectedChannels channels expected to be present in the setup
+ * @param missingChannels channels that should have been present, but were not found
+ * @param unmatchedChannels channels that could not be matched to any expected channel
+ */
+interface SignalSetup {
+    name: string
+    channels: SignalSetupChannel[]
+    expectedChannels: SignalSetupChannel[]
+    missingChannels: SignalSetupChannel[]
+    unmatchedChannels: SignalSetupChannel[]
+}
+/**
+ * A single channel in montage configuration.
+ * @param label identifying label for the channel
+ * @param name descriptive name for the channel
+ * @param active active channel index
+ * @param reference reference channel indices; multiple reference channels will be averaged
+ */
+interface SignalMontageChannel {
+    label: string
+    name: string
+    active: number
+    reference: number[]
+}
+/**
+ * Signal montage describes how a particular signal should be presented.
+ * @param label identifying label for the montage
+ * @param name descriptive name for the montage
+ * @param channels configuration for channels in this montage
+ * @param getAllSignals return calculated signals from the given signals in the given range ([starting index, ending index], optional)
+ * @param getChannelSignal return calculated signal from the given for a given channel in the given range  ([starting index, ending index], optional)
+ * @param resetCache reset cached signal mapping and setup, forcing a remapping on the next query
+ */
+interface SignalMontage {
+    label: string
+    name: string
+    channels: SignalMontageChannel[]
+    getAllSignals(signals: number[][], setup: SignalSetup, range?: number[]): number[][]
+    getChannelSignal(signals: number[][], setup: SignalSetup, index: number, range?: number[]): number[]
+    resetCache(): void
+}
 
 export {
     FileSystemItem, FileLoader,
     MediaResource,
     ImageResource, ImageStackResource,
-    SignalResource, SignalChannel,
+    SignalResource, SignalChannel, SignalSetup, SignalMontage, SignalMontageChannel,
     StudyLoader, StudyObject
 }
