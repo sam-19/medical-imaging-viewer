@@ -157,7 +157,8 @@ interface SignalChannel {
 interface SignalSetupChannel {
     label: string
     name: string
-    type: 'eeg' | 'eog' | 'ekg'
+    type?: 'eeg' | 'eog' | 'ekg'
+    samplingRate?: number
     index?: number
     avgRef?: boolean
 }
@@ -172,7 +173,6 @@ interface SignalSetupChannel {
 interface SignalSetup {
     name: string
     channels: SignalSetupChannel[]
-    expectedChannels: SignalSetupChannel[]
     missingChannels: SignalSetupChannel[]
     unmatchedChannels: SignalSetupChannel[]
 }
@@ -196,21 +196,23 @@ interface SignalMontageChannel {
  * @param channels configuration for channels in this montage
  * @param getAllSignals return calculated signals from the given signals in the given range ([starting index, ending index], optional)
  * @param getChannelSignal return calculated signal from the given for a given channel in the given range  ([starting index, ending index], optional)
- * @param resetCache reset cached signal mapping and setup, forcing a remapping on the next query
+ * @param mapChannels map montage channel indices according to given signal setup and montage config
+ * @param resetChannels reset mapped channels
  */
 interface SignalMontage {
     label: string
     name: string
-    channels: SignalMontageChannel[]
-    getAllSignals(signals: number[][], setup: SignalSetup, range?: number[]): number[][]
-    getChannelSignal(signals: number[][], setup: SignalSetup, index: number, range?: number[]): number[]
-    resetCache(): void
+    channels: (SignalMontageChannel | null)[]
+    getAllSignals(signals: number[][], range?: number[]): number[][]
+    getChannelSignal(signals: number[][], index: number, range?: number[]): number[]
+    mapChannels(setup: SignalSetup, config: any): void
+    resetChannels(): void
 }
 
 export {
     FileSystemItem, FileLoader,
     MediaResource,
     ImageResource, ImageStackResource,
-    SignalResource, SignalChannel, SignalSetup, SignalMontage, SignalMontageChannel,
+    SignalResource, SignalChannel, SignalSetup, SignalSetupChannel, SignalMontage, SignalMontageChannel,
     StudyLoader, StudyObject
 }

@@ -149,7 +149,7 @@ class GenericStudyLoader implements StudyLoader {
                         // Document data can be retrieved from x00420011
                         // study.data = dataSet.string('x00420011')
                     }
-                } catch (e: any) {
+                } catch (e) {
                     if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
                         // This was not a DICOM file, try something else
                     } else {

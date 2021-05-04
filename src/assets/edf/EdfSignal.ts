@@ -80,7 +80,7 @@ class EdfSignal implements SignalResource {
     set url (url: string) {
         this._url = url
     }
-
+    // Methods
     extractSignalsFromEdfData (data: any, loader?: string) {
         // Select method based on file loader
         // For automatic determination of study modality
@@ -150,7 +150,7 @@ class EdfSignal implements SignalResource {
         }
         // Calculate signals only for the part that we need
         const signals = this._channels.map((chan) => chan.signal.splice(range[0], range[1]))
-        return this._montages[montage as number].getAllSignals(signals, this._setup)
+        return this._montages[montage as number].getAllSignals(signals)
     }
     getAllRawSignals(range: number[]) {
         const signals = [] as number[][]
@@ -189,7 +189,7 @@ class EdfSignal implements SignalResource {
         if (typeof channel === 'string') {
             // Match channel label to channel index
             for (let i=0; i<this._montages[montage as number].channels.length; i++) {
-                if (this._montages[montage as number].channels[i].label === channel) {
+                if (this._montages[montage as number].channels[i]?.label === channel) {
                     channel = i
                     break
                 } else if (i === this._montages[montage as number].channels.length - 1) {
@@ -199,7 +199,7 @@ class EdfSignal implements SignalResource {
             }
         }
         const signals = this._channels.map((chan) => chan.signal.splice(range[0], range[1]))
-        return this._montages[montage as number].getChannelSignal(signals, this._setup, channel as number)
+        return this._montages[montage as number].getChannelSignal(signals, channel as number)
     }
     getRawSignal(range: number[], channel: number | string) {
         if (typeof channel === 'string') {
