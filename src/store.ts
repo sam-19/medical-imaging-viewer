@@ -15,6 +15,15 @@ type State = {
     cacheStatus: { count: number, max: number, size: number },
     linkedScrollPosition: number,
     showEkgRuler: boolean,
+    // App settings
+    SETTINGS: {
+        screenDPI: number,
+        eeg: {
+            channelSpacing: number,
+            groupSpacing: number,
+            yPadding: number,
+        },
+    },
 }
 // Getters
 type Getters = {
@@ -56,6 +65,7 @@ enum MutationTypes {
     SET_APP_NAME = 'set-app-name',
     SET_CACHE_STATUS = 'set-cache-status',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
+    SET_SETTINGS_VALUE = 'set-settings-value',
 }
 type Mutations<S = State> = {
     [MutationTypes.EKG_SHOW_RULER] (state: S, payload: boolean): void,
@@ -63,6 +73,7 @@ type Mutations<S = State> = {
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
+    [MutationTypes.SET_SETTINGS_VALUE] (state: S, payload: { field: string, value: string | number }): void,
 }
 const mutations: MutationTree<State> & Mutations = {
     [MutationTypes.EKG_SHOW_RULER] (state, payload: boolean) {
@@ -87,6 +98,21 @@ const mutations: MutationTree<State> & Mutations = {
     },
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state, payload: { origin: string, position: number }) {
         state.linkedScrollPosition = payload.position
+    },
+    [MutationTypes.SET_SETTINGS_VALUE] (state, payload: { field: string, value: number|string }) {
+        // Traverse fields "path" to reach target
+        const fPath = payload.field.split('.')
+        let field = state.SETTINGS as any
+        let i = 0
+        for (const f of fPath) {
+            if (i === fPath.length - 1) {
+                // Final field
+                field[f as keyof typeof field] = payload.value
+            } else {
+                field = field[f as keyof typeof field]
+            }
+            i++
+        }
     },
 }
 // Actual type declaration of the store
@@ -123,6 +149,14 @@ class MEDigiStore {
             cacheStatus: { count: 0, max: 0, size: 0 },
             linkedScrollPosition: 0,
             showEkgRuler: false,
+            SETTINGS: {
+                screenDPI: 96,
+                eeg: {
+                    channelSpacing: 1,
+                    groupSpacing: 1,
+                    yPadding: 1,
+                },
+            },
         }
         const store: MDStore = new Store({
             state,

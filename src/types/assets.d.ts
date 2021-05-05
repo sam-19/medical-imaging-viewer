@@ -118,18 +118,11 @@ interface SignalResource {
     // Properties
     annotations: any[]
     channels: SignalChannel[]
-    montages: SignalMontage[]
     name: string
     resolution: number // Highest resolution in this resource
     sampleCount: number
-    setup: SignalSetup | null
     type: string
     url: string
-    // Methods
-    getAllMontageSignals(montage: number | string, range: number[]): number[][]
-    getAllRawSignals(range: number[]): number[][]
-    getMontageSignal(montage: number | string, range: number[], channel: number | string): number[]
-    getRawSignal(range: number[], channel: number | string): number[]
 }
 interface SignalChannel {
     label: string
@@ -188,6 +181,7 @@ interface SignalMontageChannel {
     name: string
     active: number
     reference: number[]
+    offset: number
 }
 /**
  * Signal montage describes how a particular signal should be presented.

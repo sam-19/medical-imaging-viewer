@@ -155,8 +155,40 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
                     label: chan.label,
                     name: chan.name,
                     active: channelMap[chan.active].idx,
-                    reference: refs
+                    reference: refs,
+                    offset: 0,
                 })
+            }
+        }
+        // Last, calculate signal offsets
+        this.calculateSignalOffsets(config)
+    }
+    calculateSignalOffsets (config: any) {
+        let nGroups = 0
+        let nItems = 0
+        for (const group of config.layout) {
+            nItems += group // Add the amount of items in this group
+            nGroups++ // Add one group
+        }
+        if (nItems !== this._channels.length) {
+            console.warn("The number of channels does not match config layout!")
+        }
+        let layoutH = 2*config.yPadding // Start with top and bottom padding
+        layoutH += (nItems - (nGroups - 1) + 1)*config.itemSpacing // Add item heights
+        layoutH += (nGroups - 1)*config.groupSpacing // Add group heights
+        // Go through the signals and add their respective offsets
+        let yPos = 1.0 - config.yPadding/layoutH// First trace is y-padding away from the top
+        let chanIdx = 0
+        ;(this._channels[chanIdx] as any).offset = yPos
+        for (let i=0; i<config.layout.length; i++) {
+            for (let j=0; j<config.layout[i]; j++) {
+                if (!j && i) { // Item is first in its group but not the very first item
+                    yPos -= (1/layoutH)*config.groupSpacing
+                } else if (chanIdx) { // Skip the very first item
+                    yPos -= (1/layoutH)*config.itemSpacing
+                }
+                (this._channels[chanIdx] as any).offset = yPos
+                chanIdx++
             }
         }
     }

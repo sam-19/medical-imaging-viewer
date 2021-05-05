@@ -15,7 +15,7 @@ class DicomWaveform implements SignalResource {
     protected _name: string
     protected _resolution: number = 0
     protected _type: string = 'unknown'
-    //protected _url: string
+    protected _url: string = ''
 
     constructor (name: string, data?: object) {
         // Generate a pseudo-random identifier for this object
@@ -59,14 +59,12 @@ class DicomWaveform implements SignalResource {
     set type (type: string) {
         this._type = type
     }
-    /*
     get url () {
         return this._url
     }
     set url (url: string) {
         this._url = url
     }
-    */
     // Methods
     extractSignalsFromDicomData (dataSet: any) {
         const rootEls = dataSet.elements
@@ -137,7 +135,7 @@ class DicomWaveform implements SignalResource {
             const chanData = {
                 label: chanItem.string('x003a0203') || altLabel || '??',
                 resolution: this._resolution,
-                signals: [] as number[],
+                signal: [] as number[],
                 sensitivity: parseFloat(chanItem.string('x003a0210')),
                 sensitivityCF: parseFloat(chanItem.string('x003a0212')), // Sensitivity correction factor
                 //waveformPadding: chanItem.string(wpTag),
@@ -157,7 +155,7 @@ class DicomWaveform implements SignalResource {
                     break
                 }
                 const offset = j*numChans + i
-                chanData.signals.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
+                chanData.signal.push(chanItem.byteArrayParser.readInt16(wfArray, offset*2))
             }
             this.channels.push(chanData)
         }

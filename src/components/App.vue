@@ -299,6 +299,9 @@ export default Vue.extend({
         //const dpi = el.offsetWidth
         //document.body.removeChild(el)
         //this.screenDPI = dpi
+        this.$store.commit('set-settings-value', { field: 'eeg.yPadding', value: 1.5 })
+        this.$store.commit('set-settings-value', { field: 'eeg.channelSpacing', value: 1 })
+        this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.5 })
     },
 })
 

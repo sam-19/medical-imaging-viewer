@@ -95,17 +95,6 @@ export default Vue.extend({
                     gridwidth: 1,
                     zerolinecolor: '#FFB6C1',
                     zerolinewidth: 1,
-                    overlaying: 'y2',
-                    fixedrange: true,
-                },
-                yaxis2: {
-                    autorange: false,
-                    tickmode: 'array',
-                    rangemode: 'tozero',
-                    gridcolor: '#FFEDF0',
-                    gridwidth: 1,
-                    matches: 'y',
-                    zeroline: false,
                     fixedrange: true,
                 },
             },
@@ -172,8 +161,7 @@ export default Vue.extend({
         },
         channelSignals (): any[] {
             const signals: any[] = []
-            const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
-            for (let i=0; i<max; i++) {
+            for (let i=0; i<this.resource.channels.length; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 const traceColor = '#303030'
                 // Wrap it into an object
@@ -193,7 +181,7 @@ export default Vue.extend({
                 x: this.xAxisRange,
                 y: [],
                 xaxis: 'x2',
-                yaxis: 'y2',
+                yaxis: 'y',
                 line: { color: 'rgba(0,0,0,0)', width: 0 },
                 hoverinfo: 'none',
             })
@@ -259,6 +247,12 @@ export default Vue.extend({
             }
             return values
         },
+        pxPerMicroVolt (): number {
+            return Math.floor(((this.$root.screenDPI/2.54)/this.uVPerCm))
+        },
+        pxPerMinorGridline (): number {
+            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
+        },
         xAxisRange (): number[] {
             return this.viewEnd > this.viewStart
                     ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
@@ -289,11 +283,11 @@ export default Vue.extend({
             const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const values = []
             for (let i=0; i<range; i++) {
-                // Only print empty labels
-                //if (!i || i%5) {
+                // Print empty labels at minor grid lines
+                if (!i || i%5) {
                     values.push('')
                     continue
-                //}
+                }
                 let point = this.viewStart/this.downscaledResolution + i/5
                 let hrs: number = Math.floor(point/60/60)
                 let mins: number = Math.floor((point - hrs*60*60)/60)
@@ -326,31 +320,16 @@ export default Vue.extend({
         },
         yAxisTicks (): number[] {
             const ticks = []
-            for (let i=0; i<=this.yAxisRange; i++) {
+            for (let i=0; i<=this.resource.channels.length; i++) {
                 ticks.push(i)
-            }
-            return ticks
-        },
-        yAxisTicks2 (): number[] {
-            const ticks = []
-            for (let i=1; i<=this.yAxisRange*5; i++) {
-                if (i%5) {
-                    ticks.push(i/5)
-                }
             }
             return ticks
         },
         yAxisValues (): string[] {
             const values = []
-            values.push(...Array(this.yPad).fill(''))
-            for (let i=0; i<this.yAxisRange - this.yPad; i++) {
-                if (i%this.traceSpacing) {
-                    values.push('')
-                } else {
-                    values.push(this.getChannelLabel(i/this.traceSpacing + this.firstTraceIndex))
-                }
+            for (let i=0; i<this.resource.channels.length - this.yPad; i++) {
+                values.push(this.getChannelLabel(i))
             }
-            values.push('') // Add one final empty label (for the axis line?)
             return values.reverse()
         },
     },
@@ -358,45 +337,9 @@ export default Vue.extend({
         calculateMontageSignals: function () {
         },
         getChannelLabel: function (index: number): string {
-            const labelParts = this.resource.channels[index].label.toLowerCase().split(/[_|\s]+/g)
-            const validLabels: any = {
-                i: 'I', ii: 'II', iii: 'III', avr: 'aVR', avl: 'aVL', avf: 'aVF',
-                v1: 'V1', v2: 'V2', v3: 'V3', v4: 'V4', v5: 'V5', v6: 'V6'
-            }
-            for (let i=0; i<labelParts.length; i++) {
-                if (labelParts[i] in validLabels) {
-                    // Return a standardized channel label
-                    return validLabels[labelParts[i]]
-                }
-            }
+            // TODO: Some kind of checking needed to make sure the right label is returned?
             // Fallback: just return the label
-            return this.resource.channels[index].label
-        },
-        /**
-         * Get datapoint value with all corrections applied.
-         * @param number channel index
-         * @param number datapoint index
-         */
-        getCorrectedSignalValue: function (channel: number, datapoint: number): number | undefined {
-            if (channel >= this.resource.channels.length
-                || datapoint >= this.resource.channels[channel].signals.length
-            ) {
-                return undefined
-            }
-            let sigVal = this.resource.channels[channel].signals[datapoint]
-            // Apply required corrections
-            if (this.resource.channels[channel].baseline) {
-                // According to my sources the baseline correction is really
-                // applied before the sensitivity corrections
-                sigVal += this.resource.channels[channel].baseline
-            }
-            if (this.resource.channels[channel].sensitivity) {
-                sigVal *= this.resource.channels[channel].sensitivity
-            }
-            if (this.resource.channels[channel].sensitivityCF) {
-                sigVal *= this.resource.channels[channel].sensitivityCF
-            }
-            return sigVal
+            return this.resource.channels[index].name
         },
         getViewEnd: function (clip=false): number  {
             // Calculate the chart's left and right margins
@@ -406,8 +349,7 @@ export default Vue.extend({
             } else {
                 viewWidth += screen.width
             }
-            const finalWidth = viewWidth > this.navigatorMaxWidth || clip ? viewWidth : this.navigatorMaxWidth
-            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
+            const newWidth = this.downscaledResolution*(viewWidth/(this.pxPerMinorGridline*5))
             return this.viewStart + newWidth
         },
         handleMouseDown: function (e: any) {
@@ -573,21 +515,15 @@ export default Vue.extend({
                 this.lastViewBounds = [this.viewStart, this.viewEnd]
             }
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
-            const y2TickVals = this.yAxisTicks2
             const traceWidth = (this.containerSize[0] as number) > this.navigatorMaxWidth + this.marginLeft
                                ? this.containerSize[0] : this.navigatorMaxWidth + this.marginLeft
             const chartLayout = {
                 width: traceWidth,
                 height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
-                    range: [0, this.yAxisRange],
+                    range: [0, this.resource.channels.length],
                     tickvals: this.yAxisTicks,
                     ticktext: this.yAxisValues,
-                }),
-                yaxis2: Object.assign({}, this.chartConfig.yaxis2, {
-                    range: [0, this.yAxisRange],
-                    tickvals: y2TickVals,
-                    ticktext: Array(y2TickVals.length).fill(''),
                 }),
             }
             Plotly.relayout(this.$refs['container'], chartLayout)
@@ -616,24 +552,6 @@ export default Vue.extend({
             })
         },
         refreshNavigator: function () {
-            const signalLen = this.navigatorSignal.x.length
-            const downSampleFactor = Math.ceil(this.resource.sampleCount/this.navigatorMaxSamples)
-            const signal = [] as (number|null)[]
-            for (let i=0; i<this.resource.channels.length; i++) {
-                const chanLabel: string = this.resource.channels[i].label
-                if (chanLabel.toLowerCase().indexOf('ii') === -1 && chanLabel.toLowerCase().indexOf('i') !== -1) {
-                    // Use the I-channel signal
-                    for (let j=0; j<signalLen; j++) {
-                        const corrVal = this.getCorrectedSignalValue(i, j*downSampleFactor)
-                        if (corrVal !== undefined) {
-                            signal.push(corrVal)
-                        } else {
-                            signal.push(null)
-                        }
-                    }
-                }
-            }
-            Plotly.restyle(this.$refs['navigator'], 'y', [signal])
             const availableWidth = document.fullscreenElement === null
                                    ? this.containerSize[0] : screen.width
             const naviWidth = (availableWidth as number) > this.navigatorMaxWidth + this.marginLeft + 20
@@ -645,8 +563,8 @@ export default Vue.extend({
                     ticktext: this.navigatorValues,
                 }),
                 yaxis: Object.assign({}, this.navigatorConfig.yaxis, {
-                    tickvals: [0],
-                    ticktext: ['I'],
+                    tickvals: [],
+                    ticktext: [],
                 }),
             }
             Plotly.relayout(this.$refs['navigator'], naviLayout)
