@@ -5,17 +5,19 @@
  * @license    MIT
  */
 import { SignalResource, SignalChannel, SignalMontage, SignalSetup } from '../../types/assets'
+import EdfSignalMontage from './EdfSignalMontage'
 
 class EdfSignal implements SignalResource {
     protected _active: boolean = false
     protected _annotations: any[] = []
     protected _channels: SignalChannel[] = []
     protected _montages: SignalMontage[] = []
+    protected _activeMontage: SignalMontage | null = null
     protected _samples: number = 0
     protected _setup: SignalSetup | null = null
     protected _id: string
     protected _name: string
-    protected _resolution: number = 0
+    protected _resolution: number = 0 // Maximum resolution in this recording
     protected _type: string = 'unknown'
     protected _url: string = ''
 
@@ -26,14 +28,22 @@ class EdfSignal implements SignalResource {
         if (data) {
             this.extractSignalsFromEdfData(data, loader || undefined)
             console.log("data", data)
+            // Create an 'as recorded' montage
+
         }
     }
     // Getters and setters
+    get activeMontage () {
+        return this._activeMontage
+    }
     get annotations () {
         return this._annotations
     }
     get channels () {
         return this._channels
+    }
+    get duration () {
+        return this._samples/this.resolution
     }
     get id () {
         return this._id
@@ -81,6 +91,20 @@ class EdfSignal implements SignalResource {
         this._url = url
     }
     // Methods
+    addMontage (label: string, name: string, config?: any) {
+        if (this._setup) {
+            const montage = new EdfSignalMontage(label, name)
+            if (config) {
+                // Use config to add a montage
+                montage.mapChannels(this._setup, config)
+            } else if (!this._activeMontage) {
+                // Add first montage as an 'as recorded' montage
+                montage.mapChannels(this._setup, null)
+                this._activeMontage = montage
+            }
+            this._montages.push(montage)
+        }
+    }
     extractSignalsFromEdfData (data: any, loader?: string) {
         // Select method based on file loader
         // For automatic determination of study modality
@@ -97,6 +121,7 @@ class EdfSignal implements SignalResource {
                                     : unitLow === 'mv' ? 1000 : unitLow === 'v' ?  1 : 0
                 const chanData = {
                     label: data.getSignalLabel(i) || '',
+                    name: data.getSignalLabel(i) || '',
                     resolution: data.getSignalSamplingFrequency(i) || 0,
                     sensitivity: sensitivity,
                     signal: [...data.getPhysicalSignalConcatRecords(i, 0, totalRecords)],
@@ -120,6 +145,13 @@ class EdfSignal implements SignalResource {
                     polySignalCount++
                 }
                 this._channels[i] = chanData
+                // Keep track of maximum resolution and sample count
+                if (chanData.resolution > this._resolution) {
+                    this._resolution = chanData.resolution
+                }
+                if (chanData.sampleCount > this._samples) {
+                    this._samples = chanData.sampleCount
+                }
             }
             // No reason to keep the original data
             data = null
@@ -131,26 +163,18 @@ class EdfSignal implements SignalResource {
                 this._type = 'eeg'
             }
         }
+        this.addMontage('as_recorded', 'As recorded')
     }
-    getAllMontageSignals (montage: number | string, range: number[]) {
-        if (this._setup === null || !this._montages.length) {
-            return [] as number[][]
-        }
-        if (typeof montage === 'string') {
-            // Match montage label to montage index
-            for (let i=0; i<this._montages.length; i++) {
-                if (this._montages[i].label === montage) {
-                    montage = i
-                    break
-                } else if (i === this._montages.length - 1) {
-                    // No match found
-                    return [] as number[][]
-                }
-            }
+    getAllMontageSignals (range: number[]) {
+        if (this._setup === null || !this._activeMontage) {
+            return this.getAllRawSignals(range)
         }
         // Calculate signals only for the part that we need
-        const signals = this._channels.map((chan) => chan.signal.splice(range[0], range[1]))
-        return this._montages[montage as number].getAllSignals(signals)
+        const signals = this._channels.map((chan) => chan.signal.slice(
+                            Math.floor(chan.resolution*range[0]),
+                            Math.ceil(chan.resolution*range[1]) + 1
+                        ))
+        return this._activeMontage.getAllSignals(signals)
     }
     getAllRawSignals(range: number[]) {
         const signals = [] as number[][]
@@ -160,46 +184,43 @@ class EdfSignal implements SignalResource {
         if (this._setup === null) {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
-                signals.push(chan.signal.slice(range[0], range[1]))
+                signals.push(chan.signal.slice(
+                    Math.floor(chan.resolution*range[0]),
+                    Math.ceil(chan.resolution*range[1]) + 1
+                ))
             }
         } else {
             // Match setup channels to raw signal data channels
             for (const chan of this._setup.channels) {
-                signals.push(this._channels[chan.index as number].signal.slice(range[0], range[1]))
+                const res = this._channels[chan.index as number].resolution
+                signals.push(this._channels[chan.index as number].signal.slice(
+                    Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
+                ))
             }
         }
         return signals
     }
-    getMontageSignal(montage: number | string, range: number[], channel: number | string) {
-        if (this._setup === null || !this._montages.length) {
-            return [] as number[]
-        }
-        if (typeof montage === 'string') {
-            // Match montage label to montage index
-            for (let i=0; i<this._montages.length; i++) {
-                if (this._montages[i].label === montage) {
-                    montage = i
-                    break
-                } else if (i === this._montages.length - 1) {
-                    // No match found
-                    return [] as number[]
-                }
-            }
+    getMontageSignal(range: number[], channel: number | string) {
+        if (this._setup === null || !this._activeMontage) {
+            return this.getRawSignal(range, channel)
         }
         if (typeof channel === 'string') {
             // Match channel label to channel index
-            for (let i=0; i<this._montages[montage as number].channels.length; i++) {
-                if (this._montages[montage as number].channels[i]?.label === channel) {
+            for (let i=0; i<this._activeMontage.channels.length; i++) {
+                if (this._activeMontage.channels[i]?.label === channel) {
                     channel = i
                     break
-                } else if (i === this._montages[montage as number].channels.length - 1) {
+                } else if (i === this._activeMontage.channels.length - 1) {
                     // No match found
                     return [] as number[]
                 }
             }
         }
-        const signals = this._channels.map((chan) => chan.signal.splice(range[0], range[1]))
-        return this._montages[montage as number].getChannelSignal(signals, channel as number)
+        const signals = this._channels.map((chan) => chan.signal.splice(
+                            Math.floor(chan.resolution*range[0]),
+                            Math.ceil(chan.resolution*range[1]) + 1
+                        ))
+        return this._activeMontage.getChannelSignal(signals, channel as number)
     }
     getRawSignal(range: number[], channel: number | string) {
         if (typeof channel === 'string') {
@@ -218,12 +239,33 @@ class EdfSignal implements SignalResource {
             return [] as number[]
         }
         if (this._setup === null) {
+            const res = this._channels[channel as number].resolution
             // If there is no setup loaded, just return the actual signal data
-            return this._channels[channel as number].signal.slice(range[0], range[1])
+            return this._channels[channel as number].signal.slice(
+                            Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
+                        )
         } else {
             // Match setup channels to raw signal data channels
+            const res = this._channels[this._setup.channels[channel as number].index as number].resolution
             return this._channels[this._setup.channels[channel as number].index as number]
-                        .signal.slice(range[0], range[1])
+                        .signal.slice(Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1)
+        }
+    }
+    setActiveMontage (montage: number | string, ) {
+        if (typeof montage === 'string') {
+            // Match montage label to montage index
+            for (let i=0; i<this._montages.length; i++) {
+                if (this._montages[i].label === montage) {
+                    montage = i
+                    break
+                } else if (i === this._montages.length - 1) {
+                    // No match found
+                    return
+                }
+            }
+        }
+        if (montage > 0 && montage < this._montages.length) {
+            this._activeMontage = this._montages[montage as number]
         }
     }
 }

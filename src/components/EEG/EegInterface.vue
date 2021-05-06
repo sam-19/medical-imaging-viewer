@@ -8,8 +8,6 @@
         <div class="medigi-viewer-toolbar">
             <eeg-toolbar
                 :activeItems="activeItems"
-                :displayedTraceCount="displayedTraceCount"
-                :firstTraceIndex.sync="firstTraceIndex"
             />
         </div>
         <div class="medigi-viewer-sidebar">
@@ -62,8 +60,8 @@ export default Vue.extend({
             cmPerSec: 3,
             gridLayout: [0, 0],
             mediaContainerSize: [0, 0],
-            traceMarginBottom: 20,
-            traceMarginLeft: 50,
+            traceMarginBottom: 30,
+            traceMarginLeft: 80,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             uVperCm: 100,
             // React to some property changes
@@ -172,6 +170,7 @@ export default Vue.extend({
         },
     },
     mounted () {
+        console.log('interface', this.resources)
         // Check for invalid config values (these should really come from outside the component in the future!)
         if (this.uVperCm <= 0 || this.cmPerSec <= 0) {
             console.error(`Vertical and horizontal scales must be greater than zero!`)
@@ -188,7 +187,7 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-dicom-waveform-interface {
+.medigi-viewer-eeg-interface {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -203,22 +202,22 @@ export default Vue.extend({
     overflow: auto;
     transition: left 0.5s;
 }
-    .medigi-viewer-dicom-waveform-interface.medigi-viewer-sidebar-closed {
+    .medigi-viewer-eeg-interface.medigi-viewer-sidebar-closed {
         left: -240px;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-sidebar {
+    .medigi-viewer-eeg-interface > .medigi-viewer-sidebar {
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;
         grid-row-end: bottom-edge;
         overflow: auto;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-toolbar {
+    .medigi-viewer-eeg-interface > .medigi-viewer-toolbar {
         grid-column-start: divider;
         grid-row-start: top-edge;
         grid-row-end: divider;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-media {
+    .medigi-viewer-eeg-interface > .medigi-viewer-media {
         position: relative;
         grid-column-start: divider;
         grid-row-start: divider;

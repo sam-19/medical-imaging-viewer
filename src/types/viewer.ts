@@ -18,23 +18,25 @@ type BiosignalModality = 'ECG' | 'EEG' | 'EOG' | 'UNKNOWN'
 type AnyModality = BiosignalModality | ImageModality
 
 interface PatientVisit {
-    conclusion: string,
-    context: string,
-    date: number,
-    examination: string,
-    history: string,
+    conclusion: string
+    context: string
+    date: number
+    examination: string
+    history: string
     studies: {
-        ekg: SignalResource[],
-        radiology: (ImageResource|ImageStackResource)[],
-    },
+        eeg: SignalResource[]
+        ekg: SignalResource[]
+        radiology: (ImageResource|ImageStackResource)[]
+    }
+    title: string
 }
 
 interface ToolbarButton {
     id: string
-    active: boolean,
+    active: boolean
     enabled: boolean
     setFirst?: boolean  // Does this button start a new set?
-    groups?: string[],  // Tool groups this button belongs to
+    groups?: string[]  // Tool groups this button belongs to
     icon: string[] | string[][]
     overlay?: string
     tooltip: string

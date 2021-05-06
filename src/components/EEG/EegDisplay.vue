@@ -39,12 +39,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { mapState } from 'vuex'
 import { SignalResource } from '../../types/assets'
 // @ts-ignore: TSLint doesn't find the type definitions for Plotly.js, for some reason
 import * as  Plotly from 'plotly'
 
 let INSTANCE_NUM = 0
-
 export default Vue.extend({
     props: {
         cmPerSec: Number,
@@ -53,7 +53,7 @@ export default Vue.extend({
         marginLeft: Number,
         resource: Object, // SignalResource
         yPad: Number,
-        uVPerCm: Number,
+        uVperCm: Number,
     },
     data () {
         return {
@@ -69,18 +69,22 @@ export default Vue.extend({
                     ticklen: 5, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
-                    gridcolor: '#FFB6C1',
-                    gridwidth: 1,
-                    zerolinecolor: '#FFB6C1',
-                    zerolinewidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.eeg.majorGrid.show
+                               ? this.$store.state.SETTINGS.eeg.majorGrid.color : 'rgba(0,0,0,0)',
+                    gridwidth: this.$store.state.SETTINGS.eeg.majorGrid.show
+                               ? this.$store.state.SETTINGS.eeg.majorGridLineWidth : 0,
+                    zerolinecolor: this.$store.state.SETTINGS.eeg.leftBorder.color || 'rgba(0,0,0,0)',
+                    zerolinewidth: this.$store.state.SETTINGS.eeg.leftBorder.width || 0,
                     overlaying: 'x2',
                     fixedrange: true,
                 },
                 xaxis2: {
                     tickmode: 'array',
                     rangemode: 'tozero',
-                    gridcolor: '#FFEDF0',
-                    gridwidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.eeg.minorGrid.show
+                               ? this.$store.state.SETTINGS.eeg.minorGrid.color : 'rgba(0,0,0,0)',
+                    gridwidth: this.$store.state.SETTINGS.eeg.minorGrid.show
+                               ? this.$store.state.SETTINGS.eeg.minorGrid.width : 0,
                     matches: 'x',
                     zeroline: false,
                     fixedrange: true,
@@ -91,10 +95,12 @@ export default Vue.extend({
                     ticklen: 10, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
-                    gridcolor: '#FFB6C1',
-                    gridwidth: 1,
-                    zerolinecolor: '#FFB6C1',
-                    zerolinewidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.eeg.isoelLine.show
+                               ? this.$store.state.SETTINGS.eeg.isoelLine.color : 'rgba(0,0,0,0)',
+                    gridwidth: this.$store.state.SETTINGS.eeg.isoelLine.show
+                               ? this.$store.state.SETTINGS.eeg.isoelLine.width : 0,
+                    zerolinecolor: this.$store.state.SETTINGS.eeg.bottomBorder.color || 'rgba(0,0,0,0)',
+                    zerolinewidth: this.$store.state.SETTINGS.eeg.bottomBorder.width || 0,
                     fixedrange: true,
                 },
             },
@@ -140,6 +146,13 @@ export default Vue.extend({
             downSampleFactor: 1,
             navigatorMaxSamples: 1000,
             navigatorMaxWidth: 0,
+            // Montages
+            montages: [],
+            activeMontage: 0,
+            // Filters
+            hpFilter: 0,
+            lpFilter: 0,
+            notchFilter: 0,
             // Keep track of some event data for chart interaction
             //lastHoverPoint: { x: -1, y: -1 },
             traceLeftPos: 0,
@@ -163,33 +176,62 @@ export default Vue.extend({
             const signals: any[] = []
             for (let i=0; i<this.resource.channels.length; i++) {
                 const chanLabel: string = this.resource.channels[i].label
-                const traceColor = '#303030'
+                const traceColor = this.resource.channels[i].type === 'ekg'
+                    ? this.$store.state.SETTINGS.eeg.traceColor.ekg
+                    : this.resource.channels[i].type === 'eog'
+                    ? this.$store.state.SETTINGS.eeg.traceColor.eog
+                    : this.$store.state.SETTINGS.eeg.traceColor.eeg // Default to EEG
+                const traceWidth = this.resource.channels[i].type === 'ekg'
+                    ? this.$store.state.SETTINGS.eeg.traceWidth.ekg
+                    : this.resource.channels[i].type === 'eog'
+                    ? this.$store.state.SETTINGS.eeg.traceWidth.eog
+                    : this.$store.state.SETTINGS.eeg.traceWidth.eeg
                 // Wrap it into an object
                 signals[i] = {
-                    name: this.$t(chanLabel),
+                    name: chanLabel,
                     type: 'scattergl',
                     mode: 'lines',
+                    connectgaps: true,
                     x: this.xAxisRange,
                     y: [],
-                    line: { color: traceColor, width: 1 },
+                    line: {
+                        color: traceColor,
+                        width: traceWidth
+                    },
                     hoverinfo: 'none',
                 }
             }
-            // Add something to x2, y2 to show the gridlines
-            signals.push({
-                name: '',
-                x: this.xAxisRange,
-                y: [],
-                xaxis: 'x2',
-                yaxis: 'y',
-                line: { color: 'rgba(0,0,0,0)', width: 0 },
-                hoverinfo: 'none',
-            })
+            if (this.$store.state.SETTINGS.eeg.minorGrid.show) {
+                // Add something to x2 to show minor gridlines
+                signals.push({
+                    name: '',
+                    x: this.xAxisRange,
+                    y: [],
+                    xaxis: 'x2',
+                    line: { color: 'rgba(0,0,0,0)', width: 0 },
+                    hoverinfo: 'none',
+                })
+            }
             return signals
+        },
+        filterRange (): { filter: number[], signal: number[] } {
+            // Check for possible padding needed for signal filtering
+            const ranges = {
+                filter: [this.viewStart, this.viewEnd],
+                signal: [this.viewStart, this.viewEnd],
+            }
+            if (this.lpFilter || this.hpFilter || this.notchFilter) {
+                // Start cannot be below zero and end cannot exceed record length
+                ranges.filter[0] = ranges.signal[0] > this.$store.state.SETTINGS.eeg.filterPad
+                                   ? ranges.signal[0] - this.$store.state.SETTINGS.eeg.filterPad : 0
+                ranges.filter[1] = ranges.signal[1] + this.$store.state.SETTINGS.eeg.filterPad < this.resource.duration
+                                 ? ranges.signal[1] + this.$store.state.SETTINGS.eeg.filterPad : this.resource.duration
+            }
+            return ranges
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
-            return this.$root.screenDPI/17.7
+            return this.$store.state.SETTINGS.screenDPI/17.7
         },
         navigatorSignal (): any {
             const navigatorColor = '#303030'
@@ -248,47 +290,49 @@ export default Vue.extend({
             return values
         },
         pxPerMicroVolt (): number {
-            return Math.floor(((this.$root.screenDPI/2.54)/this.uVPerCm))
+            return (this.$store.state.SETTINGS.screenDPI/2.54)/this.uVperCm
         },
         pxPerMinorGridline (): number {
-            return Math.floor(((this.$root.screenDPI/2.54)*this.cmPerSec)/5)
+            return Math.floor(((this.$store.state.SETTINGS.screenDPI/2.54)*this.cmPerSec)/5)
         },
+        /**
+         * The range that can accommodate the signal with the highest sampling rate accross the view range.
+         */
         xAxisRange (): number[] {
             return this.viewEnd > this.viewStart
-                    ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
+                    ? [...Array(Math.floor((this.viewEnd-this.viewStart)*this.resource.resolution)).keys()]
                     : []
         },
         xAxisTicks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
+            const range = this.viewEnd - this.viewStart
             const ticks = []
             for (let i=0; i<range; i++) {
-                ticks.push(i*this.downscaledResolution/5)
+                ticks.push((i - this.viewStart%1)*this.downscaledResolution)
             }
             return ticks
         },
         xAxis2Ticks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
+            const range = this.viewEnd - this.viewStart
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(
-                    (i + 1/5)*this.downscaledResolution/5,
-                    (i + 2/5)*this.downscaledResolution/5,
-                    (i + 3/5)*this.downscaledResolution/5,
-                    (i + 4/5)*this.downscaledResolution/5,
+                    (i + 1/5 - this.viewStart%1)*this.downscaledResolution,
+                    (i + 2/5 - this.viewStart%1)*this.downscaledResolution,
+                    (i + 3/5 - this.viewStart%1)*this.downscaledResolution,
+                    (i + 4/5 - this.viewStart%1)*this.downscaledResolution,
                 )
             }
             return ticks
         },
         xAxisValues (): string[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
             const values = []
-            for (let i=0; i<range; i++) {
+            for (let i=0; i<this.xAxisTicks.length; i++) {
                 // Print empty labels at minor grid lines
-                if (!i || i%5) {
+                if (!i) {
                     values.push('')
                     continue
                 }
-                let point = this.viewStart/this.downscaledResolution + i/5
+                let point = Math.floor(this.viewStart) + i
                 let hrs: number = Math.floor(point/60/60)
                 let mins: number = Math.floor((point - hrs*60*60)/60)
                 let secs: number = point - hrs*60*60 - mins*60
@@ -318,19 +362,30 @@ export default Vue.extend({
             }
             return values
         },
+        yAxisRange (): number {
+            return (this.containerSize[1] as number) - this.marginBottom
+        },
         yAxisTicks (): number[] {
             const ticks = []
-            for (let i=0; i<=this.resource.channels.length; i++) {
-                ticks.push(i)
+            if (!this.resource.setup) {
+                // No setup, so all channels are spaced evenly
+                for (let i=0; i<this.resource.channels.length; i++) {
+                    ticks.push(1.0 - ((i + 1)/(this.resource.channels.length + 1)))
+                }
+            } else {
+                // Get trace spacing from montage
+                for (let i=0; i<this.resource.activeMontage.channels.length; i++) {
+                    ticks.push(this.resource.activeMontage.channels[i].offset)
+                }
             }
             return ticks
         },
         yAxisValues (): string[] {
             const values = []
-            for (let i=0; i<this.resource.channels.length - this.yPad; i++) {
-                values.push(this.getChannelLabel(i))
+            for (const chan of this.resource.setup ? this.resource.activeMontage.channels : this.resource.channels) {
+                values.push(chan.name)
             }
-            return values.reverse()
+            return values
         },
     },
     methods: {
@@ -349,8 +404,34 @@ export default Vue.extend({
             } else {
                 viewWidth += screen.width
             }
-            const newWidth = this.downscaledResolution*(viewWidth/(this.pxPerMinorGridline*5))
+            const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
             return this.viewStart + newWidth
+        },
+        handleKeypress: function (event: KeyboardEvent) {
+            let stepLength = 10 // Ten seconds per step
+            if (event.key === 'PageUp') {
+                // Browse left
+                if (this.viewStart) {
+                    // Do not backtrack beyound the start of the recording
+                    if (this.viewStart - stepLength < 0) {
+                        stepLength = this.viewStart
+                    }
+                    this.viewStart -= stepLength
+                    this.viewEnd -= stepLength
+                }
+                event.preventDefault()
+                this.refreshTraces()
+            } else if (event.key === 'PageDown') {
+                // Browse right
+                // Do not exceed the end of the recording
+                if (this.viewEnd >= this.resource.duration) {
+                    return
+                }
+                this.viewStart += stepLength
+                this.viewEnd += stepLength
+                event.preventDefault()
+                this.refreshTraces()
+            }
         },
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
@@ -391,6 +472,7 @@ export default Vue.extend({
          * Handle mouse move events fired by the drag cover element.
          */
         handleMouseMove: function (e: any) {
+            /*
             if (this.mouseDownPoint.x < 0 || this.mouseDownPoint.y < 0) {
                 return
             }
@@ -455,6 +537,7 @@ export default Vue.extend({
                     //}
                 }
             }
+            */
         },
         /**
          * Handle the mouse leaving trace area.
@@ -466,6 +549,7 @@ export default Vue.extend({
             this.mouseDownPoint = { x: -1, y: -1 }
         },
         handleMouseUp: function (e: any) {
+            /*
             // Check if we have a drag selection
             if (this.mouseDragIndicator) {
                 if (this.mouseDownPoint.x >= 0) {
@@ -498,6 +582,7 @@ export default Vue.extend({
                     }
                 }
             }
+            */
             this.mouseDownPoint = { x: -1, y: -1 }
         },
         hideAnnotationMenu: function () {
@@ -515,13 +600,11 @@ export default Vue.extend({
                 this.lastViewBounds = [this.viewStart, this.viewEnd]
             }
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
-            const traceWidth = (this.containerSize[0] as number) > this.navigatorMaxWidth + this.marginLeft
-                               ? this.containerSize[0] : this.navigatorMaxWidth + this.marginLeft
             const chartLayout = {
-                width: traceWidth,
-                height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
+                width: this.containerSize[0],
+                height: this.containerSize[1],
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
-                    range: [0, this.resource.channels.length],
+                    range: [0, 1],
                     tickvals: this.yAxisTicks,
                     ticktext: this.yAxisValues,
                 }),
@@ -591,21 +674,49 @@ export default Vue.extend({
         refreshTraces: function () {
             // Y-axis values for each channel
             const yValues = []
-            const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
-            const ampScale = 2*this.cmPermV/1000 // 2 squares per 1000 uV
-            for (let i=0; i<max; i++) {
-                const offset = (max - i - 1)*this.traceSpacing + this.yPad
-                yValues.push([] as (number|null)[])
-                for (let j=0; j<this.xAxisRange.length*this.downSampleFactor; j++) {
-                    if (j%this.downSampleFactor) {
+            const ampScale = this.pxPerMicroVolt/this.yAxisRange // Relative height of one microvolt
+            const range = this.filterRange
+            const channels = this.resource.getAllMontageSignals(range.filter)
+            for (let i=0; i<channels.length; i++) {
+                const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.resolution*this.downSampleFactor)
+                const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.resolution*this.downSampleFactor)
+                let offset, resFactor
+                if (!this.resource.setup) {
+                    // If no setup is loaded, display the raw signals
+                    offset = 1.0 - ((i + 1)/(channels.length + 1))
+                    resFactor = this.resource.resolution/this.resource.channels[i].resolution
+                } else {
+                    // Display montage signals
+                    offset = this.resource.activeMontage.channels[i].offset
+                    resFactor = this.resource.resolution/this.resource.activeMontage.channels[i].resolution
+                }
+                yValues[i] = [] as (number|null)[]
+                // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
+                if (start%resFactor) {
+                    const startFloor = channels[i].splice(0, 1)
+                    const startCeil = channels[i][0]
+                    const startFactor = (start%resFactor)/resFactor
+                    const startValue = startFloor + (startCeil - startFloor)*(startFactor)
+                    yValues[i][0] = startValue
+                }
+                for (let j=start; j<end; j++) {
+                    if (j%this.downSampleFactor || !j && yValues[i].length) {
                         continue
                     }
-                    const corrVal = this.getCorrectedSignalValue(i+this.firstTraceIndex, j)
-                    if (corrVal !== undefined) {
-                        yValues[i].push(corrVal*ampScale + offset)
+                    if (j%resFactor) {
+                        yValues[i][j] = null
                     } else {
-                        yValues[i].push(null)
+                        const idx = Math.floor(j/resFactor)
+                        yValues[i][j] = ((channels[i][idx] || 0)*ampScale + offset)
                     }
+                }
+                // Last, check if there is an additional datapoint left over and intrapolate view end from it
+                if (channels[i][Math.ceil(end/resFactor)] !== undefined && yValues[i][yValues[i].length - 1] === null) {
+                    const endFloor = Math.floor(end/resFactor)
+                    const endCeil = Math.ceil(end/resFactor)
+                    const endFactor = (end%resFactor)/resFactor
+                    const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
+                    yValues[i][yValues[i].length - 1] = endValue*ampScale + offset
                 }
             }
             // Update chart signal data
@@ -628,11 +739,13 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
         updateViewStart: function () {
-            const xPxRatio = this.resource.resolution/(this.pxPerHorizontalSquare*5)
+            const xPxRatio = this.resource.resolution/(this.pxPerMinorGridline*5)
             this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
         },
     },
     mounted () {
+        // Calculate max width for the navigator as a reference
+        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerMinorGridline*5
         // Calculate view bounds
         this.viewEnd = this.getViewEnd()
         this.redrawPlot()
@@ -640,11 +753,15 @@ export default Vue.extend({
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', this.handleMouseUp)
         ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
+        window.addEventListener('keydown', this.handleKeypress, false)
         // Load navigator
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
-    }
+    },
+    beforeDestroy () {
+        window.removeEventListener('keydown', this.handleKeypress, false)
+    },
 })
 </script>
 

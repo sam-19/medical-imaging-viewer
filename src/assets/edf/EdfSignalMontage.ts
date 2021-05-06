@@ -11,14 +11,11 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
     protected _name: string = 'Unknown'
     protected _channels: (SignalMontageChannel | null)[] = []
 
-    constructor (label: string, name?: string, channels?: SignalMontageChannel[]) {
+    constructor (label: string, name?: string) {
         // Generate a pseudo-random identifier for this object
         this._label = label
         if (name !== undefined) {
             this._name = name
-        }
-        if (channels) {
-            this._channels = channels
         }
     }
     // Getters and setters
@@ -54,22 +51,26 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
                 derivedSignals.push([])
                 continue
             }
+            // Convert range from seconds to current channe datapoint indices
+            let chanRange = (range && range.length === 2)
+                            ? [range[0]*chan.resolution, (range[1] || 0)*chan.resolution]
+                            : null
             if (!chan.reference.length) {
                 derivedSignals.push(
-                    range === undefined ? signals[chan.active]
-                    : signals[chan.active].slice(range[0], range[1])
+                    chanRange === null ? signals[chan.active]
+                    : signals[chan.active].slice(chanRange[0], chanRange[1])
                 )
                 continue
             }
             // Check that given range is valid
-            if (range === undefined || range.length !== 2) {
-                range = [0, signals[chan.active].length]
+            if (chanRange === null) {
+                chanRange = [0, signals[chan.active].length]
             } else {
-                if (range[0] < 0 || range[0] > signals[chan.active].length) {
-                    range[0] = 0
+                if (chanRange[0] < 0 || chanRange[0] > signals[chan.active].length) {
+                    chanRange[0] = 0
                 }
-                if (range[1] < 0 || range[1] > signals[chan.active].length || range[1] < range[0]) {
-                    range[1] = signals[chan.active].length
+                if (chanRange[1] < 0 || chanRange[1] > signals[chan.active].length || chanRange[1] < chanRange[0]) {
+                    chanRange[1] = signals[chan.active].length
                 }
             }
             // Need to calculate signal relative to reference(s), one datapoint at a time.
@@ -82,7 +83,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
             }
             const derivSig = []
             let refAvg = 0
-            for (let i=range[0]; i<range[1]; i++) {
+            for (let i=chanRange[0]; i<chanRange[1]; i++) {
                 if (avgMap[i] !== undefined) {
                     refAvg = avgMap[i]
                 } else {
@@ -119,6 +120,21 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
     mapChannels (setup: SignalSetup, config: any) {
         const channelMap: any = {}
         this._channels = []
+        // If config is null, construct an 'as recorded' montage
+        if (!config) {
+            for (const chan of setup.channels) {
+                this._channels.push({
+                    label: chan.label,
+                    name: chan.name,
+                    active: chan.index || 0,
+                    resolution: chan.samplingRate || 0,
+                    reference: [],
+                    offset: 0,
+                })
+            }
+            this.calculateSignalOffsets(config)
+            return
+        }
         // First map labels to correct channel indices
         label_loop:
         for (const cLabel of config.channelLabels) {
@@ -156,6 +172,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
                     name: chan.name,
                     active: channelMap[chan.active].idx,
                     reference: refs,
+                    resolution: channelMap[chan.active].sr,
                     offset: 0,
                 })
             }
@@ -164,6 +181,15 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
         this.calculateSignalOffsets(config)
     }
     calculateSignalOffsets (config: any) {
+        // Check if this is an 'as recorded' montage
+        if (!config) {
+            const layoutH = this._channels.length + 1
+            for (let i=0; i<this._channels.length; i++) {
+                (this._channels[i] as any).offset = 1.0 - ((i + 1)/layoutH)
+            }
+            return
+        }
+        // Calculate channel offsets from the provided config
         let nGroups = 0
         let nItems = 0
         for (const group of config.layout) {
@@ -174,7 +200,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
             console.warn("The number of channels does not match config layout!")
         }
         let layoutH = 2*config.yPadding // Start with top and bottom padding
-        layoutH += (nItems - (nGroups - 1) + 1)*config.itemSpacing // Add item heights
+        layoutH += (nItems - (nGroups - 1) - 1)*config.itemSpacing // Add item heights
         layoutH += (nGroups - 1)*config.groupSpacing // Add group heights
         // Go through the signals and add their respective offsets
         let yPos = 1.0 - config.yPadding/layoutH// First trace is y-padding away from the top

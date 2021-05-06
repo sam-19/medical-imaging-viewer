@@ -7,12 +7,15 @@
 import { SignalSetup, SignalSetupChannel } from '../../types/assets'
 
 class EdfSignalSetup implements SignalSetup {
-    protected _name: string = ''
+    protected _id: string
+    protected _name: string
     protected _channels: SignalSetupChannel[] = []
     protected _missing: SignalSetupChannel[] = []
     protected _unmatched: SignalSetupChannel[] = []
 
-    constructor (channels?: any[], config?: any) {
+    constructor (id: string, channels?: any[], config?: any) {
+        this._id = id
+        this._name = id
         if (channels && config) {
             this.loadConfig(channels, config)
         }

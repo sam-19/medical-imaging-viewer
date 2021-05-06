@@ -5,7 +5,7 @@
             'medigi-viewer-interface-dropdown',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
-            <span v-if="activeVisit" class="medigi-viewer-oneliner">{{ activeVisit.title }}</span>
+            <span v-if="activeVisit" class="medigi-viewer-oneliner">{{ getVisitTitle() }}</span>
             <span v-else>{{ $t('No visit selected') }}</span>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
@@ -15,10 +15,16 @@
             <ul>
                 <li v-for="(visit, idx) in visits" :key="`${$store.state.appName}-visit-option-${idx}`">
                     <div class="medigi-viewer-visit-title medigi-viewer-oneliner">
-                        {{ visit.title }}
+                        {{ getVisitTitle(idx) }}
                         <div v-if="visit.date" class="medigi-viewer-visit-date medigi-viewer-oneliner">
                             {{ getLocalDatetime(visit.date) }}
                         </div>
+                    </div>
+                    <div v-if="visit.studies.eeg.length"
+                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
+                        @click="selectActiveResource(visit, 'eeg')"
+                    >
+                        {{ visit.studies.eeg.length + $t(' EEG studies') }}
                     </div>
                     <div v-if="visit.studies.ekg.length"
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
@@ -48,6 +54,12 @@
             :resources="activeVisit ? activeVisit.studies.ekg : []"
             :sidebarOpen="sidebarOpen"
         />
+        <eeg-interface v-else-if="scope==='eeg'"
+            ref="eeg-interface"
+            :loadingStudies="loadingStudies"
+            :resources="activeVisit ? activeVisit.studies.eeg : []"
+            :sidebarOpen="sidebarOpen"
+        />
     </div>
 
 </template>
@@ -63,11 +75,13 @@ import DicomImageStack from '../assets/dicom/DicomImageStack'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
+import EdfSignal from '../assets/edf/EdfSignal'
 
 export default Vue.extend({
     components: {
         DicomImageInterface: () => import('./Radiology/Dicom/DicomImageInterface.vue'),
         DicomWaveformInterface: () => import('./EKG/Dicom/DicomWaveformInterface.vue'),
+        EegInterface: () => import('./EEG/EegInterface.vue'),
     },
     data () {
         return {
@@ -78,8 +92,6 @@ export default Vue.extend({
             selectedVisit: null as PatientVisit|null,
             // Theme change trigger
             themeChange: 0,
-            // Screen DPI
-            screenDPI: 144,
         }
     },
     computed: {
@@ -98,6 +110,19 @@ export default Vue.extend({
             const hr = datetimeStr.substring(8, 10)
             const min = datetimeStr.substring(10)
             return `${d.replace(/^0/, '')}.${m.replace(/^0/, '')}.${y} ${hr}:${min}`
+        },
+        getVisitTitle: function (idx?: number): string {
+            // Return the actual visit title, or a numbered generic title if no actual title is set
+            let visit
+            if (idx === undefined && this.activeVisit) {
+                idx = this.visits.indexOf(this.activeVisit)
+            } else if (idx === undefined || idx >= this.visits.length) {
+                return ''
+            }
+            if (!this.visits[idx].title || this.visits[idx].title === '/') {
+                return `Visit #${(idx as number) + 1}`
+            }
+            return this.visits[idx].title
         },
         handleFileDrag: function (event: DragEvent) {
             // Prevent default event effects
@@ -140,7 +165,7 @@ export default Vue.extend({
                     const visit = {
                         title: title || this.$t(`Visit #${visitCounter++}`),
                         date: date || '',
-                        studies: { ekg: [], radiology: [] },
+                        studies: { eeg: [], ekg: [], radiology: [] },
                     } as any
                     console.log(studies)
                     let topoImage = null as ImageResource | null
@@ -197,6 +222,15 @@ export default Vue.extend({
                             visit.studies.ekg.push(new DicomWaveform(study.name, study.data))
                             this.scope = 'ekg'
                             this.toggleColorTheme(true)
+                        } else if (study.format === 'edf') {
+                            // Pass the EDF data to EdfSignal class to determine record type
+                            const record = new EdfSignal(study.name, study.data, study.meta.loader)
+                            if (record.type === 'eeg') {
+                                // Add EEG record
+                                visit.studies.eeg.push(record)
+                                this.scope = 'eeg'
+                                this.toggleColorTheme(true)
+                            }
                         }
                     }
                     // Attach possible topogram image to all loaded stacks
@@ -302,6 +336,7 @@ export default Vue.extend({
         this.$store.commit('set-settings-value', { field: 'eeg.yPadding', value: 1.5 })
         this.$store.commit('set-settings-value', { field: 'eeg.channelSpacing', value: 1 })
         this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.5 })
+        this.$store.commit('set-settings-value', { field: 'screenDPI', value: 144 })
     },
 })
 

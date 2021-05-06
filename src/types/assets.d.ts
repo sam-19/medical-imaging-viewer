@@ -181,6 +181,7 @@ interface SignalMontageChannel {
     name: string
     active: number
     reference: number[]
+    resolution: number
     offset: number
 }
 /**

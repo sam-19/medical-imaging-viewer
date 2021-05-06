@@ -7,7 +7,7 @@
                 'medigi-viewer-ekg-mousedrag',
                 { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
                 { 'medigi-viewer-hidden': !mouseDragIndicator },
-                { 'medigi-viewer-ekg-ruler': $store.state.showEkgRuler },
+                { 'medigi-viewer-ekg-ruler': $store.state.SETTINGS.ekg.showRuler },
             ]"></div>
             <div ref="measurements"
                 :class="[
@@ -207,7 +207,7 @@ export default Vue.extend({
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
-            return this.$root.screenDPI/17.7
+            return this.$store.state.SETTINGS.screenDPI/17.7
         },
         navigatorSignal (): any {
             const navigatorColor = '#303030'
@@ -490,7 +490,7 @@ export default Vue.extend({
                     }
                     const dragEl = (this.$refs['mousedrag'] as HTMLDivElement)
                     if (!this.mouseDragIndicator) {
-                        const yOffset = this.$store.state.showEkgRuler ? 1 : 0
+                        const yOffset = this.$store.state.SETTINGS.ekg.showRuler ? 1 : 0
                         const top = startPos + this.mouseDownTrace*traceHeight - yOffset
                         dragEl.style.top = top > 0 ? `${top}px` : '0px'
                         dragEl.style.height = `${traceHeight + yOffset}px`

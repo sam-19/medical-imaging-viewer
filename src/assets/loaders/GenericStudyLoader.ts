@@ -63,7 +63,6 @@ class GenericStudyLoader implements StudyLoader {
                             }
                             // Try to fetch metadata from header
                             // Saving metadata separately is important in case libraries are added or changed later
-                            let eegSignalCount = 0
                             study.meta.patientId = study.meta.patientId || edfData.getPatientID() || null
                             study.meta.recordId = study.meta.recordId || edfData.getRecordingID() || null
                             study.meta.startDate = study.meta.startDate || edfData.getRecordingStartDate() || null
@@ -72,6 +71,7 @@ class GenericStudyLoader implements StudyLoader {
                             study.meta.nSignals = edfData.getNumberOfSignals() || null
                             study.data = edfData
                             study.meta.loader = 'edf-decoder'
+
                         } catch (e) {
                             console.log("EDF ERROR", e)
                             // Not a regular EDF file, perhaps EDF+?
