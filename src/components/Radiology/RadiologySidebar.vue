@@ -1,7 +1,7 @@
 <template>
     <div :id="`${$store.state.appName}-medigi-viewer-radiology-sidebar`">
         <div class="medigi-viewer-sidebar-items">
-            <vue-draggable v-model="items" ref="draggable-list" :sort="allowSorting" @end="itemDropped">
+            <vue-draggable v-model="items" ref="draggable-list" :sort="allowSorting" @change="listChanged" @end="itemDropped">
                 <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                     ref="sidebar-item"
                     :active="item.isActive"
@@ -143,7 +143,21 @@ export default Vue.extend({
                 ;(this.dicomItems[evt.oldIndex] as MediaResource).isActive = true
                 this.$emit('item-dropped', { item: evt.oldIndex, target: targetIdx })
             }
-            //
+        },
+        listChanged: function (evt: any) {
+            // If last activated item was reordered, adjust the cached index
+            if (this.lastActivated === null || !evt.moved) {
+                return
+            }
+            if (evt.moved.oldIndex === this.lastActivated) {
+                this.lastActivated = evt.moved.newIndex
+            } else if (evt.moved.oldIndex < this.lastActivated && evt.moved.newIndex >= this.lastActivated) {
+                // Last activated has moved up on the list
+                this.lastActivated--
+            } else if (evt.moved.oldIndex > this.lastActivated && evt.moved.newIndex <= this.lastActivated) {
+                // Last activated has moved down on the list
+                this.lastActivated++
+            }
         },
         setItemNotice: function (itemIdx: number, message: string) {
             this.notices[itemIdx] = message
@@ -195,18 +209,16 @@ export default Vue.extend({
                         // Mark as last activated
                         this.lastActivated = itemIdx
                     } else {
-                        // Deactivate item
+                        // Deactivate item, but keep last activated intact
                         item.isActive = false
-                        // Unset last activated
-                        this.lastActivated = null
                     }
                 } else {
                     // Simply deactivate, unlink (if needed) and unset last activated item
                     item.isActive = false
-                    this.lastActivated = null
                     if (item.isStack && item.isLinked) {
                         (item as ImageStackResource).unlink()
                     }
+                    this.lastActivated = null
                 }
             }
             this.$emit('element-status-changed')
