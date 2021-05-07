@@ -57,10 +57,10 @@ interface ButtonRow {
         'layout:auto': ButtonState
         'layout:custom': ButtonState
     'group:measurement': ButtonState
-        'tool:Angle': ButtonState
+        //'tool:Angle': ButtonState
         'tool:EllipticalRoi': ButtonState
         'tool:Length': ButtonState
-        'tool:SquareRoi': ButtonState
+        //'tool:SquareRoi': ButtonState
     'group:orientation': ButtonState
         'action:fliph': ButtonState
         'action:flipv': ButtonState
@@ -247,13 +247,13 @@ export default Vue.extend({
                             icon: [ ['fal', 'ruler'] ],
                             tooltip: [ this.$t('Measure distance') ],
                         },
-                        {
-                            id: 'tool:Angle',
-                            set: 0,
-                            groups: ['interact'],
-                            icon: [ ['fal', 'ruler-triangle'] ],
-                            tooltip: [ this.$t('Measure distance') ],
-                        },
+                        //{
+                        //    id: 'tool:Angle',
+                        //    set: 0,
+                        //    groups: ['interact'],
+                        //    icon: [ ['fal', 'ruler-triangle'] ],
+                        //    tooltip: [ this.$t('Measure distance') ],
+                        //},
                         {
                             id: 'tool:EllipticalRoi',
                             set: 0,
@@ -305,10 +305,10 @@ export default Vue.extend({
                 'layout:auto':          { active: false, visible: true, enabled: true } as ButtonState,
                 'layout:custom':        { active: false, visible: true, enabled: true } as ButtonState,
                 'group:measurement':    { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Angle':           { active: false, visible: true, enabled: true } as ButtonState,
+                //'tool:Angle':           { active: false, visible: true, enabled: true } as ButtonState,
                 'tool:Crosshairs':      { active: false, visible: true, enabled: true } as ButtonState,
                 'tool:EllipticalRoi':   { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:SquareRoi':       { active: false, visible: true, enabled: true } as ButtonState,
+                //'tool:SquareRoi':       { active: false, visible: true, enabled: true } as ButtonState,
                 'group:orientation':    { active: false, visible: true, enabled: true } as ButtonState,
                 'action:fliph':         { active: false, visible: true, enabled: true } as ButtonState,
                 'action:flipv':         { active: false, visible: true, enabled: true } as ButtonState,
@@ -335,10 +335,10 @@ export default Vue.extend({
             customLayout: [2, 2],
             // Default options for different tool types
             toolOptions: {
-                'tool:Angle': {
-                    active: { mouseButtonMask: 1 },
-                    default: {},
-                },
+                //'tool:Angle': {
+                //    active: { mouseButtonMask: 1 },
+                //    default: {},
+                //},
                 'tool:Crosshairs': {
                     active: {
                         mouseButtonMask: 1,
@@ -545,12 +545,12 @@ export default Vue.extend({
                 // Check for active button group icon
                 if (button.id === 'group:measurement') {
                     // Check which measurement is active (if any)
-                    if (this.buttonStates['tool:Angle'].active) {
-                        return this.getButtonIcon('tool:Angle', 'measurement')
-                    } else if (this.buttonStates['tool:EllipticalRoi'].active) {
+                    //if (this.buttonStates['tool:Angle'].active) {
+                    //    return this.getButtonIcon('tool:Angle', 'measurement')
+                    if (this.buttonStates['tool:EllipticalRoi'].active) {
                         return this.getButtonIcon('tool:EllipticalRoi', 'measurement')
-                    } else if (this.buttonStates['tool:SquareRoi'].active) {
-                        return this.getButtonIcon('tool:SquareRoi', 'measurement')
+                    //} else if (this.buttonStates['tool:SquareRoi'].active) {
+                    //    return this.getButtonIcon('tool:SquareRoi', 'measurement')
                     } else {
                         return this.getButtonIcon('tool:Length', 'measurement')
                     }
@@ -612,8 +612,8 @@ export default Vue.extend({
         isActive (button: string): boolean {
             switch (button) {
                 case 'group:measurement':
-                    return this.buttonStates['tool:Angle'].active || this.buttonStates['tool:EllipticalRoi'].active
-                           || this.buttonStates['tool:Length'].active || this.buttonStates['tool:SquareRoi'].active
+                    return /*this.buttonStates['tool:Angle'].active ||*/ this.buttonStates['tool:EllipticalRoi'].active
+                           || this.buttonStates['tool:Length'].active /*|| this.buttonStates['tool:SquareRoi'].active*/
                 case 'action:link':
                     return this.allLinked
                 default:

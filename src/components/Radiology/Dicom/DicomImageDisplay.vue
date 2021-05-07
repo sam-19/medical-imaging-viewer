@@ -315,7 +315,6 @@ export default Vue.extend({
                     valid.push(null)
                 }
             }
-            console.log(valid)
             return valid
         },
         getReferenceNumber () {
@@ -354,6 +353,7 @@ export default Vue.extend({
          * Handle right click (or context menu triggering) event on the image.
          */
         handleRightClick: function (e: any) {
+            e.event.preventDefault()
             //const getHandleNearImagePoint = cornerstoneTools.importInternal('manipulators/getHandleNearImagePoint')
             const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
             // Get tool state for currently displayed image
@@ -363,7 +363,7 @@ export default Vue.extend({
             const coords = {...e.lastPoints.image}
             if (localState) {
                 const annoTypes = {
-                    ang: `Angle-${this.$store.state.appName}`,
+                    //ang: `Angle-${this.$store.state.appName}`,
                     len: `Length-${this.$store.state.appName}`,
                     roiE: `EllipticalRoi-${this.$store.state.appName}`,
                 }
@@ -847,10 +847,13 @@ export default Vue.extend({
                     // Right mouse click
                     this.handleRightClick(e.detail)
                 } else if (!e.detail.event.button && this.annotationMenu) {
-                    // Hide annotation menu on left mouse click
+                    // Hide annotation menu on left mouse click.
+                    // This doesn't seem to stop an active tool from triggering a click event, unfortunately.
+                    e.detail.event.preventDefault()
+                    e.detail.event.stopPropagation()
                     this.annotationMenu = null
                 }
-            })
+            }, true)
             // Start loading dot cycle every half second until the image is done loading
             let cyclePos = 1
             this.loadingDotCycle = window.setInterval(() => {
@@ -955,9 +958,9 @@ export default Vue.extend({
                 }
             }
             // Set up basic tools
-            cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool,
-                { name: `Angle-${this.$store.state.appName}` }
-            )
+            //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool,
+            //    { name: `Angle-${this.$store.state.appName}` }
+            //)
             // Set up crosshairs cursor to use with the crosshairs tool
             //const crosshairCursor = cornerstoneTools.importInternal('tools/cursors').crosshairCursor
             //const cursorImg = document.createElement('img')
@@ -1157,7 +1160,7 @@ export default Vue.extend({
         if (this.mainImageLoaded) {
             try {
                 // If the component is destroyed before all of the setup is done, some of these may throw errors
-                cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
+                //cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
