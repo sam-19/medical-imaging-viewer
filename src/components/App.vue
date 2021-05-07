@@ -6,7 +6,7 @@
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
             <span v-if="activeVisit" class="medigi-viewer-oneliner">{{ getVisitTitle() }}</span>
-            <span v-else>{{ $t('No visit selected') }}</span>
+            <span v-else class="medigi-viewer-oneliner">{{ $t('No visit selected') }}</span>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
                 :title="sidebarOpen ? $t('Close sidebar') : $t('Open sidebar')"
@@ -408,9 +408,9 @@ export default Vue.extend({
         display: none !important;
     }
     .medigi-viewer-oneliner {
-	overflow: hidden !important;
-    text-overflow: ellipsis !important;
-	white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
     .medigi-viewer-interface-dropdown {
         position: absolute;
