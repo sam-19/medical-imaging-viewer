@@ -416,7 +416,7 @@ export default Vue.extend({
         position: absolute;
         top: 10px;
         left: 10px;
-        min-height: 60px;
+        height: 60px;
         width: 280px;
         border: solid 2px var(--medigi-viewer-border);
         border-radius: 5px;
@@ -433,13 +433,14 @@ export default Vue.extend({
     }
         .medigi-viewer-interface-dropdown:hover {
             opacity: 1.0;
+            height: auto;
         }
         .medigi-viewer-interface-dropdown.medigi-viewer-sidebar-closed {
             left: -230px;
         }
         .medigi-viewer-interface-dropdown > span {
             display: inline-block;
-            width: 220px;
+            width: 210px;
             margin: 0 10px;
             font-size: 18px;
         }
