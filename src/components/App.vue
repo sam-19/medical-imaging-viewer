@@ -94,6 +94,13 @@ export default Vue.extend({
             themeChange: 0,
         }
     },
+    watch: {
+        scope: function (old, val) {
+            if (old === 'radiology' || val === 'radiology') {
+                this.toggleColorTheme()
+            }
+        },
+    },
     computed: {
         activeVisit (): PatientVisit | null {
             return this.selectedVisit
@@ -218,16 +225,12 @@ export default Vue.extend({
                         } else if (study.scope === 'ekg') {
                             // Add EKG record
                             visit.studies.ekg.push(new DicomWaveform(study.name, study.data))
-                            this.scope = 'ekg'
-                            this.toggleColorTheme(true)
                         } else if (study.format === 'edf') {
                             // Pass the EDF data to EdfSignal class to determine record type
                             const record = new EdfSignal(study.name, study.data, study.meta.loader)
                             if (record.type === 'eeg') {
                                 // Add EEG record
                                 visit.studies.eeg.push(record)
-                                this.scope = 'eeg'
-                                this.toggleColorTheme(true)
                             }
                         }
                     }
@@ -243,10 +246,25 @@ export default Vue.extend({
                     // Open the first loaded visit, if none is active
                     if (!this.selectedVisit) {
                         this.selectedVisit = visit
+                        // Open the study with the highest priority
+                        let bestScope = ''
+                        const scopePrio = this.$store.state.SETTINGS.scopePriority
+                        for (const scope in visit.studies) {
+                            if (scopePrio.indexOf(scope) !== -1 && visit.studies[scope].length &&
+                                (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
+                            ) {
+                                bestScope = scope
+                            }
+                        }
+                        console.log(bestScope, visit)
+                        if (bestScope !== '') {
+                            this.scope = bestScope
+                        }
                     }
                 }
                 this.loadingStudies = false
             }).catch((reason) => {
+                console.log(reason)
                 this.loadingStudies = false
             })
         },

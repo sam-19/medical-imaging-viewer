@@ -240,10 +240,10 @@ export default Vue.extend({
 <style scoped>
 .medigi-viewer-sidebar > div {
     position: relative;
-    padding: 0 10px 10px 10px;
+    padding: 80px 10px 10px 10px;
     width: 300px;
     height: calc(100% - 50px);
-    padding-top: 80px;
+    margin-top: 0; /* Unset possible margin from another scope */
 }
 .medigi-viewer-sidebar-loading {
     height: 50px;

@@ -16,6 +16,7 @@ type State = {
     linkedScrollPosition: number,
     // App settings
     SETTINGS: {
+        scopePriority: string[],
         screenDPI: number,
         eeg: {
             bottomBorder: {
@@ -183,6 +184,7 @@ class MEDigiStore {
             cacheStatus: { count: 0, max: 0, size: 0 },
             linkedScrollPosition: 0,
             SETTINGS: {
+                scopePriority: ['radiology', 'ekg', 'eeg'],
                 screenDPI: 96,
                 eeg: {
                     // Setups to load
