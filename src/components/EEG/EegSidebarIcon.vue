@@ -63,7 +63,6 @@ export default Vue.extend({
         bottom: -20%;
         right: -10%;
         padding: 3px;
-        background-color: var(--medigi-viewer-background);
     }
 
 </style>

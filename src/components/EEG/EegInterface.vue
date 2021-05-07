@@ -196,8 +196,6 @@ export default Vue.extend({
     display: grid;
     grid-template-columns: [left-edge] 300px [divider] auto [right-edge];
     grid-template-rows: [top-edge] 80px [divider] auto [bottom-edge];
-    color: var(--medigi-viewer-text-main);
-    background-color: var(--medigi-viewer-background);
     font-family: sans-serif;
     overflow: auto;
     transition: left 0.5s;

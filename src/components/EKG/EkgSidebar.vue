@@ -104,7 +104,6 @@ export default Vue.extend({
             this.dropZone.addEventListener('drop', this.handleFileDrop, false)
             this.dropZone.addEventListener('dragleave', this.clearDropZoneHighlight, false)
         }
-        console.log(this.items)
     },
 })
 </script>

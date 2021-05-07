@@ -281,6 +281,9 @@ export default Vue.extend({
             if (this.$refs['dicom-waveform-interface']) {
                 (this.$refs['dicom-waveform-interface'] as any).updateElements()
             }
+            if (this.$refs['dicom-eeg-interface']) {
+                (this.$refs['dicom-eeg-interface'] as any).updateElements()
+            }
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.$store.state.appName}-medigi-viewer`)
@@ -363,10 +366,10 @@ export default Vue.extend({
 <style>
 /* Global app styles */
 .medigi-viewer-theme-change, .medigi-viewer-theme-change * {
-    -moz-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
-    -ms-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
-    -webkit-transition: color 1.0s linear, background-color 1.0s linear, border-color 1.0s linear;
-    transition: color 2.0s linear, background-color 2.0s linear, border-color 2.0s linear;
+    -ms-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
+    -moz-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
+    -webkit-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
+    transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
 }
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
@@ -409,6 +412,8 @@ export default Vue.extend({
     position: relative;
     width: 100%;
     height: 100%;
+    color: var(--medigi-viewer-text-main);
+    background-color: var(--medigi-viewer-background);
 }
 .medigi-viewer * {
     /* Don't allow selecting text by default */
@@ -442,7 +447,6 @@ export default Vue.extend({
         font-size: 24px;
         line-height: 56px;
         font-size: 16px;
-        color: var(--medigi-viewer-text-main);
         font-family: sans-serif;
         cursor: pointer;
         opacity: 0.8;
