@@ -150,9 +150,17 @@ export default Vue.extend({
         },
         toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
             const item = this.items[itemIdx] as MediaResource
-            item.isActive = !item.isActive
-            if (item.isActive) {
-                // If the element was activated, check if this is a shift-click to activate a range of elements
+            const otherActive = [] as MediaResource[]
+            // See if there are other active items
+            for (const otherItem of this.dicomItems as MediaResource[]) {
+                if (item !== otherItem && otherItem.isActive) {
+                    otherActive.push(otherItem)
+                }
+            }
+            if (!item.isActive) {
+                // If the element is being activated, two things must be checked:
+                // - is it a ctrl-click, in which case we will leave other active items active
+                // - is it a shift-click, in which case we will activate a range of elements
                 if (this.lastActivated !== null  && this.lastActivated !== itemIdx && event.shiftKey) {
                     const diff = this.lastActivated - itemIdx
                     for (let i=1; i<=Math.abs(diff); i++) {
@@ -162,15 +170,43 @@ export default Vue.extend({
                             (this.items[curIdx] as MediaResource).isActive = true
                         }
                     }
+                } else if (!event.ctrlKey) {
+                    // Not a control click, deactivate other active items
+                    for (const otherItem of otherActive) {
+                        otherItem.isActive = false
+                    }
                 }
                 // Mark as last activated
                 this.lastActivated = itemIdx
+                item.isActive = true
             } else {
-                // Unset last activated
-                this.lastActivated = null
-                if (item.isStack && item.isLinked) {
-                    // Unlink deactivated items
-                    (this.items[itemIdx] as ImageStackResource).unlink()
+                // If the element is being deactivated, check if there are other active items
+                if (otherActive.length) {
+                    // In this case, keep the element active, but deactivate the others, or
+                    // if control is pressed, just deactivate this item
+                    if (!event.ctrlKey) {
+                        for (const otherItem of otherActive) {
+                            otherItem.isActive = false
+                            if (otherItem.isStack && otherItem.isLinked) {
+                                // Unlink deactivated items
+                                (otherItem as ImageStackResource).unlink()
+                            }
+                        }
+                        // Mark as last activated
+                        this.lastActivated = itemIdx
+                    } else {
+                        // Deactivate item
+                        item.isActive = false
+                        // Unset last activated
+                        this.lastActivated = null
+                    }
+                } else {
+                    // Simply deactivate, unlink (if needed) and unset last activated item
+                    item.isActive = false
+                    this.lastActivated = null
+                    if (item.isStack && item.isLinked) {
+                        (item as ImageStackResource).unlink()
+                    }
                 }
             }
             this.$emit('element-status-changed')
