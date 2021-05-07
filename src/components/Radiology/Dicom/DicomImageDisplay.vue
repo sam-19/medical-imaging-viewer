@@ -127,7 +127,7 @@ import TopogramReferenceLineTool from '../../../assets/tools/TopogramReferenceLi
 const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
 
 let INSTANCE_NUM = 0
-const CLICK_DISTANCE_THRESHOLD = 5
+const CLICK_DISTANCE_THRESHOLD = 7.5
 
 export default Vue.extend({
     components: {
@@ -288,8 +288,10 @@ export default Vue.extend({
                 return 'display: none'
             } else {
                 const offset = cornerstone.pageToPixel(this.dicomEl, 0, 0)
-                const top = (this.annotationMenu.anchor.y - offset.y)*this.viewport.scale - 60
-                const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - 280
+                const osLeft = this.dicomEl.getBoundingClientRect().left
+                const osTop = this.dicomEl.getBoundingClientRect().top
+                const top = (this.annotationMenu.anchor.y - offset.y)*this.viewport.scale - osTop + 20
+                const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - osLeft + 20
                 return `top: ${top}px; left: ${left}px`
             }
         },
@@ -396,11 +398,12 @@ export default Vue.extend({
                     if (localState[index]) {
                         for (let i=0; i<localState[index].data.length; i++) {
                             const anno = localState[index].data[i]
-                            if (cornerstoneMath.point.distance(anno.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD ||
-                                cornerstoneMath.point.distance(anno.handles.end, coords) <= CLICK_DISTANCE_THRESHOLD
+                            const threshold = CLICK_DISTANCE_THRESHOLD/this.viewport.scale // Take scale into account
+                            if (cornerstoneMath.point.distance(anno.handles.start, coords) <= threshold ||
+                                cornerstoneMath.point.distance(anno.handles.end, coords) <= threshold
                             ) {
                                 this.annotationMenu = {
-                                    anchor: cornerstoneMath.point.distance(anno.handles.start, coords) <= CLICK_DISTANCE_THRESHOLD
+                                    anchor: cornerstoneMath.point.distance(anno.handles.start, coords) <= threshold
                                             ? anno.handles.start : anno.handles.end,
                                     data: anno,
                                     remove: () => {
