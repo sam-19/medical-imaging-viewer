@@ -167,10 +167,8 @@ export default Vue.extend({
                         date: date || '',
                         studies: { eeg: [], ekg: [], radiology: [] },
                     } as any
-                    console.log(studies)
                     let topoImage = null as ImageResource | null
                     for (const study of studies) {
-                        console.log(study)
                         const types = study.type.split(':')
                         if (study.scope === 'radiology') {
                             if (types[0] === 'image') {
@@ -242,11 +240,13 @@ export default Vue.extend({
                         })
                     }
                     this.visits.push(visit)
+                    // Open the first loaded visit, if none is active
+                    if (!this.selectedVisit) {
+                        this.selectedVisit = visit
+                    }
                 }
                 this.loadingStudies = false
-                console.log(this.visits)
             }).catch((reason) => {
-                console.error(reason)
                 this.loadingStudies = false
             })
         },
