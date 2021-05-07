@@ -9,6 +9,8 @@
         <div class="medigi-viewer-toolbar">
             <radiology-toolbar
                 :allLinked="allResourcesLinked"
+                :anyActive="activeItems.length > 0"
+                :anyStack="anyActiveStack"
                 :gridLayout.sync="gridLayout"
                 :synchronizers="synchronizers"
                 v-on:link-all-resources="linkAllResources"
@@ -214,6 +216,14 @@ export default Vue.extend({
             }
             return someLinkable
         },
+        anyActiveStack (): boolean {
+            for (const item of this.activeItems) {
+                if (item && item.isStack) {
+                    return true
+                }
+            }
+            return false
+        }
     },
     methods: {
         addFileAsImage: function (file: File, overrideName?: string) {

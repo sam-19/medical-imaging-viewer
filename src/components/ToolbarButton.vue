@@ -93,7 +93,7 @@ export default Vue.extend({
         color: var(--medigi-viewer-text-highlight);
     }
     .medigi-viewer-toolbar-button.medigi-viewer-disabled {
-        opacity: 0.25 !important;
+        opacity: 0.4 !important;
         cursor: initial !important;
         pointer-events: none;
     }

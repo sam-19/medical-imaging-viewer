@@ -63,8 +63,9 @@ export default Vue.extend({
 
 <style scoped>
 .medigi-viewer-sidebar-item {
+    position: relative;
     display: flex;
-    height: 139px;
+    height: 89px;
     width: 100%;
     padding: 5px;
     margin-bottom: 10px;

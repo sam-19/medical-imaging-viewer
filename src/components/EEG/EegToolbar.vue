@@ -126,7 +126,7 @@ export default Vue.extend({
                     buttons.push({
                         id: button.id,
                         active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
-                        enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        enabled: this.isEnabled(button.id) && this.buttonStates[button.id as keyof ButtonRow].enabled,
                         setFirst: newSet,
                         icon: this.getButtonIcon(button),
                         overlay: this.getButtonOverlay(button),
@@ -254,6 +254,15 @@ export default Vue.extend({
          */
         isActive (button: string): boolean {
             return this.buttonStates[button as keyof ButtonRow].active
+        },
+        /**
+         * Check if button should be enabled.
+         */
+        isEnabled (button: string): boolean {
+            switch (button) {
+                default:
+                    return this.activeItems.length > 0
+            }
         },
         /**
          * Display the next trace if available.

@@ -385,11 +385,11 @@ export default Vue.extend({
          */
         getCorrectedSignalValue: function (channel: number, datapoint: number): number | undefined {
             if (channel >= this.resource.channels.length
-                || datapoint >= this.resource.channels[channel].signals.length
+                || datapoint >= this.resource.channels[channel].signal.length
             ) {
                 return undefined
             }
-            let sigVal = this.resource.channels[channel].signals[datapoint]
+            let sigVal = this.resource.channels[channel].signal[datapoint]
             // Apply required corrections
             if (this.resource.channels[channel].baseline) {
                 // According to my sources the baseline correction is really
@@ -549,10 +549,10 @@ export default Vue.extend({
                         // Use default 0 amplitude if start or end is outside the trace bounds
                         const startAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, startPos)
                         //startPos >= 0 && startPos <= this.resource.sampleCount
-                        //                 ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[startPos] : 0
+                        //                 ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signal[startPos] : 0
                         const endAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, endPos)
                         //endPos >= 0 && endPos <= this.resource.sampleCount
-                        //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[endPos] : 0
+                        //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signal[endPos] : 0
                         this.measurements = {
                             distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
                             amplitude: Math.round((endAmp || 0) - (startAmp || 0)),

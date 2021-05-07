@@ -94,7 +94,8 @@ class DicomWaveform implements SignalResource {
         // Number of samples (uint)
         this._samples = rootEls.x54000100.items[0].dataSet.uint16('x003a0010')
         // Sampling frequency (number string)
-        this._resolution = parseFloat(rootEls.x54000100.items[0].dataSet.string('x003a001A'))
+        console.log(rootEls.x54000100.items[0].dataSet)
+        this._resolution = parseFloat(rootEls.x54000100.items[0].dataSet.string('x003a001a'))
         if (!rootEls.x54000100.items[0].dataSet.elements || !rootEls.x54000100.items[0].dataSet.elements.x003a0200
             || !rootEls.x54000100.items[0].dataSet.elements.x003a0200.items
         ) {
@@ -124,7 +125,6 @@ class DicomWaveform implements SignalResource {
         }
         const wfData = rootEls.x54000100.items[0].dataSet
         // Get channel properties
-        console.log(dataSet)
         const wfArray = rootEls.x54000100.items[0].dataSet.byteArray.slice(
             wfData.elements.x54001010.dataOffset,
             wfData.elements.x54001010.dataOffset + wfData.elements.x54001010.length

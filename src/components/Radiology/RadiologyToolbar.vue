@@ -112,6 +112,14 @@ export default Vue.extend({
             type: Boolean,
             default: false
         },
+        anyActive: {
+            type: Boolean,
+            default: false,
+        },
+        anyStack: {
+            type: Boolean,
+            default: false,
+        },
         gridLayout: {
             type: Array,
             default: null
@@ -127,22 +135,15 @@ export default Vue.extend({
             buttons: [
                 {
                     // A unique identifier for the button, in the format of <type>:<name>. Must match a key in the ButtonRow interface.
-                    id: 'tool:StackScroll',
+                    id: 'tool:Pan',
                     // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
                     set: 1,
                     // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
                     // Tools that use the same mouse button must all share the same group as well!
                     groups: ['interact'],
                     // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                    icon: [ ['fal', 'layer-group'] ],
-                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                    tooltip:[ this.$t('Scroll image stack') ]
-                },
-                {
-                    id: 'tool:Pan',
-                    set: 1,
-                    groups: ['interact'],
                     icon: [ ['fal', 'hand-paper'] ],
+                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
                     tooltip: [ this.$t('Pan image') ]
                 },
                 {
@@ -151,6 +152,13 @@ export default Vue.extend({
                     groups: ['interact'],
                     icon: [ ['fal', 'search'] ],
                     tooltip: [ this.$t('Zoom') ],
+                },
+                {
+                    id: 'tool:StackScroll',
+                    set: 1,
+                    groups: ['interact'],
+                    icon: [ ['fal', 'layer-group'] ],
+                    tooltip:[ this.$t('Scroll image stack') ]
                 },
                 {
                     id: 'tool:Crosshairs',
@@ -432,7 +440,7 @@ export default Vue.extend({
                     buttons.push({
                         id: button.id,
                         active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
-                        enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        enabled: this.isEnabled(button.id) && this.buttonStates[button.id as keyof ButtonRow].enabled,
                         setFirst: newSet,
                         icon: this.getButtonIcon(button),
                         overlay: this.getButtonOverlay(button),
@@ -621,6 +629,19 @@ export default Vue.extend({
             }
         },
         /**
+         * Check if button should be enabled.
+         */
+        isEnabled (button: string): boolean {
+            switch (button) {
+                case 'tool:Crosshairs':
+                case 'tool:StackScroll':
+                case 'action:link':
+                    return this.anyStack
+                default:
+                    return this.anyActive
+            }
+        },
+        /**
          * Reset all modifications, returning the media to default state.
          */
         resetAll: function () {
@@ -744,7 +765,7 @@ export default Vue.extend({
 .medigi-viewer-toolbar > div {
     position: relative;
     display: flex;
-    padding: 10px 10px 10px 11px;
+    padding: 10px 0;
 }
 .medigi-viewer-toolbar-buttongroup {
     position: absolute;
