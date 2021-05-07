@@ -441,7 +441,7 @@ export default Vue.extend({
         .medigi-viewer-interface-dropdown > span {
             display: inline-block;
             width: 210px;
-            height: 60px;
+            height: 56px;
             margin: 0 10px;
             font-size: 18px;
         }
@@ -459,6 +459,8 @@ export default Vue.extend({
             display: none;
             width: 100%;
             list-style-type: none;
+            margin: 0;
+            padding: 0;
             margin-block-start: 0;
             margin-block-end: 0;
             padding-inline-start: 0;
