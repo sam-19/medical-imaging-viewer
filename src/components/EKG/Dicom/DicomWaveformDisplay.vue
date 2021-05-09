@@ -67,7 +67,7 @@ export default Vue.extend({
             chartConfig: {
                 // Props are initialized before data
                 width: 0,
-                margin: { t: 0, r: 0, b: this.marginBottom, l: this.marginLeft },
+                margin: { t: 0, r: 0, b: this.marginBottom, l: 1 },//this.marginLeft },
                 showlegend: false,
                 dragmode: false,
                 xaxis: {
@@ -94,7 +94,7 @@ export default Vue.extend({
                 yaxis: {
                     autorange: false,
                     tickmode: 'array',
-                    ticklen: 10, // This serves as padding between axis and label
+                    ticklen: 0,//10, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: '#FFB6C1',
@@ -406,7 +406,7 @@ export default Vue.extend({
         },
         getViewEnd: function (clip=false): number  {
             // Calculate the chart's left and right margins
-            let viewWidth: number = -this.marginLeft
+            let viewWidth: number = -this.marginLeft - 1
             if (document.fullscreenElement === null) {
                 viewWidth += this.containerSize[0] as number
             } else {
@@ -471,7 +471,7 @@ export default Vue.extend({
                 this.refreshNavigatorOverlay()
             } else if (this.$store.state.activeTool === 'measure') {
                 // Do not allow dragging outside the wrapper
-                if (e.offsetX < wrapperPos.left + this.marginLeft || e.offsetX > wrapperPos.right
+                if (e.offsetX < wrapperPos.left || e.offsetX > wrapperPos.right
                     || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.marginBottom
                 ) {
                     this.handleMouseOut(e)
@@ -499,18 +499,19 @@ export default Vue.extend({
                     // The drag cover div spans the entire page, so have to adjust before comparing values
                     const relXOffset = e.offsetX - wrapperPos.left
                     const wrapperWidth = wrapperPos.right - wrapperPos.left
-                    if (this.mouseDownPoint.x < relXOffset) {
+                    const trueMouseDown = this.mouseDownPoint.x + this.marginLeft
+                    if (trueMouseDown < relXOffset) {
                         // Dragging from left to right
                         // Place static left marker to mouse down position
-                        dragEl.style.left = `${this.mouseDownPoint.x}px`
+                        dragEl.style.left = `${trueMouseDown}px`
                         // Update right position dynamically
                         dragEl.style.right = `${wrapperWidth - relXOffset - 1}px`
                     } else {
                         // Dragging from right to left
                         // Place static right marker to mouse down position
-                        dragEl.style.right = `${wrapperWidth - this.mouseDownPoint.x - 1}px`
+                        dragEl.style.right = `${wrapperWidth - trueMouseDown - 1}px`
                         // Update left position dynamically
-                        dragEl.style.left = `${relXOffset}px`
+                        dragEl.style.left = `${relXOffset - 1}px`
                     }
                     // Update last hover position (Plotly doesn't pass hover event through when dragging)
                     //this.lastHoverPoint = {
@@ -541,11 +542,13 @@ export default Vue.extend({
                         // Signal datapoints per second
                         const ptsPerSec = this.resource.resolution/this.cmPerSec
                         // Start position (datapoint)
-                        const startX = this.mouseDownPoint.x - this.marginLeft
+                        const startX = this.mouseDownPoint.x
                         const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
                         const endX = e.offsetX - wrapperPos.left - this.marginLeft
-                        // End position
-                        const endPos = Math.round((scaleF*endX/this.pxPerHorizontalSquare)*ptsPerSec)
+                        // Since we measure from ruler end to ruler end, both inclusive, we need to fix the end position
+                        // depending on the direction of the drag
+                        const rToLFix = startX > endX ? 1 : 0
+                        const endPos = Math.round((scaleF*(endX - rToLFix)/this.pxPerHorizontalSquare)*ptsPerSec)
                         // Use default 0 amplitude if start or end is outside the trace bounds
                         const startAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, startPos)
                         //startPos >= 0 && startPos <= this.resource.sampleCount
@@ -580,8 +583,8 @@ export default Vue.extend({
             }
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const y2TickVals = this.yAxisTicks2
-            const traceWidth = (this.containerSize[0] as number) > this.navigatorMaxWidth + this.marginLeft
-                               ? this.containerSize[0] : this.navigatorMaxWidth + this.marginLeft
+            const traceWidth = (this.containerSize[0] as number - this.marginLeft) > this.navigatorMaxWidth
+                               ? this.containerSize[0] as number - this.marginLeft : this.navigatorMaxWidth
             const chartLayout = {
                 width: traceWidth,
                 height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
@@ -668,12 +671,17 @@ export default Vue.extend({
                 ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `0px`
                 return
             }
-            const leftWidth = (this.viewStart/this.resource.sampleCount)*naviWidth
-            const actWidth = ((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth
-            const rightWidth = ((this.resource.sampleCount - viewEnd)/this.resource.sampleCount)*naviWidth
+            // leftPad is the margin applied to the main chart to make the Y-axis zero-line visible
+            const leftPad = 1 * (this.pxPerHorizontalSquare*5/this.resource.resolution)
+            const leftWidth = Math.max(Math.floor((this.viewStart/this.resource.sampleCount)*naviWidth - leftPad), 0)
+            const actWidth = Math.ceil(((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth)
+            const rightWidth = Math.max(
+                Math.floor(((this.resource.sampleCount - viewEnd)/this.resource.sampleCount)*naviWidth - leftPad), 0
+            )
             ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `${leftWidth}px`
             ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + this.marginLeft}px`
             ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${actWidth}px`
+            // Exclude the last pixel from right overlay width, so if shows as "visible" on the trace
             ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `${rightWidth}px`
         },
         refreshTraces: function () {
@@ -721,6 +729,8 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Set left margin
+        ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
         // Calculate max width for the navigator as a reference
         this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerHorizontalSquare*5
         // Calculate view bounds
