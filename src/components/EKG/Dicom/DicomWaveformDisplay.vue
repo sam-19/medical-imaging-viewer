@@ -567,6 +567,46 @@ export default Vue.extend({
             }
             this.mouseDownPoint = { x: -1, y: -1 }
         },
+        handleNavigatorMouseClick (e: any) {
+            // TODO: Navigate to position when clicking on a hidden part on the navigator
+            console.log('navigator click')
+        },
+        handleNavigatorMouseDown (e: any) {
+            if (e.button !== 0 || e.buttons > 1) {
+                // Only register left click for now
+                return
+            }
+            const downPos = e.clientX
+            const trace = this.$refs['trace'] as HTMLDivElement
+            const startPos = trace.scrollLeft
+            const mouseMove = (e: any) => {
+                const dX = downPos - e.clientX
+                // Adjust for navigator resolution
+                const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
+                const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
+                const relDragX = dX/naviWidth
+                trace.scrollLeft = startPos + this.traceLeftPos - relDragX*trace.offsetWidth
+                this.updateViewStart()
+                this.refreshNavigatorOverlay()
+            }
+            // Create a dragcover element (that emulates the plotly dragcover)
+            const dragCover = document.createElement('div')
+            dragCover.className = 'dragcover'
+            dragCover.style.position = 'fixed'
+            dragCover.style.zIndex = '999999999'
+            dragCover.style.background = 'none'
+            dragCover.style.cursor = 'pointer'
+            dragCover.style.top = '0px'
+            dragCover.style.left = '0px'
+            dragCover.style.right = '0px'
+            dragCover.style.bottom = '0px'
+            document.body.appendChild(dragCover)
+            dragCover.addEventListener('mousemove', mouseMove)
+            dragCover.addEventListener('mouseup', (e: any) => {
+                dragCover.removeEventListener('mosemove', mouseMove)
+                document.body.removeChild(dragCover)
+            })
+        },
         hideAnnotationMenu: function () {
 
         },
@@ -747,6 +787,12 @@ export default Vue.extend({
             = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
         // Load navigator
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
+        ;(this.$refs['navigator-overlay-left'] as HTMLDivElement)
+            .addEventListener('click', this.handleNavigatorMouseClick)
+        ;(this.$refs['navigator-overlay-active'] as HTMLDivElement)
+            .addEventListener('mousedown', this.handleNavigatorMouseDown)
+        ;(this.$refs['navigator-overlay-right'] as HTMLDivElement)
+            .addEventListener('click', this.handleNavigatorMouseClick)
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
     }
@@ -806,7 +852,6 @@ export default Vue.extend({
         height: 50px;
         background-color: #FFFFFF;
         opacity: 0.75;
-        pointer-events: none;
         cursor: default;
     }
     .medigi-viewer-waveform-navigator-overlay-active {
@@ -816,6 +861,7 @@ export default Vue.extend({
         background-color: #000000;
         opacity: 0.025;
         cursor: pointer;
+        z-index: 1; /* In case the overlays overlap by 1px, prefer this one */
     }
     .medigi-viewer-waveform-navigator-overlay-right {
         position: absolute;
@@ -824,7 +870,6 @@ export default Vue.extend({
         height: 50px;
         background-color: #FFFFFF;
         opacity: 0.75;
-        pointer-events: none;
         cursor: default;
     }
 /* Do not allow adjusting the range */
