@@ -580,6 +580,10 @@ export default Vue.extend({
             const trace = this.$refs['trace'] as HTMLDivElement
             const startPos = trace.scrollLeft
             const mouseMove = (e: any) => {
+                // No need to scroll if the entire trace is already visible
+                if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
+                    return
+                }
                 const dX = downPos - e.clientX
                 // Adjust for navigator resolution
                 const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
