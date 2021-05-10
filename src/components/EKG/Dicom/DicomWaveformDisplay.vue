@@ -26,6 +26,13 @@
                 </div>
             </div>
         </div>
+        <!-- EKG channel labels -->
+        <div v-for="(n, idx) in displayedTraceCount" :key="`medigi-dicom-waveform-label-${instanceNum}-${idx}`"
+            class="medigi-viewer-waveform-label"
+            :style="`top:${getChannelLabelOffset(idx) - 10}px`"
+        >
+            {{ getChannelLabel(firstTraceIndex + displayedTraceCount - n) }}
+        </div>
         <!-- Navigator -->
         <div class="medigi-viewer-waveform-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
@@ -377,6 +384,11 @@ export default Vue.extend({
             }
             // Fallback: just return the label
             return this.resource.channels[index].label
+        },
+        getChannelLabelOffset: function (index: number): number {
+            const max = (this.yAxisRange - this.yPad*2)/this.traceSpacing + 1
+            const offset = (max - index - 1)*this.traceSpacing + this.yPad
+            return offset*this.pxPerVerticalSquare
         },
         /**
          * Get datapoint value with all corrections applied.
@@ -847,6 +859,14 @@ export default Vue.extend({
     .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
         width: 80px;
     }
+.medigi-viewer-waveform-label {
+    position: absolute;
+    left: 0px;
+    width: 40px;
+    height: 20px;
+    line-height: 20px;
+    text-align: right;
+}
 .medigi-viewer-waveform-navigator {
     position: relative;
 }
