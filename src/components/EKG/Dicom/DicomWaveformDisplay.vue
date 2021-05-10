@@ -591,7 +591,7 @@ export default Vue.extend({
             const downPos = e.clientX
             const trace = this.$refs['trace'] as HTMLDivElement
             const startPos = trace.scrollLeft
-            const mouseMove = (e: any) => {
+            const mouseDrag = (e: any) => {
                 // No need to scroll if the entire trace is already visible
                 if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
                     return
@@ -605,6 +605,12 @@ export default Vue.extend({
                 this.updateViewStart()
                 this.refreshNavigatorOverlay()
             }
+            const stopDrag = (e: any) => {
+                dragCover.removeEventListener('mosemove', mouseDrag)
+                dragCover.removeEventListener('moseup', stopDrag)
+                dragCover.removeEventListener('moseleave', stopDrag)
+                document.body.removeChild(dragCover)
+            }
             // Create a dragcover element (that emulates the plotly dragcover)
             const dragCover = document.createElement('div')
             dragCover.className = 'dragcover'
@@ -617,11 +623,11 @@ export default Vue.extend({
             dragCover.style.right = '0px'
             dragCover.style.bottom = '0px'
             document.body.appendChild(dragCover)
-            dragCover.addEventListener('mousemove', mouseMove)
-            dragCover.addEventListener('mouseup', (e: any) => {
-                dragCover.removeEventListener('mosemove', mouseMove)
-                document.body.removeChild(dragCover)
-            })
+            dragCover.addEventListener('mousemove', mouseDrag)
+            dragCover.addEventListener('mouseup', stopDrag)
+            // Failsafe, needed because releasing the mouse button out of the element would not register and
+            // scrolling would be "stuck" on until another scroll event started
+            dragCover.addEventListener('mouseleave', stopDrag)
         },
         hideAnnotationMenu: function () {
 
