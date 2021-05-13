@@ -6,10 +6,10 @@
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
             <div v-if="activeVisit" class="medigi-viewer-oneliner">{{ getVisitTitle() }}</div>
-            <div v-else class="medigi-viewer-oneliner">{{ $t('No visit selected') }}</div>
+            <div v-else class="medigi-viewer-oneliner">{{ t('No visit selected') }}</div>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
-                :title="sidebarOpen ? $t('Close sidebar') : $t('Open sidebar')"
+                :title="sidebarOpen ? t('Close sidebar') : t('Open sidebar')"
                 @click="toggleSidebar"
             />
             <ul>
@@ -24,19 +24,19 @@
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                         @click="selectActiveResource(visit, 'eeg')"
                     >
-                        {{ visit.studies.eeg.length + $t(' EEG studies') }}
+                        {{  t('{n} EEG studies', { n: visit.studies.eeg.length }) }}
                     </div>
                     <div v-if="visit.studies.ekg.length"
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                         @click="selectActiveResource(visit, 'ekg')"
                     >
-                        {{ visit.studies.ekg.length + $t(' EKG studies') }}
+                        {{ t('{n} EKG studies', { n: visit.studies.ekg.length }) }}
                     </div>
                     <div v-if="visit.studies.radiology.length"
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                          @click="selectActiveResource(visit, 'radiology')"
                     >
-                        {{ visit.studies.radiology.length + $t(' radiology studies') }}
+                        {{ t('{n} radiology studies', { n: visit.studies.radiology.length }) }}
                     </div>
                 </li>
             </ul>
@@ -107,6 +107,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.App.${str}`, args)
+            } else {
+                return (this.$t('components.App') as any)[str]
+            }
+        },
         getLocalDatetime: function (datetimeStr: string): string {
             if (datetimeStr.length !== 12) {
                 return datetimeStr

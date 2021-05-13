@@ -181,7 +181,7 @@ export default Vue.extend({
                 if (this.pendingElements.indexOf(failIdx) === -1) {
                     this.pendingElements.push(failIdx)
                 }
-                ;(this.$refs['sidebar'] as any).setItemNotice(failIdx, this.$t('Activate item manually'))
+                ;(this.$refs['sidebar'] as any).setItemNotice(failIdx, this.t('Activate item manually'))
                 this.failedElement = null
             } else if (this.pendingElements.length) {
                 // Clear possible reactivated pending elements
@@ -226,6 +226,14 @@ export default Vue.extend({
         }
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.Dicom.DicomImageInterface.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.Dicom.DicomImageInterface') as any)[str]
+            }
+        },
         addFileAsImage: function (file: File, overrideName?: string) {
             const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
             if (imageId) {
@@ -325,63 +333,6 @@ export default Vue.extend({
          */
         handleFileDrop: async function (event: DragEvent) {
             (this.$root as any).handleFileDrop(event)
-            return
-            const fileLoader = new LocalFileLoader()
-            fileLoader.readFilesFromSource(event).then((fileTree) => {
-                if (fileTree) {
-                    let rootDir = fileTree
-                    while (rootDir.files && !rootDir.files.length &&
-                           rootDir.directories && rootDir.directories.length === 1
-                    ) {
-                        // Recurse until we arrive at the root folder of the image sets
-                        rootDir = rootDir.directories[0]
-                    }
-                    // Next, check if this is a single file dir or several dirs
-                    if (!rootDir.directories?.length && rootDir.files?.length) {
-                        if (rootDir.files.length > 1) {
-                            if (!rootDir.path) {
-                                // If this is the "pseudo" root directory, add files as separate images
-                                // (as they were dragged as separate files into the viewer)
-                                for (let i=0; i<rootDir.files.length; i++) {
-                                    this.addFileAsImage(rootDir.files[i].file as File)
-                                }
-                            } else {
-                                // Add multiple files as an image stack
-                                this.addFilesAsImageStack(rootDir.files.map(f => f.file as File), rootDir.name)
-                            }
-                        } else {
-                            // Single file as an image
-                            this.addFileAsImage(rootDir.files[0].file as File)
-                        }
-                    } else if (rootDir.directories?.length) {
-                        // Try to add each individual dir as an image or image stack
-                        // First check that each directory really contains only files, skip those that don't
-                        for (let i=0; i<rootDir.directories.length; i++) {
-                            if (rootDir.directories[i].directories?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it contained subdirectories.`)
-                                continue
-                            } else if (!rootDir.directories[i].files?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it was empty.`)
-                                continue
-                            } else if (rootDir.directories[i].files?.length === 1) {
-                                // Single file directory as single image
-                                const overrideName = rootDir.directories[i].name === TOPOGRAM_NAME ? TOPOGRAM_NAME : undefined
-                                this.addFileAsImage((rootDir.directories[i].files as FileSystemItem[])[0].file as File, overrideName)
-                            } else {
-                                // Add several files in a directory as a separate image stack
-                                this.addFilesAsImageStack(
-                                    (rootDir.directories[i].files || []).map(f => f.file as File),
-                                    rootDir.directories[i].name
-                                )
-                            }
-                        }
-                    } else {
-                        console.warn("Dropped item had an empty root directory!")
-                    }
-                }
-            }).catch((error: Error) => {
-                // TODO: Implement errors in the file loader
-            })
         },
         isElementActive: function (id: string): boolean {
             const items = this.activeItems

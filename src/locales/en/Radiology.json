@@ -1,0 +1,58 @@
+{
+    "Dicom": {
+        "DicomImageDisplay": {
+            "Angle": "Angle",
+            "Delete": "Delete",
+            "Length": "Length",
+            "Link this image stack": "Link this image stack",
+            "Loading": "Loading",
+            "orientation_anterior": "A",
+            "orientation_caudal": "F",
+            "orientation_cranial": "H",
+            "orientation_left": "L",
+            "orientation_posterior": "P",
+            "orientation_right": "R",
+            "Select as reference #{n}": "Select as reference #{n}",
+            "Unselect reference #{n}": "Unselect reference #{n}"
+        },
+        "DicomImageInterface": {
+            "Activate item manually": "Activate item manually"
+        },
+        "DicomImagePlaceholder": {
+            "Drop to display an image resource": "Drop to display an image resource",
+            "Opening failed, please activate the resource manually": "Opening failed, please activate the resource manually"
+        }
+    },
+    "RadiologySidebar": {
+        "{n}% used": "{n}% used",
+        "{n} images": "{n} images",
+        "1 image": "1 image",
+        "Cache status": "Cache status",
+        "LOADING STUDIES": "LOADING STUDIES"
+    },
+    "RadiologySidebarItem": {
+        "{n} images": "{n} images"
+    },
+    "RadiologyToolbar": {
+        "Adjust window": "Adjust window",
+        "Automatic layout": "Automatic layout",
+        "Crosshairs": "Crosshairs",
+        "Custom layout": "Custom layout",
+        "Flip horizontally": "Flip horizontally",
+        "Flip vertically": "Flip vertically",
+        "Invert image": "Invert image",
+        "Layout tools": "Layout tools",
+        "Link image stacks": "Link image stacks",
+        "Measurement tools": "Measurement tools",
+        "Measure area": "Measure area",
+        "Measure distance": "Measure distance",
+        "Orientation tools": "Orientation tools",
+        "Pan image": "Pan image",
+        "Reset all adjustments": "Reset all adjustments",
+        "Rotate clockwise": "Rotate clockwise",
+        "Rotate counter-clockwise": "Rotate counter-clockwise",
+        "Scroll image stack": "Scroll image stack",
+        "Unlink image stacks": "Unlink image stacks",
+        "Zoom": "Zoom"
+    }
+}

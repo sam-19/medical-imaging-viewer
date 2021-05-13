@@ -132,206 +132,9 @@ export default Vue.extend({
     data () {
         return {
             // This array is used to build the button row
-            buttons: [
-                {
-                    // A unique identifier for the button, in the format of <type>:<name>. Must match a key in the ButtonRow interface.
-                    id: 'tool:Pan',
-                    // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
-                    set: 1,
-                    // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
-                    // Tools that use the same mouse button must all share the same group as well!
-                    groups: ['interact'],
-                    // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                    icon: [ ['fal', 'hand-paper'] ],
-                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                    tooltip: [ this.$t('Pan image') ]
-                },
-                {
-                    id: 'tool:Zoom',
-                    set: 1,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'search'] ],
-                    tooltip: [ this.$t('Zoom') ],
-                },
-                {
-                    id: 'tool:StackScroll',
-                    set: 1,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'layer-group'] ],
-                    tooltip:[ this.$t('Scroll image stack') ]
-                },
-                {
-                    id: 'tool:Crosshairs',
-                    set: 1,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'crosshairs'] ],
-                    tooltip: [ this.$t('Crosshairs') ],
-                },
-                {
-                    id: 'group:orientation',
-                    set: 2,
-                    groups: ['orientation'],
-                    icon: [ ['fal', 'arrows'] ],
-                    tooltip: [ this.$t('Orientation tools') ],
-                },
-                {
-                    id: 'group:measurement',
-                    set: 3,
-                    groups: ['measurement'],
-                    icon: null,
-                    tooltip: [ this.$t('Measurement tools') ],
-                },
-                {
-                    id: 'action:invert',
-                    set: 4,
-                    groups: [],
-                    icon: [ ['fad', 'clone'] ],
-                    tooltip: [ this.$t('Invert image') ],
-                },
-                {
-                    id: 'tool:Wwwc',
-                    set: 4,
-                    groups: ['interact'],
-                    icon: [ ['fad', 'adjust'] ],
-                    tooltip: [ this.$t('Adjust window') ],
-                },
-                {
-                    id: 'group:layout',
-                    set: 5,
-                    groups: ['layout'],
-                    icon: [ ['fal', 'border-all'] ],
-                    tooltip: [ this.$t('Layout tools') ],
-                },
-                {
-                    id: 'action:link',
-                    set: 6,
-                    groups: [],
-                    icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
-                    tooltip: [ this.$t('Link image stacks'), this.$t('Unlink image stacks') ],
-                },
-                //{
-                //    id: 'undo',
-                //    set: 4,
-                //    groups: ['undo'],
-                //    icon: [ ['fal', 'reply'] ],
-                //    tooltip: [ this.$t('Undo last adjustment'), this.$t('Redo last adjustment') ],
-                //},
-                {
-                    id: 'action:reset',
-                    set: 7,
-                    groups: ['undo'],
-                    icon: [ ['fal', 'reply-all'] ],
-                    overlay: null,
-                    tooltip: [ this.$t('Reset all adjustments'), this.$t('Reapply all adjustment') ],
-                },
-            ],
-            groups: {
-                layout: {
-                    buttons: [
-                        {
-                            id: 'layout:auto',
-                            set: 0,
-                            groups: [],
-                            icon: [ ['fal', 'border-all'] ],
-                            tooltip: [ this.$t('Change layout') ],
-                        },
-                        {
-                            id: 'layout:custom',
-                            set: 0,
-                            groups: [],
-                            icon: [ ['fal', 'border-all'] ],
-                            tooltip: [ this.$t('Change layout') ],
-                        },
-                    ],
-                    // Offset is the distance from the left end of the toolbar row (in pixels).
-                    offset: 660,
-                },
-                measurement:  {
-                    buttons: [
-                        {
-                            id: 'tool:Length',
-                            set: 0,
-                            groups: ['interact'],
-                            icon: [ ['fal', 'ruler'] ],
-                            tooltip: [ this.$t('Measure distance') ],
-                        },
-                        //{
-                        //    id: 'tool:Angle',
-                        //    set: 0,
-                        //    groups: ['interact'],
-                        //    icon: [ ['fal', 'ruler-triangle'] ],
-                        //    tooltip: [ this.$t('Measure distance') ],
-                        //},
-                        {
-                            id: 'tool:EllipticalRoi',
-                            set: 0,
-                            groups: ['interact'],
-                            icon: [ ['fal', 'draw-circle'] ],
-                            tooltip: [ this.$t('Measure area') ],
-                        },
-                    ],
-                    offset: 400,
-                },
-                orientation:  {
-                    buttons: [
-                        {
-                            id: 'action:left',
-                            set: 0,
-                            groups: [],
-                            icon: [ ['far', 'undo-alt'] ],
-                            tooltip: [ this.$t('Rotate counter-clockwise') ],
-                        },
-                        {
-                            id: 'action:right',
-                            set: 0,
-                            groups: [],
-                            // Could also just flip the above icon, but don't want to create an extra option just for this
-                            icon: [ ['far', 'redo-alt'] ],
-                            tooltip: [ this.$t('Rotate clockwise') ],
-                        },
-                        {
-                            id: 'action:fliph',
-                            set: 0,
-                            groups: [],
-                            icon: [ ['far', 'arrows-alt-h'] ],
-                            tooltip: [ this.$t('Flip horizontally') ],
-                        },
-                        {
-                            id: 'action:flipv',
-                            set: 0,
-                            groups: [],
-                            icon: [ ['far', 'arrows-alt-v'] ],
-                            tooltip: [ this.$t('Flip vertically') ],
-                        },
-                    ],
-                    offset: 290,
-                },
-            },
-            // Button states
-            buttonStates: {
-                'group:layout':         { active: false, visible: true, enabled: true } as ButtonState,
-                'layout:auto':          { active: false, visible: true, enabled: true } as ButtonState,
-                'layout:custom':        { active: false, visible: true, enabled: true } as ButtonState,
-                'group:measurement':    { active: false, visible: true, enabled: true } as ButtonState,
-                //'tool:Angle':           { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Crosshairs':      { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:EllipticalRoi':   { active: false, visible: true, enabled: true } as ButtonState,
-                //'tool:SquareRoi':       { active: false, visible: true, enabled: true } as ButtonState,
-                'group:orientation':    { active: false, visible: true, enabled: true } as ButtonState,
-                'action:fliph':         { active: false, visible: true, enabled: true } as ButtonState,
-                'action:flipv':         { active: false, visible: true, enabled: true } as ButtonState,
-                'action:left':          { active: false, visible: true, enabled: true } as ButtonState,
-                'action:right':         { active: false, visible: true, enabled: true } as ButtonState,
-                'action:invert':        { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Length':          { active: false, visible: true, enabled: true } as ButtonState,
-                'action:link':          { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Pan':             { active: false, visible: true, enabled: true } as ButtonState,
-                'action:reset':         { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:StackScroll':     { active: false, visible: true, enabled: true } as ButtonState,
-                'action:undo':          { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Wwwc':            { active: false, visible: true, enabled: true } as ButtonState,
-                'tool:Zoom':            { active: false, visible: true, enabled: true } as ButtonState,
-            } as ButtonRow,
+            buttons: [] as { id: string, set: number, groups: string[], icon: string[][] | null, tooltip: any[] }[],
+            groups: {} as ButtonGroups,
+            buttonStates: {} as any,
             imageLink: null as number[] | null,
             // Button group that is currently open
             activeGroup: null as string | null,
@@ -393,7 +196,7 @@ export default Vue.extend({
             }
             const buttons = [] as ToolbarButton[]
             let buttonSet = null as number | null
-            this.groups[this.activeGroup as keyof ButtonGroups].buttons.forEach((button) => {
+            ;(this.groups as any)[this.activeGroup].buttons.forEach((button: any) => {
                 // Add visible buttons
                 if (this.buttonStates[button.id as keyof ButtonRow].visible) {
                     let newSet = false
@@ -420,7 +223,7 @@ export default Vue.extend({
             if (!this.activeGroup) {
                 return 0
             } else {
-                return this.groups[this.activeGroup as keyof ButtonGroups].offset
+                return (this.groups as any)[this.activeGroup].offset
             }
         },
         buttonRow (): ToolbarButton[] {
@@ -452,6 +255,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.RadiologyToolbar.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.RadiologyToolbar') as any)[str]
+            }
+        },
         /**
          * A button was clicked.
          * @param buttonId string ID of the button
@@ -503,9 +314,9 @@ export default Vue.extend({
                     })
                     const groups = Object.values(this.groups)
                     groups.forEach((group) => {
-                        group.buttons.forEach((groupBtn) => {
+                        group.buttons.forEach((groupBtn: any) => {
                             if (groupBtn.id !== button?.id && groupBtn.groups.length &&
-                                groupBtn.groups.filter((a) => button?.groups.indexOf(a) !== -1).length
+                                groupBtn.groups.filter((a: string) => button?.groups.indexOf(a) !== -1).length
                             ) {
                                 this.buttonStates[groupBtn.id as keyof ButtonRow].active = false
                             }
@@ -528,7 +339,7 @@ export default Vue.extend({
         },
         findButtonById: function (buttonId: string, group?: keyof ButtonGroups) {
             if (group) {
-                return this.groups[group].buttons.find((btn) => { return btn.id === buttonId })
+                return (this.groups[group] as any).buttons.find((btn: any) => { return btn.id === buttonId })
             } else {
                 return this.buttons.find((btn) => { return btn.id === buttonId })
             }
@@ -729,6 +540,199 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Populate button row buttons: [
+        this.buttons = [
+            {
+                // A unique identifier for the button, in the format of <type>:<name>. Must match a key in the ButtonRow interface.
+                id: 'tool:Pan',
+                // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
+                set: 1,
+                // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
+                // Tools that use the same mouse button must all share the same group as well!
+                groups: ['interact'],
+                // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
+                icon: [ ['fal', 'hand-paper'] ],
+                // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
+                tooltip: [ this.t('Pan image') ]
+            },
+            {
+                id: 'tool:Zoom',
+                set: 1,
+                groups: ['interact'],
+                icon: [ ['fal', 'search'] ],
+                tooltip: [ this.t('Zoom') ],
+            },
+            {
+                id: 'tool:StackScroll',
+                set: 1,
+                groups: ['interact'],
+                icon: [ ['fal', 'layer-group'] ],
+                tooltip:[ this.t('Scroll image stack') ]
+            },
+            {
+                id: 'tool:Crosshairs',
+                set: 1,
+                groups: ['interact'],
+                icon: [ ['fal', 'crosshairs'] ],
+                tooltip: [ this.t('Crosshairs') ],
+            },
+            {
+                id: 'group:orientation',
+                set: 2,
+                groups: ['orientation'],
+                icon: [ ['fal', 'arrows'] ],
+                tooltip: [ this.t('Orientation tools') ],
+            },
+            {
+                id: 'group:measurement',
+                set: 3,
+                groups: ['measurement'],
+                icon: null,
+                tooltip: [ this.t('Measurement tools') ],
+            },
+            {
+                id: 'action:invert',
+                set: 4,
+                groups: [],
+                icon: [ ['fad', 'clone'] ],
+                tooltip: [ this.t('Invert image') ],
+            },
+            {
+                id: 'tool:Wwwc',
+                set: 4,
+                groups: ['interact'],
+                icon: [ ['fad', 'adjust'] ],
+                tooltip: [ this.t('Adjust window') ],
+            },
+            {
+                id: 'group:layout',
+                set: 5,
+                groups: ['layout'],
+                icon: [ ['fal', 'border-all'] ],
+                tooltip: [ this.t('Layout tools') ],
+            },
+            {
+                id: 'action:link',
+                set: 6,
+                groups: [],
+                icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
+                tooltip: [ this.t('Link image stacks'), this.t('Unlink image stacks') ],
+            },
+            {
+                id: 'action:reset',
+                set: 7,
+                groups: ['undo'],
+                icon: [ ['fal', 'reply-all'] ],
+                tooltip: [ this.t('Reset all adjustments') ],
+            },
+        ]
+        this.groups = {
+            layout: {
+                buttons: [
+                    {
+                        id: 'layout:auto',
+                        set: 0,
+                        groups: [],
+                        icon: [ ['fal', 'border-all'] ],
+                        tooltip: [ this.t('Automatic layout') ],
+                    },
+                    {
+                        id: 'layout:custom',
+                        set: 0,
+                        groups: [],
+                        icon: [ ['fal', 'border-all'] ],
+                        tooltip: [ this.t('Custom layout') ],
+                    },
+                ],
+                // Offset is the distance from the left end of the toolbar row (in pixels).
+                offset: 660,
+            },
+            measurement:  {
+                buttons: [
+                    {
+                        id: 'tool:Length',
+                        set: 0,
+                        groups: ['interact'],
+                        icon: [ ['fal', 'ruler'] ],
+                        tooltip: [ this.t('Measure distance') ],
+                    },
+                    //{
+                    //    id: 'tool:Angle',
+                    //    set: 0,
+                    //    groups: ['interact'],
+                    //    icon: [ ['fal', 'ruler-triangle'] ],
+                    //    tooltip: [ this.t('Measure angle') ],
+                    //},
+                    {
+                        id: 'tool:EllipticalRoi',
+                        set: 0,
+                        groups: ['interact'],
+                        icon: [ ['fal', 'draw-circle'] ],
+                        tooltip: [ this.t('Measure area') ],
+                    },
+                ],
+                offset: 400,
+            },
+            orientation:  {
+                buttons: [
+                    {
+                        id: 'action:left',
+                        set: 0,
+                        groups: [],
+                        icon: [ ['far', 'undo-alt'] ],
+                        tooltip: [ this.t('Rotate counter-clockwise') ],
+                    },
+                    {
+                        id: 'action:right',
+                        set: 0,
+                        groups: [],
+                        // Could also just flip the above icon, but don't want to create an extra option just for this
+                        icon: [ ['far', 'redo-alt'] ],
+                        tooltip: [ this.t('Rotate clockwise') ],
+                    },
+                    {
+                        id: 'action:fliph',
+                        set: 0,
+                        groups: [],
+                        icon: [ ['far', 'arrows-alt-h'] ],
+                        tooltip: [ this.t('Flip horizontally') ],
+                    },
+                    {
+                        id: 'action:flipv',
+                        set: 0,
+                        groups: [],
+                        icon: [ ['far', 'arrows-alt-v'] ],
+                        tooltip: [ this.t('Flip vertically') ],
+                    },
+                ],
+                offset: 290,
+            },
+        } as any
+        // Button states
+        this.buttonStates = {
+            'group:layout':         { active: false, visible: true, enabled: true } as ButtonState,
+            'layout:auto':          { active: false, visible: true, enabled: true } as ButtonState,
+            'layout:custom':        { active: false, visible: true, enabled: true } as ButtonState,
+            'group:measurement':    { active: false, visible: true, enabled: true } as ButtonState,
+            //'tool:Angle':           { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:Crosshairs':      { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:EllipticalRoi':   { active: false, visible: true, enabled: true } as ButtonState,
+            //'tool:SquareRoi':       { active: false, visible: true, enabled: true } as ButtonState,
+            'group:orientation':    { active: false, visible: true, enabled: true } as ButtonState,
+            'action:fliph':         { active: false, visible: true, enabled: true } as ButtonState,
+            'action:flipv':         { active: false, visible: true, enabled: true } as ButtonState,
+            'action:left':          { active: false, visible: true, enabled: true } as ButtonState,
+            'action:right':         { active: false, visible: true, enabled: true } as ButtonState,
+            'action:invert':        { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:Length':          { active: false, visible: true, enabled: true } as ButtonState,
+            'action:link':          { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:Pan':             { active: false, visible: true, enabled: true } as ButtonState,
+            'action:reset':         { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:StackScroll':     { active: false, visible: true, enabled: true } as ButtonState,
+            'action:undo':          { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:Wwwc':            { active: false, visible: true, enabled: true } as ButtonState,
+            'tool:Zoom':            { active: false, visible: true, enabled: true } as ButtonState,
+        }
         // Subscribe to store dispatches
         this.unsubscribeActions = this.$store.subscribeAction((action) => {
             switch (action.type) {

@@ -8,8 +8,8 @@
             />
         </div>
         <div ref="info-text" class="medigi-viewer-image-placeholder-info">
-            <span v-if="resource === false">{{ $t('Opening failed, please activate the resource manually') }}</span>
-            <span v-else-if="resource === null">{{ $t('Drop an image resource') }}</span>
+            <span v-if="resource === false">{{ t('Opening failed, please activate the resource manually') }}</span>
+            <span v-else-if="resource === null">{{ t('Drop to display an image resource') }}</span>
         </div>
     </div>
 
@@ -48,6 +48,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.Dicom.DicomImagePlaceholder.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.Dicom.DicomImagePlaceholder') as any)[str]
+            }
+        },
         /**
          * Resize the displayed image into given dimensions.
          * @param {number[]} dimensions [width, height].

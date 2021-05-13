@@ -63,7 +63,17 @@ export default Vue.extend({
                 return true
             }
         },
-    }
+    },
+    methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.ToolbarButton.${str}`, args)
+            } else {
+                return (this.$t('components.ToolbarButton') as any)[str]
+            }
+        },
+    },
 })
 
 </script>

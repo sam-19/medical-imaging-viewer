@@ -1,0 +1,9 @@
+{
+    "EegSidebarItem": {
+        "{d} days {h}:{m}:{s}": "{d} days {h}:{m}:{s}",
+        "{h}:{m}:{s} hours": "{h}:{m}:{s} hours",
+        "{m}:{s} minutes": "{m}:{s} minutes",
+        "{n} channels": "{n} channels",
+        "{s} seconds": "{s} seconds"
+    }
+}

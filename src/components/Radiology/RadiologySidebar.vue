@@ -23,15 +23,15 @@
                 { 'medigi-viewer-hidden': !loadingStudies }
             ]">
                 <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
-                {{ $t('LOADING STUDIES') }}
+                {{ t('LOADING STUDIES') }}
             </div>
             <div :id="`${$store.state.appName}-medigi-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
         <div :id="`${$store.state.appName}-medigi-viewer-radiology-statusbar`" class="medigi-viewer-statusbar">
-            <span>{{ $t('Cache status') }}</span>
-            <span>{{ cacheImages }} {{ cacheImages === 1 ? $t('image') : $t('images') }}</span>
+            <span>{{ t('Cache status') }}</span>
+            <span>{{ cacheImages === 1 ? t('1 image') : t('{n} images', { n: cacheImages }) }}</span>
             <span v-if="cacheSize">
-                - {{ cacheUtil }}% {{ $t('usage') }}
+                - {{ t('{n}% used', { n: cacheUtil }) }}
             </span>
         </div>
     </div>
@@ -96,6 +96,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.RadiologySidebar.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.RadiologySidebar') as any)[str]
+            }
+        },
         clearDropZoneHighlight: function () {
             if (this.dropZone) {
                 this.dropZone.classList.remove('medigi-viewer-highlight')

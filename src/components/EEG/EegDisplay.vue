@@ -389,6 +389,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EEG.EegDisplay.${str}`, args)
+            } else {
+                return (this.$t('components.EEG.EegDisplay') as any)[str]
+            }
+        },
         calculateMontageSignals: function () {
         },
         getChannelLabel: function (index: number): string {

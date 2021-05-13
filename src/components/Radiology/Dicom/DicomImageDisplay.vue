@@ -10,24 +10,24 @@
             @contextmenu.prevent
         >
             <div v-if="!isSelectedAnnotation"  class="medigi-viewer-annotation-action" @click="annotationMenu.select()">
-                {{ $t('Select as reference #') + getNextFreeReferenceNum() }}
+                {{ t('Select as reference #{n}', { n: getNextFreeReferenceNum() }) }}
             </div>
             <div v-else class="medigi-viewer-annotation-action" @click="annotationMenu.unselect()">
-                {{ $t('Unselect reference #') + getReferenceNumber() }}
+                {{ t('Unselect reference #{n}', { n: getReferenceNumber() }) }}
             </div>
             <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medigi-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
                 <div v-if="ref" class="medigi-viewer-annotation-compare-title">{{ $t('Compared to reference #') + (idx + 1) }}</div>
                 <div v-if="ref" class="medigi-viewer-annotation-compare-row">
-                    <span>{{ $t('Length') }}</span>
+                    <span>{{ t('Length') }}</span>
                     <span>{{ getAnnotationLengthDiff(ref, annotationMenu.data) }}</span>
                 </div>
                 <div v-if="ref" class="medigi-viewer-annotation-compare-row">
-                    <span>{{ $t('Angle') }}</span>
+                    <span>{{ t('Angle') }}</span>
                     <span>{{ getAnnotationAngleBetween(ref, annotationMenu.data) }}</span>
                 </div>
             </div>
             <div @click="annotationMenu.remove()" class="medigi-viewer-annotation-action">
-                {{ $t('Delete') }}
+                {{ t('Delete') }}
             </div>
         </div>
         <div ref="orientation-marker-top"
@@ -71,7 +71,7 @@
             @contextmenu.prevent
         >
             <div v-if="!mainImageLoaded" class="medigi-viewer-image-loading">
-                {{ $t('Loading') }}
+                {{ t('Loading') }}
                 <span ref="loading-dot-1" style="visibility: hidden">.</span>
                 <span ref="loading-dot-2" style="visibility: hidden">.</span>
                 <span ref="loading-dot-3" style="visibility: hidden">.</span>
@@ -80,7 +80,7 @@
         <!-- Image tools -->
         <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
             :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
-            :title="$t('Link this image stack')"
+            :title="t('Link this image stack')"
             @click="linkImageStack()"
             :class="{ 'medigi-viewer-link-icon-active' : resource.isLinked }"
             class="medigi-viewer-link-icon"
@@ -218,6 +218,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.Dicom.DicomImageDisplay.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.Dicom.DicomImageDisplay') as any)[str]
+            }
+        },
         /**
          * Adjust image levels (window width and center) by given values.
          * @param {number} x amount to adjust window width.
@@ -712,9 +720,9 @@ export default Vue.extend({
             const rowAbs = new cornerstoneMath.Vector3(
                 Math.abs(rowVec3.x), Math.abs(rowVec3.y), Math.abs(rowVec3.z)
             )
-            const ds = [this.$t('orientation.right'), this.$t('orientation.left')]
-            const ap = [this.$t('orientation.anterior'), this.$t('orientation.posterior')]
-            const cc = [this.$t('orientation.cranial'), this.$t('orientation.caudal')]
+            const ds = [this.t('orientation_right'), this.t('orientation_left')]
+            const ap = [this.t('orientation_anterior'), this.t('orientation_posterior')]
+            const cc = [this.t('orientation_cranial'), this.t('orientation_caudal')]
             if (rowVec3.x < 0) ds.reverse()
             if (rowVec3.y < 0) ap.reverse()
             if (rowVec3.z < 0) cc.reverse()

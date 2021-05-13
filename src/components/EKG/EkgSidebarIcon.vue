@@ -2,7 +2,7 @@
     <div class="medigi-viewer-media-icon">
         <div class="medigi-viewer-default-icon">
             <div class="medigi-viewer-icon-biosignal">
-                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+                <span :style="getLabelFontSize()">{{ t(label) }}</span>
             </div>
         </div>
     </div>
@@ -22,6 +22,14 @@ export default Vue.extend({
         type: String,
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.EkgSidebarIcon.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.EkgSidebarIcon') as any)[str]
+            }
+        },
         /**
          * Display the image from cover image URL
          */

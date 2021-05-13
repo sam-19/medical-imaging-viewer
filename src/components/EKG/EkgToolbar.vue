@@ -49,48 +49,8 @@ export default Vue.extend({
     data () {
         return {
             // This array is used to build the button row
-            buttons: [
-                {
-                    // A unique identifier for the button. Must match a key in the ButtonRow interface.
-                    id: 'previous',
-                    // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
-                    set: 0,
-                    // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
-                    // Tools that use the same mouse button must all share the same group as well!
-                    groups: [],
-                    // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                    icon: [ ['fal', 'arrow-alt-up'] ],
-                    // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                    tooltip:[ this.$t('Show previous set of traces') ]
-                },
-                {
-                    id: 'next',
-                    set: 0,
-                    groups: [],
-                    icon: [ ['fal', 'arrow-alt-down'] ],
-                    tooltip: [ this.$t('Show next set of traces') ]
-                },
-                {
-                    id: 'measure',
-                    set: 1,
-                    groups: ['interact'],
-                    icon: [ ['fal', 'ruler-triangle'] ],
-                    tooltip: [ this.$t('Measure') ]
-                },
-                {
-                    id: 'ruler',
-                    set: 1,
-                    groups: [],
-                    icon: [ ['fal', 'ruler'] ],
-                    tooltip: [ this.$t('Display ruler') ]
-                },
-            ],
-            buttonStates: {
-                'measure':          { active: false, visible: true, enabled: true } as ButtonState,
-                'next':             { active: false, visible: true, enabled: true } as ButtonState,
-                'previous':         { active: false, visible: true, enabled: true } as ButtonState,
-                'ruler':            { active: false, visible: true, enabled: true } as ButtonState,
-            },
+            buttons: [] as { id: string, set: number, groups: string[], icon: string[][], tooltip: any[] }[],
+            buttonStates: {} as any,
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
             // Unsubscribe from store actions
@@ -149,6 +109,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.EkgToolbar.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.EkgToolbar') as any)[str]
+            }
+        },
         /**
          * A button was clicked.
          * @param buttonId string ID of the button
@@ -345,6 +313,41 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Build button row (preparation for unified Toolbar component)
+        this.buttons = [
+            {
+                // A unique identifier for the button. Must match a key in the ButtonRow interface.
+                id: 'previous',
+                // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
+                set: 0,
+                // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
+                // Tools that use the same mouse button must all share the same group as well!
+                groups: [],
+                // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
+                icon: [ ['fal', 'arrow-alt-up'] ],
+                // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
+                tooltip:[ this.t('Show previous set of traces') ]
+            },
+            {
+                id: 'next',
+                set: 0,
+                groups: [],
+                icon: [ ['fal', 'arrow-alt-down'] ],
+                tooltip: [ this.t('Show next set of traces') ]
+            },
+            {
+                id: 'measure',
+                set: 1,
+                groups: ['interact'],
+                icon: [ ['fal', 'ruler-triangle'] ],
+                tooltip: [ this.t('Measure') ]
+            },
+        ]
+        this.buttonStates = {
+            'measure':          { active: false, visible: true, enabled: true } as ButtonState,
+            'next':             { active: false, visible: true, enabled: true } as ButtonState,
+            'previous':         { active: false, visible: true, enabled: true } as ButtonState,
+        }
         // Subscribe to store dispatches
         this.unsubscribeActions = this.$store.subscribeAction((action) => {
 

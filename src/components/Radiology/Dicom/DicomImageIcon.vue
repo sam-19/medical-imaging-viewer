@@ -5,18 +5,18 @@
         <!-- Single image -->
         <div v-else class="medigi-viewer-default-icon">
             <div v-if="type==='image'" class="medigi-viewer-icon-image-single">
-                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+                <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
             <!-- Image stack -->
             <div v-else-if="stack" class="medigi-viewer-icon-image-stack">
                 <div></div>
                 <div></div>
                 <div></div>
-                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+                <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
             <!-- Single biosignal -->
             <div v-else-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
-                <span :style="getLabelFontSize()">{{ $t(label) }}</span>
+                <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
         </div>
     </div>
@@ -48,6 +48,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.Dicom.DicomImageIcon.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.Dicom.DicomImageIcon') as any)[str]
+            }
+        },
         /**
          * Display the image from cover image URL
          */

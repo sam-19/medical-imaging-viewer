@@ -17,7 +17,7 @@
                 { 'medigi-viewer-hidden': !loadingStudies }
             ]">
                 <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
-                {{ $t('LOADING STUDIES') }}
+                {{ t('LOADING STUDIES') }}
             </div>
             <div :id="`${$store.state.appName}-medigi-viewer-ekg-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
         </div>
@@ -48,6 +48,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.EkgSidebar.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.EkgSidebar') as any)[str]
+            }
+        },
         clearDropZoneHighlight: function () {
             if (this.dropZone) {
                 this.dropZone.classList.remove('medigi-viewer-highlight')

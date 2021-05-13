@@ -110,6 +110,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EEG.EegInterface.${str}`, args)
+            } else {
+                return (this.$t('components.EEG.EegInterface') as any)[str]
+            }
+        },
         getElementLayoutPosition: function (idx: number): number[][] {
             const layout = this.actualLayout
             // Calculate element position within the layout grid

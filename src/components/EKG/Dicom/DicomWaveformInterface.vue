@@ -135,19 +135,12 @@ export default Vue.extend({
         },
     },
     methods: {
-        addFileAsRecording: function (file: File) {
-            // This is SO BAD, change this to a custom method utilizing dicomParser
-            const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
-            if (imageId) {
-                cornerstone.loadImage(imageId).then((image: any) => {
-                    // Check if it is actually an image?
-                    // These methods should just be moved to root I think.
-                }).catch((response: any) => {
-                    if (response.dataSet && response.dataSet.elements && response.dataSet.elements.x54000100) {
-                        // Add the waveform resource to list of EKGs
-                        this.$root.$emit('add-ekg-resource', new DicomWaveform('Waveform', response.dataSet.elements))
-                    }
-                })
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.DicomWaveformInterface.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.DicomWaveformInterface') as any)[str]
             }
         },
         getElementLayoutPosition: function (idx: number): number[][] {
@@ -159,52 +152,6 @@ export default Vue.extend({
         },
         handleFileDrop: async function (event: DragEvent) {
             (this.$root as any).handleFileDrop(event)
-            return
-            const fileLoader = new LocalFileLoader()
-            fileLoader.readFilesFromSource(event).then((fileTree) => {
-                if (fileTree) {
-                    let rootDir = fileTree
-                    while (rootDir.files && !rootDir.files.length &&
-                           rootDir.directories && rootDir.directories.length === 1
-                    ) {
-                        // Recurse until we arrive at the root folder of the image sets
-                        rootDir = rootDir.directories[0]
-                    }
-                    // Next, check if this is a single file dir or several dirs
-                    if (!rootDir.directories?.length && rootDir.files?.length) {
-                        if (rootDir.files.length > 1) {
-                            // Add each individual file as a separate recording
-                            for (let i=0; i<rootDir.files.length; i++) {
-                                this.addFileAsRecording(rootDir.files[i].file as File)
-                            }
-                        } else {
-                            // Single file as an image
-                            this.addFileAsRecording(rootDir.files[0].file as File)
-                        }
-                    } else if (rootDir.directories?.length) {
-                        // Try to add each individual dir as an image or image stack
-                        // First check that each directory really contains only files, skip those that don't
-                        for (let i=0; i<rootDir.directories.length; i++) {
-                            if (rootDir.directories[i].directories?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it contained subdirectories.`)
-                                continue
-                            } else if (!rootDir.directories[i].files?.length) {
-                                console.warn(`${rootDir.directories[i].path} was omitted because it was empty.`)
-                                continue
-                            } else {
-                                // All files as separate recordings
-                                rootDir.directories[i].files?.forEach((fsItem: FileSystemItem) => {
-                                    this.addFileAsRecording(fsItem.file as File)
-                                })
-                            }
-                        }
-                    } else {
-                        console.warn("Dropped item had an empty root directory!")
-                    }
-                }
-            }).catch((error: Error) => {
-                // TODO: Implement errors in the file loader
-            })
         },
         mediaResized: function () {
             // Check that the element still exists (this method is also fired when the component is destroyed)

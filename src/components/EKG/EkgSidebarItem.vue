@@ -8,7 +8,7 @@
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
-            <div>{{ $t('sidebaritem.channelcount', { count: channels }) }}</div>
+            <div>{{ t('{n} channels', { n: channels }) }}</div>
             <div>{{ parsedDuration }}</div>
         </div>
     </div>
@@ -43,17 +43,25 @@ export default Vue.extend({
             const m = Math.floor((this.duration%(60*60))/60)
             const s = Math.floor(this.duration%60)
             if (d) {
-                return `${d}${this.$t('days_short')} ${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                return this.t('{d} days {h}:{m}:{s}', { d: d, h: h, m: m.toString().padStart(2, '0'), s: s.toString().padStart(2, '0') })
             } else if (h) {
-                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} ${this.$t('hours')}`
+                return this.t('{h}:{m}:{s} hours', { h: h, m: m.toString().padStart(2, '0'), s: s.toString().padStart(2, '0') })
             } else if (m) {
-                return `${m}:${s.toString().padStart(2, '0')} ${this.$t('minutes')}`
+                return this.t('{m}:{s} minutes', { m: m, s: s.toString().padStart(2, '0') })
             } else {
-                return `${s} ${this.$t('seconds')}`
+                return this.t('{s} seconds', { s: s } )
             }
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.EkgSidebarItem.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.EkgSidebarItem') as any)[str]
+            }
+        },
     },
     mounted () {
     },

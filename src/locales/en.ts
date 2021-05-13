@@ -4,19 +4,18 @@
  * @license    MIT
  */
 
+const locApp = require('./en/App.json')
+const locEEG = require('./en/EEG.json')
+const locEKG = require('./en/EKG.json')
+const locRadiology = require('./en/Radiology.json')
+const locToolbarButton = require('./en/ToolbarButton.json')
+
 const messagesEN = {
-    days_short: "d",
-    orientation: {
-        anterior: 'A',
-        caudal: 'F',
-        cranial: 'H',
-        left: 'L',
-        posterior: 'P',
-        right: 'R'
-    },
-    sidebaritem: {
-        channelcount: '%{count} channels',
-        imagecount: '%{count} images',
+    components: {
+        App: locApp,
+        EEG: locEEG,
+        EKG: locEKG,
+        Radiology: locRadiology,
     },
 }
 

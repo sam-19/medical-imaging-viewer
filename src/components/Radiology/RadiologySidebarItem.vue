@@ -13,7 +13,7 @@
         </div>
         <div class="medigi-viewer-sidebar-details">
             <div>{{ title }}</div>
-            <div v-if="count>1 && stack">{{ $t('sidebaritem.imagecount', { count: count }) }}</div>
+            <div v-if="count>1 && stack">{{ t('{n} images', { n: count }) }}</div>
         </div>
     </div>
 </template>
@@ -45,6 +45,14 @@ export default Vue.extend({
         }
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.Radiology.RadiologySidebarItem.${str}`, args)
+            } else {
+                return (this.$t('components.Radiology.RadiologySidebarItem') as any)[str]
+            }
+        },
         loadingCoverFailed: function () {
             if (!this.stack && !this.collation) {
                 console.error(`Unable to load the resource ${this.title}, removing it from resource list.`)

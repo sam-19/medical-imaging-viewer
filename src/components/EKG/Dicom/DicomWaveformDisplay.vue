@@ -17,11 +17,11 @@
                 @contextmenu.prevent
             >
                 <div>
-                    <span>{{ $t('Distance') }}</span>
+                    <span>{{ t('Distance') }}</span>
                     <span v-if="measurements">{{ measurements.distance }} ms</span>
                 </div>
                 <div>
-                    <span>{{ $t('Amplitude') }}</span>
+                    <span>{{ t('Amplitude') }}</span>
                     <span v-if="measurements">{{ measurements.amplitude > 0 ? '+' : '' }}{{ measurements.amplitude }} µV</span>
                 </div>
             </div>
@@ -191,7 +191,7 @@ export default Vue.extend({
                 const traceColor = '#303030'
                 // Wrap it into an object
                 signals[i] = {
-                    name: this.$t(chanLabel),
+                    name: this.t(chanLabel),
                     type: 'scattergl',
                     mode: 'lines',
                     x: this.xAxisRange,
@@ -303,37 +303,8 @@ export default Vue.extend({
             const values = []
             for (let i=0; i<range; i++) {
                 // Only print empty labels
-                //if (!i || i%5) {
-                    values.push('')
-                    continue
-                //}
-                let point = this.viewStart/this.downscaledResolution + i/5
-                let hrs: number = Math.floor(point/60/60)
-                let mins: number = Math.floor((point - hrs*60*60)/60)
-                let secs: number = point - hrs*60*60 - mins*60
-                let timestamp = ''
-                if (hrs) {
-                    timestamp = hrs.toString() + ':'
-                }
-                if (mins) {
-                    if (hrs) {
-                        timestamp += mins.toString().padStart(2, '0') + ':'
-                    } else {
-                        timestamp += mins + ':'
-                    }
-                } else {
-                    if (hrs) {
-                        timestamp += '00:'
-                    } else {
-                        timestamp = '0:'
-                    }
-                }
-                if (secs) {
-                    timestamp += secs.toString().padStart(2, '0')
-                } else {
-                    timestamp += '00'
-                }
-                values.push(timestamp)
+                values.push('')
+                continue
             }
             return values
         },
@@ -368,6 +339,14 @@ export default Vue.extend({
         },
     },
     methods: {
+        /** Shorthand for component-specific translations */
+        t: function (str: string, args?: any) {
+            if (args) {
+                return this.$t(`components.EKG.Dicom.DicomWaveformDisplay.${str}`, args)
+            } else {
+                return (this.$t('components.EKG.Dicom.DicomWaveformDisplay') as any)[str]
+            }
+        },
         calculateMontageSignals: function () {
         },
         getChannelLabel: function (index: number): string {
@@ -379,7 +358,7 @@ export default Vue.extend({
             for (let i=0; i<labelParts.length; i++) {
                 if (labelParts[i] in validLabels) {
                     // Return a standardized channel label
-                    return validLabels[labelParts[i]]
+                    return this.t(validLabels[labelParts[i]])
                 }
             }
             // Fallback: just return the label
