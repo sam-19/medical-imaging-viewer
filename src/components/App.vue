@@ -85,7 +85,7 @@ export default Vue.extend({
     },
     data () {
         return {
-            scope: 'radiology',
+            scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             sidebarOpen: true,
             loadingStudies: false,
             visits: [] as PatientVisit[],
@@ -124,7 +124,10 @@ export default Vue.extend({
             const d = datetimeStr.substring(6, 8)
             const hr = datetimeStr.substring(8, 10)
             const min = datetimeStr.substring(10)
-            return `${d.replace(/^0/, '')}.${m.replace(/^0/, '')}.${y} ${hr}:${min}`
+            return this.$t(
+                'datetime',
+                { y: y, m: m.replace(/^0/, ''), d: d.replace(/^0/, ''), h: hr, min: min }
+            ).toString()
         },
         getVisitTitle: function (idx?: number): string {
             // Return the actual visit title, or a numbered generic title if no actual title is set
@@ -263,13 +266,13 @@ export default Vue.extend({
                             }
                         }
                     }
-                    // Attach possible topogram image to all loaded stacks
+                    // Attach possible topogram image to all applicable stacks
                     if (topoImage !== null) {
-                        visit.studies.radiology.forEach((resource: ImageResource) => {
-                            if (resource.isStack) {
+                        for (const resource of visit.studies.radiology) {
+                            if (resource.isStack && topoImage.modality === resource.modality) {
                                 (resource as ImageResource).topogram = topoImage
                             }
-                        })
+                        }
                     }
                     this.visits.push(visit)
                     // Open the first loaded visit, if none is active
@@ -285,7 +288,6 @@ export default Vue.extend({
                                 bestScope = scope
                             }
                         }
-                        console.log(bestScope, visit)
                         if (bestScope !== '') {
                             this.scope = bestScope
                         }

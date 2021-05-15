@@ -17,6 +17,7 @@ const messagesEN = {
         EKG: locEKG,
         Radiology: locRadiology,
     },
+    datetime: '{y}/{m}/{d} {h}:{min}',
 }
 
 const datetimeUS = {

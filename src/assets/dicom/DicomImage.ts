@@ -182,6 +182,18 @@ class DicomImage implements DicomImageResource {
     set sopInstanceUID (uid: string | undefined) {
         this._sopInstanceUID = uid
     }
+    get studyID () {
+        return this._studyID
+    }
+    set studyID (id: string | undefined) {
+        this._studyID = id
+    }
+    get studyNumber () {
+        return this._studyNumber
+    }
+    set studyNumber (num: number | undefined) {
+        this._studyNumber = num
+    }
     get topogram () {
         return this._topogram
     }
