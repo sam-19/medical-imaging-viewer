@@ -79,9 +79,9 @@ import EdfSignal from '../assets/edf/EdfEegSignal'
 
 export default Vue.extend({
     components: {
-        DicomImageInterface: () => import('./Radiology/Dicom/DicomImageInterface.vue'),
-        DicomWaveformInterface: () => import('./EKG/Dicom/DicomWaveformInterface.vue'),
-        EegInterface: () => import('./EEG/EegInterface.vue'),
+        DicomImageInterface: () => import(/* webpackChunkName: "radiology" */'./Radiology/Dicom/DicomImageInterface.vue'),
+        DicomWaveformInterface: () => import(/* webpackChunkName: "ekg" */'./EKG/Dicom/DicomWaveformInterface.vue'),
+        EegInterface: () => import(/* webpackChunkName: "eeg" */'./EEG/EegInterface.vue'),
     },
     data () {
         return {

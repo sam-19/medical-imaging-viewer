@@ -95,6 +95,7 @@ module.exports = {
             buffer: false,
             fs: false,
             path: false,
-        }
+        },
+        symlinks: false
     }
 }
