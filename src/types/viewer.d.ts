@@ -4,7 +4,8 @@
  * @license    MIT
  */
 
-import { ImageResource, ImageStackResource, SignalResource } from './assets'
+import { BiosignalResource } from './common'
+import { ImageResource } from './radiology'
 
 const MOUSE_BUTTON = {
     LEFT: 0,
@@ -24,9 +25,9 @@ interface PatientVisit {
     examination: string
     history: string
     studies: {
-        eeg: SignalResource[]
-        ekg: SignalResource[]
-        radiology: (ImageResource|ImageStackResource)[]
+        eeg: BiosignalResource[]
+        ekg: BiosignalResource[]
+        radiology: ImageResource[]
     }
     title: string
 }

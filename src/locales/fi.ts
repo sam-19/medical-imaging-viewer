@@ -5,7 +5,7 @@
  */
 
 const messagesFI = {
-
+    datetime: '{d}.{m}.{y} {h}:{min}',
 }
 
 const datetimeFI = {

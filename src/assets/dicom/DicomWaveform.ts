@@ -4,12 +4,13 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { SignalResource, SignalChannel } from '../../types/assets'
+import { BiosignalAnnotation } from '../../types/common'
+import { DicomEkgChannel, DicomEkgResource } from '../../types/ekg'
 
-class DicomWaveform implements SignalResource {
+class DicomWaveform implements DicomEkgResource {
     protected _active: boolean = false
-    protected _annotations: any[] = []
-    protected _channels: SignalChannel[] = []
+    protected _annotations: BiosignalAnnotation[] = []
+    protected _channels: DicomEkgChannel[] = []
     protected _samples: number = 0
     protected _id: string
     protected _name: string
@@ -163,4 +164,4 @@ class DicomWaveform implements SignalResource {
 
 }
 export default DicomWaveform
-export { SignalResource }
+export { DicomEkgResource }

@@ -4,21 +4,22 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { MediaResource } from '../../types/assets'
+import { MediaResource } from '../../types/common'
 class DicomMedia implements MediaResource {
     protected _active: boolean = false
     protected _dimensions: number[] = [0, 0]
     protected _id: string
     protected _linked: boolean = false
-    protected _modality?: string
+    protected _modality: string
     protected _name: string
     protected _size: number
     protected _type: string
     protected _url: string
 
-    constructor (name: string, size: number, type: string, url: string) {
+    constructor (name: string, modality: string, size: number, type: string, url: string) {
         // Generate a pseudo-random identifier for this object
         this._id = Math.random().toString(36).substr(2, 8)
+        this._modality = modality
         this._name = name
         this._size = size
         this._type = type
@@ -48,6 +49,12 @@ class DicomMedia implements MediaResource {
     }
     get isStack () {
         return this._type.endsWith(':stack')
+    }
+    get modality () {
+        return this._modality
+    }
+    set modality (modality: string) {
+        this._modality = modality
     }
     get name () {
         return this._name

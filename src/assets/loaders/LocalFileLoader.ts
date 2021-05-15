@@ -4,7 +4,7 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { FileLoader, FileSystemItem } from '../../types/assets'
+import { FileLoader, FileSystemItem } from '../../types/common'
 
 class LocalFileLoader implements FileLoader {
 

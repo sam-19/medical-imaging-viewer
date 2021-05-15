@@ -68,14 +68,14 @@
 
 import Vue from 'vue'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
-import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
+import { FileSystemItem } from '../types/common'
+import { ImageResource } from '../types/radiology'
 import { PatientVisit } from '../types/viewer'
 import DicomImage from '../assets/dicom/DicomImage'
-import DicomImageStack from '../assets/dicom/DicomImageStack'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
-import EdfSignal from '../assets/edf/EdfSignal'
+import EdfSignal from '../assets/edf/EdfEegSignal'
 
 export default Vue.extend({
     components: {
@@ -85,7 +85,7 @@ export default Vue.extend({
     },
     data () {
         return {
-            scope: 'radiology',
+            scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             sidebarOpen: true,
             loadingStudies: false,
             visits: [] as PatientVisit[],
@@ -124,7 +124,10 @@ export default Vue.extend({
             const d = datetimeStr.substring(6, 8)
             const hr = datetimeStr.substring(8, 10)
             const min = datetimeStr.substring(10)
-            return `${d.replace(/^0/, '')}.${m.replace(/^0/, '')}.${y} ${hr}:${min}`
+            return this.$t(
+                'datetime',
+                { y: y, m: m.replace(/^0/, ''), d: d.replace(/^0/, ''), h: hr, min: min }
+            ).toString()
         },
         getVisitTitle: function (idx?: number): string {
             // Return the actual visit title, or a numbered generic title if no actual title is set
@@ -193,20 +196,30 @@ export default Vue.extend({
                                     if (imageId) {
                                         if (types.length === 1) {
                                             // Add a single image
-                                            (visit.studies.radiology as ImageResource[]).push(new DicomImage(
-                                                study.name, study.data.size, imageId
-                                            ))
+                                            (visit.studies.radiology as ImageResource[]).push(
+                                                new DicomImage(
+                                                    study.meta.modality, study.name, study.data.size, study.type, imageId
+                                                )
+                                            )
                                         } else if (types[1] === 'series') {
                                             // Add an image stack
-                                            const imgStack = new DicomImageStack(study.files.length, study.name)
-                                            ;(visit.studies.radiology as ImageStackResource[]).push(imgStack)
+                                            const imgStack = new DicomImage(
+                                                study.meta.modality, study.name, study.files.length, study.type, ''
+                                            )
+                                            ;(visit.studies.radiology as ImageResource[]).push(imgStack)
                                             const resourceIdx = visit.studies.radiology.length - 1
                                             // Add all loaded files
                                             for (let i=0; i<study.files.length; i++) {
                                                 const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
                                                 if (imageId) {
                                                     imgStack.push(
-                                                        new DicomImage(study.files[i].name, study.files[i].size, imageId)
+                                                        new DicomImage(
+                                                            study.meta.modality,
+                                                            study.files[i].name,
+                                                            study.files[i].size,
+                                                            study.type.split(':')[0],
+                                                            imageId
+                                                        )
                                                     )
                                                 }
                                             }
@@ -214,18 +227,29 @@ export default Vue.extend({
                                             for (let i=0; i<study.urls.length; i++) {
                                                 if (imageId) {
                                                     imgStack.push(
-                                                        new DicomImage(`${study.name}-${i}`, 0, `wadouri:${study.urls[i]}`)
+                                                        new DicomImage(
+                                                            study.meta.modality,
+                                                            `${study.name}-${i}`,
+                                                            0,
+                                                            study.type.split(':')[0],
+                                                            `wadouri:${study.urls[i]}`
+                                                        )
                                                     )
                                                 }
                                             }
                                             // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
                                             if (!imgStack.length) {
                                                 visit.studies.radiology.splice(resourceIdx, 1)
+                                            } else {
+                                                // Set "middle" image as cover image
+                                                const coverIdx = Math.floor(imgStack.length/2)
+                                                imgStack.setCoverImage(coverIdx)
                                             }
-                                            console.log("added")
                                         } else if (types[1] === 'topogram') {
                                             // Add as a topogram image
-                                            topoImage = new DicomImage(study.name, study.data.size, imageId)
+                                            topoImage = new DicomImage(
+                                                study.meta.modality, study.name, study.data.size, study.type, imageId
+                                            )
                                         }
                                     }
                                 }
@@ -242,13 +266,13 @@ export default Vue.extend({
                             }
                         }
                     }
-                    // Attach possible topogram image to all loaded stacks
+                    // Attach possible topogram image to all applicable stacks
                     if (topoImage !== null) {
-                        visit.studies.radiology.forEach((resource: ImageResource | ImageStackResource) => {
-                            if (resource.isStack) {
-                                (resource as ImageStackResource).topogram = topoImage
+                        for (const resource of visit.studies.radiology) {
+                            if (resource.isStack && topoImage.modality === resource.modality) {
+                                (resource as ImageResource).topogram = topoImage
                             }
-                        })
+                        }
                     }
                     this.visits.push(visit)
                     // Open the first loaded visit, if none is active
@@ -264,7 +288,6 @@ export default Vue.extend({
                                 bestScope = scope
                             }
                         }
-                        console.log(bestScope, visit)
                         if (bestScope !== '') {
                             this.scope = bestScope
                         }
@@ -272,9 +295,10 @@ export default Vue.extend({
                 }
                 this.loadingStudies = false
             }).catch((reason) => {
-                console.log(reason)
+                console.error(reason)
                 this.loadingStudies = false
             })
+            console.log(this.selectedVisit)
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
             if (visit !== this.selectedVisit) {

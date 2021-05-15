@@ -7,7 +7,7 @@
 
 import dicomParser from 'dicom-parser'
 import * as edfdecoder from 'edfdecoder'
-import { FileSystemItem, StudyLoader, StudyObject } from '../../types/assets'
+import { FileSystemItem, StudyLoader, StudyObject } from '../../types/common'
 const CONFIG_FILE_NAME = 'medigi_study_config.json'
 
 interface StudyDict {
@@ -92,7 +92,7 @@ class GenericStudyLoader implements StudyLoader {
                         study.meta.instanceId = dataSet.string('x0020000d') || ''
                     }
                     if (!study.meta.modality) {
-                        study.meta.modality = (dataSet.string('x00080060') || '').toLowerCase()
+                        study.meta.modality = (dataSet.string('x00080060') || '').toUpperCase()
                     }
                     // First try if this is a DICOM image file
                     const imageType = dataSet.string('x00080008')
@@ -125,7 +125,7 @@ class GenericStudyLoader implements StudyLoader {
                         }
                     } else if (dataSet.elements.x54000100) {
                         // This is a waveform sequence
-                        if (study.meta.modality === 'ecg') {
+                        if (study.meta.modality === 'ECG') {
                             if (!study.scope) {
                                 study.scope = 'ekg'
                             }

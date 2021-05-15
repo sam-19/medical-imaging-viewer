@@ -32,7 +32,7 @@ export default Vue.extend({
     },
     props: {
         count: Number,
-        cover: String,
+        cover: Object,
         label: String,
         stack: Boolean,
         type: String,
@@ -63,7 +63,7 @@ export default Vue.extend({
             const coverEl = this.$refs['cover-image'] as HTMLDivElement
             if (coverEl) {
                 cornerstone.enable(coverEl)
-                cornerstone.loadAndCacheImage(this.cover).then((image: any) => {
+                cornerstone.loadAndCacheImage(this.cover.url).then((image: any) => {
                     // Get image dimensions and set the cover image dimensions to preserve the aspec ratio
                     /*
                     const maxDim = [150, 125] // Max width and height
