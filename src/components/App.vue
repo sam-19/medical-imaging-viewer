@@ -68,14 +68,15 @@
 
 import Vue from 'vue'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
-import { FileSystemItem, ImageResource, ImageStackResource } from '../types/assets'
+import { FileSystemItem } from '../types/common'
+import { ImageResource } from '../types/radiology'
 import { PatientVisit } from '../types/viewer'
 import DicomImage from '../assets/dicom/DicomImage'
-import DicomImageStack from '../assets/dicom/DicomImageStack'
+import DicomImageStack from '../assets/dicom/DicomImage'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
-import EdfSignal from '../assets/edf/EdfSignal'
+import EdfSignal from '../assets/edf/EdfEegSignal'
 
 export default Vue.extend({
     components: {
@@ -193,20 +194,26 @@ export default Vue.extend({
                                     if (imageId) {
                                         if (types.length === 1) {
                                             // Add a single image
-                                            (visit.studies.radiology as ImageResource[]).push(new DicomImage(
-                                                study.name, study.data.size, imageId
-                                            ))
+                                            (visit.studies.radiology as ImageResource[]).push(
+                                                new DicomImage(
+                                                    study.meta.modality, study.name, study.data.size, study.type, imageId
+                                                )
+                                            )
                                         } else if (types[1] === 'series') {
                                             // Add an image stack
-                                            const imgStack = new DicomImageStack(study.files.length, study.name)
-                                            ;(visit.studies.radiology as ImageStackResource[]).push(imgStack)
+                                            const imgStack = new DicomImage(
+                                                study.meta.modality, study.name, study.files.length, study.type, ''
+                                            )
+                                            ;(visit.studies.radiology as ImageResource[]).push(imgStack)
                                             const resourceIdx = visit.studies.radiology.length - 1
                                             // Add all loaded files
                                             for (let i=0; i<study.files.length; i++) {
                                                 const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
                                                 if (imageId) {
                                                     imgStack.push(
-                                                        new DicomImage(study.files[i].name, study.files[i].size, imageId)
+                                                        new DicomImage(
+                                                            study.meta.modality, study.files[i].name, study.files[i].size, 'image', imageId
+                                                        )
                                                     )
                                                 }
                                             }
@@ -214,7 +221,9 @@ export default Vue.extend({
                                             for (let i=0; i<study.urls.length; i++) {
                                                 if (imageId) {
                                                     imgStack.push(
-                                                        new DicomImage(`${study.name}-${i}`, 0, `wadouri:${study.urls[i]}`)
+                                                        new DicomImage(
+                                                            study.meta.modality, `${study.name}-${i}`, 0, 'image', `wadouri:${study.urls[i]}`
+                                                        )
                                                     )
                                                 }
                                             }
@@ -222,10 +231,11 @@ export default Vue.extend({
                                             if (!imgStack.length) {
                                                 visit.studies.radiology.splice(resourceIdx, 1)
                                             }
-                                            console.log("added")
                                         } else if (types[1] === 'topogram') {
                                             // Add as a topogram image
-                                            topoImage = new DicomImage(study.name, study.data.size, imageId)
+                                            topoImage = new DicomImage(
+                                                study.meta.modality, study.name, study.data.size, study.type, imageId
+                                            )
                                         }
                                     }
                                 }
@@ -244,9 +254,9 @@ export default Vue.extend({
                     }
                     // Attach possible topogram image to all loaded stacks
                     if (topoImage !== null) {
-                        visit.studies.radiology.forEach((resource: ImageResource | ImageStackResource) => {
+                        visit.studies.radiology.forEach((resource: ImageResource) => {
                             if (resource.isStack) {
-                                (resource as ImageStackResource).topogram = topoImage
+                                (resource as ImageResource).topogram = topoImage
                             }
                         })
                     }

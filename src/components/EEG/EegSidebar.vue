@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MediaResource } from '../../types/assets'
+import { MediaResource } from '../../types/common'
 
 export default Vue.extend({
     props: {

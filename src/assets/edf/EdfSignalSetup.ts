@@ -4,14 +4,14 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { SignalSetup, SignalSetupChannel } from '../../types/assets'
+import { EegSetup, EegSetupChannel } from '../../types/eeg'
 
-class EdfSignalSetup implements SignalSetup {
+class EdfEegSetup implements EegSetup {
     protected _id: string
     protected _name: string
-    protected _channels: SignalSetupChannel[] = []
-    protected _missing: SignalSetupChannel[] = []
-    protected _unmatched: SignalSetupChannel[] = []
+    protected _channels: EegSetupChannel[] = []
+    protected _missing: EegSetupChannel[] = []
+    protected _unmatched: EegSetupChannel[] = []
 
     constructor (id: string, channels?: any[], config?: any) {
         this._id = id
@@ -24,13 +24,13 @@ class EdfSignalSetup implements SignalSetup {
     get channels () {
         return this._channels
     }
-    set channels (channels: SignalSetupChannel[]) {
+    set channels (channels: EegSetupChannel[]) {
         this._channels = channels
     }
     get missingChannels () {
         return this._missing
     }
-    set missingChannels (channels: SignalSetupChannel[]) {
+    set missingChannels (channels: EegSetupChannel[]) {
         this._missing = channels
     }
     get name () {
@@ -42,7 +42,7 @@ class EdfSignalSetup implements SignalSetup {
     get unmatchedChannels () {
         return this._unmatched
     }
-    set unmatchedChannels (channels: SignalSetupChannel[]) {
+    set unmatchedChannels (channels: EegSetupChannel[]) {
         this._unmatched = channels
     }
     // Methods
@@ -113,4 +113,4 @@ class EdfSignalSetup implements SignalSetup {
         }
     }
 }
-export default EdfSignalSetup
+export default EdfEegSetup

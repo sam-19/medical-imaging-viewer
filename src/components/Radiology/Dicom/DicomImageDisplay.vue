@@ -121,7 +121,7 @@ import Vue from 'vue'
 import * as cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneMath from 'cornerstone-math'
-import { ImageResource } from '../../../types/assets'
+import DicomImage from '../../../assets/dicom/DicomImage'
 import TopogramReferenceLineTool from '../../../assets/tools/TopogramReferenceLineTool'
 // Some additional Cornerstone Tools methods
 const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
@@ -997,7 +997,7 @@ export default Vue.extend({
                         window.clearInterval(this.loadingDotCycle)
                         this.mainImageLoaded = true
                         // Set up cornerstone stack scroll tool
-                        const imageIds = this.resource.images.map((img: ImageResource) => img.url)
+                        const imageIds = this.resource.images.map((img: DicomImage) => img.url)
                         const stackOpts = {
                             currentImageIdIndex: this.resource.currentPosition,
                             imageIds

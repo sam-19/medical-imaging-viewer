@@ -46,7 +46,6 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { SignalResource } from '../../../types/assets'
 // @ts-ignore: TSLint doesn't find the type definitions for Plotly.js, for some reason
 import * as  Plotly from 'plotly'
 

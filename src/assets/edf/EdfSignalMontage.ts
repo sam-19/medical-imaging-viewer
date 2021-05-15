@@ -4,12 +4,12 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/assets'
+import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
 
- class EdfSignalMontage implements SignalMontage {
+ class EdfEegMontage implements EegMontage {
     protected _label: string
     protected _name: string = 'Unknown'
-    protected _channels: (SignalMontageChannel | null)[] = []
+    protected _channels: (EegMontageChannel | null)[] = []
 
     constructor (label: string, name?: string) {
         // Generate a pseudo-random identifier for this object
@@ -22,7 +22,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
     get channels () {
         return this._channels
     }
-    set channels (channels: (SignalMontageChannel | null)[]) {
+    set channels (channels: (EegMontageChannel | null)[]) {
         this._channels = channels
     }
     get label () {
@@ -42,7 +42,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
         const derivedSignals = []
         const avgMap = [] as number[] // Only calculate averages once
         // Filter channels, if needed
-        const channels = onlyChannels.length ? [] as SignalMontageChannel[] : this._channels
+        const channels = onlyChannels.length ? [] as EegMontageChannel[] : this._channels
         for (const c of onlyChannels) {
             channels.push(this._channels[c])
         }
@@ -117,7 +117,7 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
         }
         return this.getAllSignals(signals, range, [channel as number])[0]
     }
-    mapChannels (setup: SignalSetup, config: any) {
+    mapChannels (setup: EegSetup, config: any) {
         const channelMap: any = {}
         this._channels = []
         // If config is null, construct an 'as recorded' montage
@@ -222,4 +222,4 @@ import { SignalMontage, SignalMontageChannel, SignalSetup } from '../../types/as
         this._channels = []
     }
  }
- export default EdfSignalMontage
+ export default EdfEegMontage

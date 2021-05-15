@@ -40,7 +40,7 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { MediaResource, ImageStackResource } from '../../types/assets'
+import { ImageResource } from '../../types/radiology'
 import VueDraggable from 'vuedraggable'
 
 export default Vue.extend({
@@ -58,7 +58,7 @@ export default Vue.extend({
             dropZone: null as HTMLElement | null,
             lastActivated: null as number | null,
             listShuffled: false,
-            mediaItems: [] as MediaResource[],
+            mediaItems: [] as ImageResource[],
             notices: [] as string[],
         }
     },
@@ -85,10 +85,10 @@ export default Vue.extend({
             return `width: 100%; height: calc(100% - ${heightTaken}px`
         },
         items: {
-            get (): MediaResource[] {
-                return this.dicomItems as MediaResource[]
+            get (): ImageResource[] {
+                return this.dicomItems as ImageResource[]
             },
-            set (value: MediaResource[]) {
+            set (value: ImageResource[]) {
                 // Get the new item order
                 const order = value.map(item => item.id)
                 this.$emit('update-item-order', order)
@@ -148,7 +148,7 @@ export default Vue.extend({
             if (targetId && targetId.startsWith(`${this.$store.state.appName}-medigi-viewer-image-drop-`)) {
                 // Image resource was dropped on one of the placeholder elements
                 const targetIdx = parseInt(targetId.replace(`${this.$store.state.appName}-medigi-viewer-image-drop-`, ''))
-                ;(this.dicomItems[evt.oldIndex] as MediaResource).isActive = true
+                ;(this.dicomItems[evt.oldIndex] as ImageResource).isActive = true
                 this.$emit('item-dropped', { item: evt.oldIndex, target: targetIdx })
             }
         },
@@ -171,10 +171,10 @@ export default Vue.extend({
             this.notices[itemIdx] = message
         },
         toggleActiveItem: function (itemIdx: number, event: MouseEvent) {
-            const item = this.items[itemIdx] as MediaResource
-            const otherActive = [] as MediaResource[]
+            const item = this.items[itemIdx] as ImageResource
+            const otherActive = [] as ImageResource[]
             // See if there are other active items
-            for (const otherItem of this.dicomItems as MediaResource[]) {
+            for (const otherItem of this.dicomItems as ImageResource[]) {
                 if (item !== otherItem && otherItem.isActive) {
                     otherActive.push(otherItem)
                 }
@@ -188,8 +188,8 @@ export default Vue.extend({
                     for (let i=1; i<=Math.abs(diff); i++) {
                         // Either add or substract i from starting index
                         const curIdx = itemIdx + (diff < 0 ? -i : i)
-                        if (!(this.items[curIdx] as MediaResource).isActive) {
-                            (this.items[curIdx] as MediaResource).isActive = true
+                        if (!(this.items[curIdx] as ImageResource).isActive) {
+                            (this.items[curIdx] as ImageResource).isActive = true
                         }
                     }
                 } else if (!event.ctrlKey) {
@@ -211,7 +211,7 @@ export default Vue.extend({
                             otherItem.isActive = false
                             if (otherItem.isStack && otherItem.isLinked) {
                                 // Unlink deactivated items
-                                (otherItem as ImageStackResource).unlink()
+                                (otherItem as ImageResource).unlink()
                             }
                         }
                         // Mark as last activated
@@ -224,7 +224,7 @@ export default Vue.extend({
                     // Simply deactivate, unlink (if needed) and unset last activated item
                     item.isActive = false
                     if (item.isStack && item.isLinked) {
-                        (item as ImageStackResource).unlink()
+                        (item as ImageResource).unlink()
                     }
                     this.lastActivated = null
                 }

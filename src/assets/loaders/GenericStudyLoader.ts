@@ -7,7 +7,7 @@
 
 import dicomParser from 'dicom-parser'
 import * as edfdecoder from 'edfdecoder'
-import { FileSystemItem, StudyLoader, StudyObject } from '../../types/assets'
+import { FileSystemItem, StudyLoader, StudyObject } from '../../types/common'
 const CONFIG_FILE_NAME = 'medigi_study_config.json'
 
 interface StudyDict {

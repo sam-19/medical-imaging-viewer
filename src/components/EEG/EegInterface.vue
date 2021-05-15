@@ -42,7 +42,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import ResizeObserver from 'resize-observer-polyfill'
-import EdfSignal from '../../assets/edf/EdfSignal'
+import EdfSignal from '../../assets/edf/EdfEegSignal'
 
 export default Vue.extend({
     components: {

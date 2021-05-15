@@ -4,17 +4,18 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { SignalResource, SignalChannel, SignalMontage, SignalSetup } from '../../types/assets'
+import { BiosignalResource, BiosignalChannel } from '../../types/common'
+import { EegResource, EegMontage, EegSetup } from '../../types/eeg'
 import EdfSignalMontage from './EdfSignalMontage'
 
-class EdfSignal implements SignalResource {
+class EdfEegSignal implements EegResource {
     protected _active: boolean = false
     protected _annotations: any[] = []
-    protected _channels: SignalChannel[] = []
-    protected _montages: SignalMontage[] = []
-    protected _activeMontage: SignalMontage | null = null
+    protected _channels: BiosignalChannel[] = []
+    protected _montages: EegMontage[] = []
+    protected _activeMontage: EegMontage | null = null
     protected _samples: number = 0
-    protected _setup: SignalSetup | null = null
+    protected _setup: EegSetup | null = null
     protected _id: string
     protected _name: string
     protected _resolution: number = 0 // Maximum resolution in this recording
@@ -57,7 +58,7 @@ class EdfSignal implements SignalResource {
     get montages () {
         return this._montages
     }
-    set montages (montages: SignalMontage[]) {
+    set montages (montages: EegMontage[]) {
         this._montages = montages
     }
     get name () {
@@ -75,7 +76,7 @@ class EdfSignal implements SignalResource {
     get setup () {
         return this._setup
     }
-    set setup (setup: SignalSetup | null) {
+    set setup (setup: EegSetup | null) {
         this._setup = setup
     }
     get type () {
@@ -269,5 +270,5 @@ class EdfSignal implements SignalResource {
         }
     }
 }
-export default EdfSignal
-export { SignalResource }
+export default EdfEegSignal
+export { EegResource }
