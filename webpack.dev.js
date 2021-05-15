@@ -11,8 +11,8 @@ module.exports = merge(common, {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: ASSET_PATH,
-        filename: 'dev-[name].js',
-        chunkFilename: 'dev-[name].js?v=[contenthash]',
+        filename: '[name].js',
+        chunkFilename: '[name].js?v=[contenthash]',
         libraryTarget: 'umd'
     },
     devServer: {
