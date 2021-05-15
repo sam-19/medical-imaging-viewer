@@ -20,7 +20,6 @@ class DicomImage implements DicomImageResource {
     private _images: DicomImageResource[]
     private _instanceLength: number | undefined
     private _instanceNumber: number | undefined
-    private _linked: boolean = false
     private _linkedPosition: number = -1
     // We need to save the position where the stack is linked if we want
     // to allow scrolling relative to that starting point.
@@ -114,10 +113,7 @@ class DicomImage implements DicomImageResource {
         return this._type.endsWith(':collation')
     }
     get isLinked () {
-        return this._linked
-    }
-    set isLinked (val: boolean) {
-        this._linked = val
+        return this._linkedPosition !== -1
     }
     get isStack () {
         return this._type.endsWith(':series')
