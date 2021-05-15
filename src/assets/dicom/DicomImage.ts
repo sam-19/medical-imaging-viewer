@@ -61,7 +61,13 @@ class DicomImage implements DicomImageResource {
         this._columns = columns
     }
     get coverImage () {
-        return this._coverImage
+        if (this._coverImage) {
+            return this._coverImage
+        } else if (!this.isStack && this._url) {
+            return this
+        } else {
+            return null
+        }
     }
     set coverImage (image: DicomImageResource | null) {
         this._coverImage = image
@@ -114,7 +120,7 @@ class DicomImage implements DicomImageResource {
         this._linked = val
     }
     get isStack () {
-        return this._type.endsWith(':stack')
+        return this._type.endsWith(':series')
     }
     get linkedPosition () {
         return this._linkedPosition

@@ -72,7 +72,6 @@ import { FileSystemItem } from '../types/common'
 import { ImageResource } from '../types/radiology'
 import { PatientVisit } from '../types/viewer'
 import DicomImage from '../assets/dicom/DicomImage'
-import DicomImageStack from '../assets/dicom/DicomImage'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
@@ -212,7 +211,11 @@ export default Vue.extend({
                                                 if (imageId) {
                                                     imgStack.push(
                                                         new DicomImage(
-                                                            study.meta.modality, study.files[i].name, study.files[i].size, 'image', imageId
+                                                            study.meta.modality,
+                                                            study.files[i].name,
+                                                            study.files[i].size,
+                                                            study.type.split(':')[0],
+                                                            imageId
                                                         )
                                                     )
                                                 }
@@ -222,7 +225,11 @@ export default Vue.extend({
                                                 if (imageId) {
                                                     imgStack.push(
                                                         new DicomImage(
-                                                            study.meta.modality, `${study.name}-${i}`, 0, 'image', `wadouri:${study.urls[i]}`
+                                                            study.meta.modality,
+                                                            `${study.name}-${i}`,
+                                                            0,
+                                                            study.type.split(':')[0],
+                                                            `wadouri:${study.urls[i]}`
                                                         )
                                                     )
                                                 }
@@ -230,6 +237,10 @@ export default Vue.extend({
                                             // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
                                             if (!imgStack.length) {
                                                 visit.studies.radiology.splice(resourceIdx, 1)
+                                            } else {
+                                                // Set "middle" image as cover image
+                                                const coverIdx = Math.floor(imgStack.length/2)
+                                                imgStack.setCoverImage(coverIdx)
                                             }
                                         } else if (types[1] === 'topogram') {
                                             // Add as a topogram image
@@ -282,9 +293,10 @@ export default Vue.extend({
                 }
                 this.loadingStudies = false
             }).catch((reason) => {
-                console.log(reason)
+                console.error(reason)
                 this.loadingStudies = false
             })
+            console.log(this.selectedVisit)
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
             if (visit !== this.selectedVisit) {

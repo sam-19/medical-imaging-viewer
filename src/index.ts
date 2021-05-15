@@ -7,7 +7,7 @@
 import Vue from 'vue'
 import { MEDigiI18n, ValidLocale } from './i18n'
 import { MEDigiStore, MutationTypes } from './store'
-import { FileSystemItem, MediaResource } from './types/assets'
+import { FileSystemItem, MediaResource } from './types/common'
 
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
