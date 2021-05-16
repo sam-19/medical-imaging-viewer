@@ -1,6 +1,5 @@
 node_modules
 .npmrc
-package-lock.json
 build/*
 dist/*
 test/coverage/*
