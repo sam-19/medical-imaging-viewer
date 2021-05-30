@@ -607,8 +607,6 @@ export default Vue.extend({
         grid-column-start: divider;
         grid-row-start: top-edge;
         grid-row-end: divider;
-        width: calc(100% - 80px);
-        overflow-x: hidden;
     }
     .medigi-viewer-dicom-image-interface > .medigi-viewer-media {
         grid-column-start: divider;

@@ -490,7 +490,7 @@ export default Vue.extend({
     .medigi-viewer-settings {
         position: absolute;
         inset: 0;
-        z-index: 2;
+        z-index: 900;
         background-color: var(--medigi-viewer-background-modal);
     }
     .medigi-viewer-interface-dropdown {
@@ -574,6 +574,8 @@ export default Vue.extend({
         position: absolute;
         right: 0px;
         top: 10px;
-        z-index: 3;
+        padding-left: 10px;
+        z-index: 1000; /* On top of modal */
+        background-color: var(--medigi-viewer-background);
     }
 </style>

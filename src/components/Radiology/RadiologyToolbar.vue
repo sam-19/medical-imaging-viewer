@@ -780,6 +780,6 @@ export default Vue.extend({
     border-right: solid 1px var(--medigi-viewer-border-faint);
     border-bottom: solid 1px var(--medigi-viewer-border-faint);
     padding: 0px 0px 10px 10px;
-    z-index: 200;
+    z-index: 500;
 }
 </style>

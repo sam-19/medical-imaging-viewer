@@ -1227,7 +1227,7 @@ export default Vue.extend({
         border: 2px solid var(--medigi-viewer-border);
         background-color: var(--medigi-viewer-background);
         cursor: pointer;
-        z-index: 1000; /* ALWAYS on top */
+        z-index: 200;
     }
         .medigi-viewer-image-wrapper > .medigi-viewer-annotation-menu > div {
             line-height: 30px;

@@ -117,43 +117,45 @@ export default Vue.extend({
 <style scoped>
 
 .medigi-viewer-settings-modal {
-    width: 600px;
+    width: 620px;
     margin: 30px auto;
+    padding: 10px;
     height: calc(100% - 60px);
+    background-color: var(--medigi-viewer-background);
 }
 .medigi-viewer-settings-modal-title {
-    height: 64px;
-    line-height: 64px;
+    height: 48px;
+    line-height: 40px;
     font-size: 32px;
 }
 .medigi-viewer-settings-modal-tabs {
     display: flex;
+    height: 32px;
+    line-height: 32px;
 }
     .medigi-viewer-settings-modal-tab {
         flex-grow: 0;
-        padding: 5px 10px;
-        float: left;
-        border: 1px solid var(--medigi-viewer-border);
+        padding: 0 10px;
+        border: 1px solid var(--medigi-viewer-border-faint);
         border-right: none;
         border-bottom: none;
-        background-color: var(--medigi-viewer-background);
         cursor: pointer;
     }
         .medigi-viewer-settings-modal-tab-blurred {
-            border-bottom: 1px solid var(--medigi-viewer-border);
+            border-bottom: 1px solid var(--medigi-viewer-border-faint);
             color: var(--medigi-viewer-text-faint);
         }
     .medigi-viewer-settings-modal-tabend {
         flex-grow: 1;
-        border: 1px solid var(--medigi-viewer-border);
+        border: 1px solid var(--medigi-viewer-border-faint);
         border-top: none;
         border-right: none;
     }
 .medigi-viewer-settings-modal-content {
+    height: calc(100% - 80px);
     padding: 10px;
-    border: 1px solid var(--medigi-viewer-border);
+    border: 1px solid var(--medigi-viewer-border-faint);
     border-top: none !important;
-    background-color: var(--medigi-viewer-background);
 }
     .medigi-viewer-settings-modal-row {
         height: 36px;
