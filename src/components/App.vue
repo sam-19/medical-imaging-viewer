@@ -2,6 +2,12 @@
 
     <div :id="`${$store.state.appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
         <div :class="[
+            'medigi-viewer-settings',
+            { 'medigi-viewer-hidden': !settingsOpen },
+        ]">
+            <viewer-settings :scope="scope"></viewer-settings>
+        </div>
+        <div :class="[
             'medigi-viewer-interface-dropdown',
             { 'medigi-viewer-sidebar-closed': !sidebarOpen },
         ]">
@@ -24,22 +30,41 @@
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                         @click="selectActiveResource(visit, 'eeg')"
                     >
-                        {{  t('{n} EEG studies', { n: visit.studies.eeg.length }) }}
+                        {{
+                            visit.studies.eeg.length === 1 ? t('1 EEG study') :
+                            t('{n} EEG studies', { n: visit.studies.eeg.length })
+                        }}
                     </div>
                     <div v-if="visit.studies.ekg.length"
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                         @click="selectActiveResource(visit, 'ekg')"
                     >
-                        {{ t('{n} EKG studies', { n: visit.studies.ekg.length }) }}
+                        {{
+                            visit.studies.ekg.length === 1 ? t('1 EKG study') :
+                            t('{n} EKG studies', { n: visit.studies.ekg.length })
+                        }}
                     </div>
                     <div v-if="visit.studies.radiology.length"
                         class="medigi-viewer-visit-studies medigi-viewer-oneliner"
                          @click="selectActiveResource(visit, 'radiology')"
                     >
-                        {{ t('{n} radiology studies', { n: visit.studies.radiology.length }) }}
+                        {{
+                            visit.studies.radiology.length === 1 ? t('1 radiology study') :
+                            t('{n} radiology studies', { n: visit.studies.radiology.length })
+                        }}
                     </div>
                 </li>
             </ul>
+        </div>
+        <div class="medigi-viewer-settings-button">
+            <toolbar-button
+                id="settings"
+                :enabled="true"
+                :icon="['fal', 'cog']"
+                :overlay="null"
+                :tooltip="t('Settings')"
+                @button-clicked="toggleSettings()"
+            />
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
@@ -82,6 +107,8 @@ export default Vue.extend({
         DicomImageInterface: () => import(/* webpackChunkName: "radiology" */'./Radiology/Dicom/DicomImageInterface.vue'),
         DicomWaveformInterface: () => import(/* webpackChunkName: "ekg" */'./EKG/Dicom/DicomWaveformInterface.vue'),
         EegInterface: () => import(/* webpackChunkName: "eeg" */'./EEG/EegInterface.vue'),
+        ViewerSettings: () => import('./ViewerSettings.vue'),
+        ToolbarButton: () => import('./ToolbarButton.vue'),
     },
     data () {
         return {
@@ -90,6 +117,7 @@ export default Vue.extend({
             loadingStudies: false,
             visits: [] as PatientVisit[],
             selectedVisit: null as PatientVisit|null,
+            settingsOpen: false,
             // Theme change trigger
             themeChange: 0,
         }
@@ -350,6 +378,9 @@ export default Vue.extend({
                 }, 2100)
             }
         },
+        toggleSettings: function () {
+            this.settingsOpen = !this.settingsOpen
+        },
         toggleSidebar: function () {
             this.sidebarOpen = !this.sidebarOpen
         },
@@ -372,24 +403,10 @@ export default Vue.extend({
         }
     },
     mounted () {
-        this.$root.$on('add-ekg-resource', (resource: any) => {
-            if (this.activeVisit) {
-                this.activeVisit.studies.ekg.push(resource)
-                this.scope = 'ekg'
-                this.toggleColorTheme(true)
-            }
-        })
-        // Measure 1 inch in pixels for later trace calibration
-        //const el = document.createElement('div')
-        //el.style.width = '1in'
-        //document.body.appendChild(el)
-        //const dpi = el.offsetWidth
-        //document.body.removeChild(el)
-        //this.screenDPI = dpi
         this.$store.commit('set-settings-value', { field: 'eeg.yPadding', value: 1.5 })
         this.$store.commit('set-settings-value', { field: 'eeg.channelSpacing', value: 1 })
         this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.5 })
-        this.$store.commit('set-settings-value', { field: 'screenDPI', value: 144 })
+        this.$store.commit('set-settings-value', { field: 'screenDPI', value: 96 })
     },
 })
 
@@ -407,6 +424,7 @@ export default Vue.extend({
     --medigi-viewer-background: #000000;
     --medigi-viewer-background-emphasize: #181818;
     --medigi-viewer-background-highlight: #303030;
+    --medigi-viewer-background-modal: rgba(0, 0, 0, 0.7);
     --medigi-viewer-border: #C0C0C0;
     --medigi-viewer-border-faint: #606060;
     --medigi-viewer-border-highlight: #F0F0F0;
@@ -419,6 +437,7 @@ export default Vue.extend({
     --medigi-viewer-background: #FFFFFF;
     --medigi-viewer-background-emphasize: #F8F8F8;
     --medigi-viewer-background-highlight: #F0F0F0;
+    --medigi-viewer-background-modal: rgba(255, 255, 255, 0.7);
     --medigi-viewer-border: #808080;
     --medigi-viewer-border-faint: #A0A0A0;
     --medigi-viewer-border-highlight: #404040;
@@ -453,6 +472,7 @@ export default Vue.extend({
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    font-family: sans-serif;
     /* Set scrollbar width for Firefox */
     scrollbar-width: none;
 }
@@ -467,6 +487,12 @@ export default Vue.extend({
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
     }
+    .medigi-viewer-settings {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background-color: var(--medigi-viewer-background-modal);
+    }
     .medigi-viewer-interface-dropdown {
         position: absolute;
         top: 10px;
@@ -479,7 +505,6 @@ export default Vue.extend({
         font-size: 24px;
         line-height: 56px;
         font-size: 16px;
-        font-family: sans-serif;
         cursor: pointer;
         opacity: 0.8;
         z-index: 1;
@@ -545,4 +570,10 @@ export default Vue.extend({
         .medigi-viewer-interface-dropdown:hover > ul {
             display: block;
         }
+    .medigi-viewer-settings-button {
+        position: absolute;
+        right: 0px;
+        top: 10px;
+        z-index: 3;
+    }
 </style>

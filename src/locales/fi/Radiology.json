@@ -1,0 +1,58 @@
+{
+    "Dicom": {
+        "DicomImageDisplay": {
+            "Angle": "Kulma",
+            "Delete": "Poista",
+            "Length": "Etäisyys",
+            "Link this image stack": "Kytke tämä pakka",
+            "Loading": "Ladataan",
+            "orientation_anterior": "A",
+            "orientation_caudal": "F",
+            "orientation_cranial": "H",
+            "orientation_left": "L",
+            "orientation_posterior": "P",
+            "orientation_right": "R",
+            "Select as reference #{n}": "Valitse referenssiksi #{n}",
+            "Unselect reference #{n}": "Poista referenssi #{n}"
+        },
+        "DicomImageInterface": {
+            "Activate item manually": "Valitse kuvaus manuaalisesti"
+        },
+        "DicomImagePlaceholder": {
+            "Drop to display an image resource": "Raahaa kuvaus tähän",
+            "Opening failed, please activate the resource manually": "Avaaminen epäonnistui, aktivoi kuvaus sivupalkista"
+        }
+    },
+    "RadiologySidebar": {
+        "{n}% used": "{n}% käytössä",
+        "{n} images": "{n} kuvaa",
+        "1 image": "1 kuva",
+        "Cache status": "Välimuistin tila",
+        "LOADING STUDIES": "LADATAAN TUTKIMUKSIA"
+    },
+    "RadiologySidebarItem": {
+        "{n} images": "{n} kuvaa"
+    },
+    "RadiologyToolbar": {
+        "Adjust window": "Säädä ikkunointia",
+        "Automatic layout": "Automaattinen asettelu",
+        "Crosshairs": "Crosshairs",
+        "Custom layout": "Manuaalinen asettelu",
+        "Flip horizontally": "Käännä vaakasuunnassa",
+        "Flip vertically": "Käännä pystysuunnassa",
+        "Invert image": "Käänteinen ikkunointi",
+        "Layout tools": "Asettelutyökalut",
+        "Link image stacks": "Kytke kuvapakat",
+        "Measurement tools": "Mittatyökalut",
+        "Measure area": "Mittaa pinta-ala",
+        "Measure distance": "Mittaa etäisyys",
+        "Orientation tools": "Asentotyökalut",
+        "Pan image": "Liikuta kuvaa",
+        "Reset all adjustments": "Palauta kuva alkuperäiseen tilaan",
+        "Rotate clockwise": "Kierrä myötäpäivään",
+        "Rotate counter-clockwise": "Kierrä vastapäivään",
+        "Scroll image stack": "Selaa kuvapakkaa",
+        "Unlink image stacks": "Poista kytkös",
+        "Zoom": "Suurenna"
+    }
+}

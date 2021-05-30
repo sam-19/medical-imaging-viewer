@@ -20,9 +20,10 @@ import { faArrows as faArrowsR } from '@fortawesome/pro-regular-svg-icons/faArro
 import { faBorderAll } from '@fortawesome/pro-light-svg-icons/faBorderAll'
 import { faCaretDown } from '@fortawesome/pro-light-svg-icons/faCaretDown'
 import { faCaretUp } from '@fortawesome/pro-solid-svg-icons/faCaretUp'
-import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
 import { faChevronSquareLeft } from '@fortawesome/pro-solid-svg-icons/faChevronSquareLeft'
 import { faChevronSquareRight } from '@fortawesome/pro-solid-svg-icons/faChevronSquareRight'
+import { faClone } from '@fortawesome/pro-duotone-svg-icons/faClone'
+import { faCog } from '@fortawesome/pro-light-svg-icons/faCog'
 import { faCompress } from '@fortawesome/pro-duotone-svg-icons/faCompress'
 import { faCrosshairs } from '@fortawesome/pro-light-svg-icons/faCrosshairs'
 import { faDrawCircle as faDrawCircleL } from '@fortawesome/pro-light-svg-icons/faDrawCircle'
@@ -59,9 +60,10 @@ library.add(faArrowsR)
 library.add(faBorderAll)
 library.add(faCaretDown)
 library.add(faCaretUp)
-library.add(faClone)
 library.add(faChevronSquareLeft)
 library.add(faChevronSquareRight)
+library.add(faClone)
+library.add(faCog)
 library.add(faCompress)
 library.add(faCrosshairs)
 library.add(faDrawCircleL)
@@ -171,6 +173,14 @@ class MEDigiViewer {
             )
         }
     }
+    setAppLocale (newLocale: ValidLocale): void {
+        console.log(newLocale)
+    }
+    settingsChanged (setting: string, value: any) {
+        if (setting === 'locale') {
+            this.i18n.locale = value
+        }
+    }
 
     /**
      * Load the Vue component and display the viewer.
@@ -188,6 +198,12 @@ class MEDigiViewer {
             // i18n and store need to be passed to Vue as constants
             const i18n = this.i18n
             const store = this.store
+            store.subscribe((mutation: any, state: any) => {
+                // Monitor settings changes
+                if (mutation.type && mutation.type === 'set-settings-value') {
+                    this.settingsChanged(mutation.payload.field, mutation.payload.value)
+                }
+            })
             const VM = Vue.extend(Viewer)
             this.viewer = new VM({
                 store,

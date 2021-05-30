@@ -1,0 +1,38 @@
+{
+    "Dicom": {
+        "DicomWaveformDisplay": {
+            "Amplitude": "Amplitudi",
+            "aVF": "aVF",
+            "aVL": "aVL",
+            "aVR": "aVR",
+            "Distance": "Kesto",
+            "I": "I",
+            "II": "II",
+            "III": "III",
+            "V1": "V1",
+            "V2": "V2",
+            "V3": "V3",
+            "V4": "V4",
+            "V5": "V5",
+            "V6": "V6"
+        },
+        "DicomWaveformInterface": {
+
+        }
+    },
+    "EkgSidebar": {
+        "LOADING STUDIES": "LADATAAN TUTKIMUKSIA"
+    },
+    "EkgSidebarItem": {
+        "{d} days {h}:{m}:{s}": "{d} vrk {h}:{m}:{s}",
+        "{h}:{m}:{s} hours": "{h}:{m}:{s} tuntia",
+        "{m}:{s} minutes": "{m}:{s} minuuttia",
+        "{n} channels": "{n} kanavaa",
+        "{s} seconds": "{s} sekuntia"
+    },
+    "EkgToolbar": {
+        "Measure": "Mittaa",
+        "Show next set of traces": "Näytä seuraava kanavaryhmä",
+        "Show previous set of traces": "Näytä edellinen kanavaryhmä"
+    }
+}

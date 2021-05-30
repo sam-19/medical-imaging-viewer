@@ -4,7 +4,20 @@
  * @license    MIT
  */
 
+const locApp = require('./fi/App.json')
+const locEEG = require('./fi/EEG.json')
+const locEKG = require('./fi/EKG.json')
+const locRadiology = require('./fi/Radiology.json')
+const locSettings = require('./fi/Settings.json')
+
 const messagesFI = {
+    components: {
+        App: locApp,
+        EEG: locEEG,
+        EKG: locEKG,
+        Radiology: locRadiology,
+        Settings: locSettings,
+    },
     datetime: '{d}.{m}.{y} {h}:{min}',
 }
 

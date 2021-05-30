@@ -91,7 +91,8 @@ export default Vue.extend({
     opacity: 0.8;
 }
     .medigi-viewer-toolbar-button.medigi-viewer-toolbar-group-button {
-        width: 90px;
+        flex-basis: 90px;
+        flex-shrink: 0;
     }
     .medigi-viewer-toolbar-button:hover, .medigi-viewer-toolbar-button.element-active {
         border-color: var(--medigi-viewer-border-highlight);

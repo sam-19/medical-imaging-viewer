@@ -1,0 +1,9 @@
+{
+    "EegSidebarItem": {
+        "{d} days {h}:{m}:{s}": "{d} vrk {h}:{m}:{s}",
+        "{h}:{m}:{s} hours": "{h}:{m}:{s} tuntia",
+        "{m}:{s} minutes": "{m}:{s} minuuttia",
+        "{n} channels": "{n} kanavaa",
+        "{s} seconds": "{s} sekuntia"
+    }
+}
