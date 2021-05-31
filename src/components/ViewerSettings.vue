@@ -128,6 +128,10 @@ export default Vue.extend({
         appLocale: function (value: string, old: string) {
             this.updateSetting('locale', value)
         },
+        scope: function (value: string, old: string) {
+            // Change settings tab to match new scope
+            this.tab = value
+        }
     },
     computed: {
         dpiScaleStyle () {
