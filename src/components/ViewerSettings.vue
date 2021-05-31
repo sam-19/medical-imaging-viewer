@@ -98,7 +98,7 @@
                         @click="appPPI = originalPPI"
                     />
                 </div>
-                <div class="medigi-viewer-settings-modal-dpi-scale" :style="dpiScaleStyle"></div>
+                <div class="medigi-viewer-settings-modal-ppi-scale" :style="ppiScaleStyle"></div>
             </div>
         </div>
     </div>
@@ -134,7 +134,7 @@ export default Vue.extend({
         },
     },
     computed: {
-        dpiScaleStyle () {
+        ppiScaleStyle () {
             const width = this.$store.state.SETTINGS.screenPPI/2.56*5
             if (width > 383) {
                 // Don't exceed field maximum width
@@ -246,7 +246,7 @@ label {
                 height: 24px;
                 width: 200px;
             }
-        .medigi-viewer-settings-modal-dpi-scale {
+        .medigi-viewer-settings-modal-ppi-scale {
             height: 10px;
             margin: 5px 0 0 194px;
             border: 1px solid var(--medigi-viewer-border-faint);
