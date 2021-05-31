@@ -177,6 +177,9 @@ export default Vue.extend({
         }
     },
     watch: {
+        containerSize (value: number[], old: number[]) {
+            this.updateViewStart()
+        },
     },
     computed: {
         downscaledResolution (): number {
@@ -769,9 +772,6 @@ export default Vue.extend({
         },
     },
     mounted () {
-        console.log(this.cmPermV, this.cmPerSec, this.containerSize, this.displayedTraceCount, this.firstTraceIndex,
-        this.marginBottom, this.marginLeft, this.pxPerHorizontalSquare, this.pxPerVerticalSquare, this.resource,
-        this.traceSpacing, this.yAxisRange, this.yPad)
         // Set left margin
         ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
         // Calculate max width for the navigator as a reference
