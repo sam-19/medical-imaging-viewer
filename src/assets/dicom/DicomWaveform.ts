@@ -14,7 +14,7 @@ class DicomWaveform implements DicomEkgResource {
     protected _samples: number = 0
     protected _id: string
     protected _name: string
-    protected _resolution: number = 0
+    protected _maxSamplingRate: number = 0
     protected _type: string = 'unknown'
     protected _url: string = ''
 
@@ -33,6 +33,9 @@ class DicomWaveform implements DicomEkgResource {
     get channels () {
         return this._channels
     }
+    get duration () {
+        return this.sampleCount/this.maxSamplingRate
+    }
     get id () {
         return this._id
     }
@@ -48,8 +51,8 @@ class DicomWaveform implements DicomEkgResource {
     set name (name: string) {
         this._name = name
     }
-    get resolution () {
-        return this._resolution
+    get maxSamplingRate () {
+        return this._maxSamplingRate
     }
     get sampleCount () {
         return this._samples
@@ -95,8 +98,7 @@ class DicomWaveform implements DicomEkgResource {
         // Number of samples (uint)
         this._samples = rootEls.x54000100.items[0].dataSet.uint16('x003a0010')
         // Sampling frequency (number string)
-        console.log(rootEls.x54000100.items[0].dataSet)
-        this._resolution = parseFloat(rootEls.x54000100.items[0].dataSet.string('x003a001a'))
+        this._maxSamplingRate = parseFloat(rootEls.x54000100.items[0].dataSet.string('x003a001a'))
         if (!rootEls.x54000100.items[0].dataSet.elements || !rootEls.x54000100.items[0].dataSet.elements.x003a0200
             || !rootEls.x54000100.items[0].dataSet.elements.x003a0200.items
         ) {
@@ -135,7 +137,7 @@ class DicomWaveform implements DicomEkgResource {
             const altLabel = chanItem.elements.x003a0208.items[0].dataSet.string('x00080104')
             const chanData = {
                 label: chanItem.string('x003a0203') || altLabel || '??',
-                resolution: this._resolution,
+                samplingRate: this._maxSamplingRate,
                 signal: [] as number[],
                 sensitivity: parseFloat(chanItem.string('x003a0210')),
                 sensitivityCF: parseFloat(chanItem.string('x003a0212')), // Sensitivity correction factor

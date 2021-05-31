@@ -53,7 +53,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
             }
             // Convert range from seconds to current channe datapoint indices
             let chanRange = (range && range.length === 2)
-                            ? [range[0]*chan.resolution, (range[1] || 0)*chan.resolution]
+                            ? [range[0]*chan.samplingRate, (range[1] || 0)*chan.samplingRate]
                             : null
             if (!chan.reference.length) {
                 derivedSignals.push(
@@ -127,7 +127,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
                     label: chan.label,
                     name: chan.name,
                     active: chan.index || 0,
-                    resolution: chan.samplingRate || 0,
+                    samplingRate: chan.samplingRate || 0,
                     reference: [],
                     offset: 0,
                 })
@@ -172,7 +172,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
                     name: chan.name,
                     active: channelMap[chan.active].idx,
                     reference: refs,
-                    resolution: channelMap[chan.active].sr,
+                    samplingRate: channelMap[chan.active].sr,
                     offset: 0,
                 })
             }

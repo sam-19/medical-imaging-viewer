@@ -64,7 +64,7 @@ class EdfEegSetup implements EegSetup {
                                 label: chan.label,
                                 name: chan.name,
                                 type: chan.type,
-                                samplingRate: recordChannels[i].resolution,
+                                samplingRate: recordChannels[i].samplingRate,
                                 index: i,
                                 avgRef: chan.averageRef,
                             })
@@ -80,7 +80,7 @@ class EdfEegSetup implements EegSetup {
                                 label: chan.label,
                                 name: chan.name,
                                 type: chan.type,
-                                samplingRate: recordChannels[i].resolution,
+                                samplingRate: recordChannels[i].samplingRate,
                                 index: i,
                                 avgRef: chan.averageRef,
                             })

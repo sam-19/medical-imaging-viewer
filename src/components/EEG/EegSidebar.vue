@@ -4,7 +4,7 @@
             <ekg-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                 :active="item.isActive"
                 :channels="item.channels.length"
-                :duration="item.sampleCount/item.resolution"
+                :duration="item.duration"
                 :id="item.id"
                 :index="idx"
                 :label="item.modality"

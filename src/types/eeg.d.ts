@@ -9,7 +9,6 @@ import { BiosignalResource } from './common'
 interface EegResource extends BiosignalResource {
     activeMontage: EegMontage | null
     montages: EegMontage[]
-    resolution: number
     setup: EegSetup | null
 }
 
@@ -55,7 +54,7 @@ interface EegMontageChannel {
     name: string
     active: number
     reference: number[]
-    resolution: number
+    samplingRate: number
     offset: number
 }
 /**

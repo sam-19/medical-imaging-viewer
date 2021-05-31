@@ -93,6 +93,10 @@ export default Vue.extend({
     computed: {
         activeItems (): DicomWaveform[] {
             this.elementsChanged
+            if (!this.mediaContainerSize[0] || !this.mediaContainerSize[1]) {
+                // Wait until container DOM is done loading
+                return []
+            }
             // Array.filter is a pain to make work in TypeScript
             const items = []
             for (let i=0; i<this.resources.length; i++) {

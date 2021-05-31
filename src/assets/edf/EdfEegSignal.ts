@@ -18,7 +18,7 @@ class EdfEegSignal implements EegResource {
     protected _setup: EegSetup | null = null
     protected _id: string
     protected _name: string
-    protected _resolution: number = 0 // Maximum resolution in this recording
+    protected _maxSamplingRate: number = 0 // Maximum resolution in this recording
     protected _type: string = 'unknown'
     protected _url: string = ''
 
@@ -43,7 +43,7 @@ class EdfEegSignal implements EegResource {
         return this._channels
     }
     get duration () {
-        return this._samples/this.resolution
+        return this._samples/this.maxSamplingRate
     }
     get id () {
         return this._id
@@ -66,8 +66,8 @@ class EdfEegSignal implements EegResource {
     set name (name: string) {
         this._name = name
     }
-    get resolution () {
-        return this._resolution
+    get maxSamplingRate () {
+        return this._maxSamplingRate
     }
     get sampleCount () {
         return this._samples
@@ -122,7 +122,7 @@ class EdfEegSignal implements EegResource {
                 const chanData = {
                     label: data.getSignalLabel(i) || '',
                     name: data.getSignalLabel(i) || '',
-                    resolution: data.getSignalSamplingFrequency(i) || 0,
+                    samplingRate: data.getSignalSamplingFrequency(i) || 0,
                     sensitivity: sensitivity,
                     signal: [...data.getPhysicalSignalConcatRecords(i, 0, totalRecords)],
                     unit: data.getSignalPhysicalUnit(i) || '',
@@ -146,8 +146,8 @@ class EdfEegSignal implements EegResource {
                 }
                 this._channels[i] = chanData
                 // Keep track of maximum resolution and sample count
-                if (chanData.resolution > this._resolution) {
-                    this._resolution = chanData.resolution
+                if (chanData.samplingRate > this._maxSamplingRate) {
+                    this._maxSamplingRate = chanData.samplingRate
                 }
                 if (chanData.sampleCount > this._samples) {
                     this._samples = chanData.sampleCount
@@ -171,8 +171,8 @@ class EdfEegSignal implements EegResource {
         }
         // Calculate signals only for the part that we need
         const signals = this._channels.map((chan) => chan.signal.slice(
-                            Math.floor(chan.resolution*range[0]),
-                            Math.ceil(chan.resolution*range[1]) + 1
+                            Math.floor(chan.samplingRate*range[0]),
+                            Math.ceil(chan.samplingRate*range[1]) + 1
                         ))
         return this._activeMontage.getAllSignals(signals)
     }
@@ -185,14 +185,14 @@ class EdfEegSignal implements EegResource {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
                 signals.push(chan.signal.slice(
-                    Math.floor(chan.resolution*range[0]),
-                    Math.ceil(chan.resolution*range[1]) + 1
+                    Math.floor(chan.samplingRate*range[0]),
+                    Math.ceil(chan.samplingRate*range[1]) + 1
                 ))
             }
         } else {
             // Match setup channels to raw signal data channels
             for (const chan of this._setup.channels) {
-                const res = this._channels[chan.index as number].resolution
+                const res = this._channels[chan.index as number].samplingRate
                 signals.push(this._channels[chan.index as number].signal.slice(
                     Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
                 ))
@@ -217,8 +217,8 @@ class EdfEegSignal implements EegResource {
             }
         }
         const signals = this._channels.map((chan) => chan.signal.splice(
-                            Math.floor(chan.resolution*range[0]),
-                            Math.ceil(chan.resolution*range[1]) + 1
+                            Math.floor(chan.samplingRate*range[0]),
+                            Math.ceil(chan.samplingRate*range[1]) + 1
                         ))
         return this._activeMontage.getChannelSignal(signals, channel as number)
     }
@@ -239,14 +239,14 @@ class EdfEegSignal implements EegResource {
             return [] as number[]
         }
         if (this._setup === null) {
-            const res = this._channels[channel as number].resolution
+            const res = this._channels[channel as number].samplingRate
             // If there is no setup loaded, just return the actual signal data
             return this._channels[channel as number].signal.slice(
                             Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
                         )
         } else {
             // Match setup channels to raw signal data channels
-            const res = this._channels[this._setup.channels[channel as number].index as number].resolution
+            const res = this._channels[this._setup.channels[channel as number].index as number].samplingRate
             return this._channels[this._setup.channels[channel as number].index as number]
                         .signal.slice(Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1)
         }

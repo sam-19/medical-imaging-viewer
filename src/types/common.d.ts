@@ -76,8 +76,9 @@ interface BiosignalResource {
     // Properties
     annotations: BiosignalAnnotation[]
     channels: BiosignalChannel[]
+    duration: number
     name: string
-    resolution: number // Highest resolution in this resource
+    maxSamplingRate: number // Highest resolution in this resource
     sampleCount: number
     type: string
     url: string
@@ -89,7 +90,7 @@ interface BiosignalAnnotation {
 }
 interface BiosignalChannel {
     label: string
-    resolution: number
+    samplingRate: number
     sensitivity: number
     signal: number[]
 }

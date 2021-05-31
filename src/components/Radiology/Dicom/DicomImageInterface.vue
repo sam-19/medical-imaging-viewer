@@ -133,6 +133,10 @@ export default Vue.extend({
     computed: {
         activeItems (): (DicomImage | null | false)[] {
             this.elementsChanged
+            if (!this.mediaContainerSize[0] || !this.mediaContainerSize[1]) {
+                // Wait until container DOM is done loading
+                return []
+            }
             // Array.filter is a pain to make work in TypeScript
             const items = [] as (DicomImage | null | false)[]
             if (this.gridLayout === null || !this.gridLayout[0] || !this.gridLayout[1]) {

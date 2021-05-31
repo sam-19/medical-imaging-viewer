@@ -180,7 +180,7 @@ export default Vue.extend({
     },
     computed: {
         downscaledResolution (): number {
-            return Math.floor(this.resource.resolution/this.downSampleFactor)
+            return Math.floor(this.resource.maxSamplingRate/this.downSampleFactor)
         },
         channelSignals (): any[] {
             const signals: any[] = []
@@ -229,7 +229,7 @@ export default Vue.extend({
             return signal
         },
         navigatorTicks (): number[] {
-            const step = this.navigatorMaxSamples/(this.resource.sampleCount/this.resource.resolution)
+            const step = this.navigatorMaxSamples/(this.resource.duration)
             const ticks = []
             let i = 0
             while (i*step < this.navigatorMaxSamples) {
@@ -530,7 +530,7 @@ export default Vue.extend({
                         // Horizontal paper scale; standard is 1 cm per 2 squares and 2.5cm per sec
                         const scaleF = (this.cmPerSec/2.5)/2
                         // Signal datapoints per second
-                        const ptsPerSec = this.resource.resolution/this.cmPerSec
+                        const ptsPerSec = this.resource.maxSamplingRate/this.cmPerSec
                         // Start position (datapoint)
                         const startX = this.mouseDownPoint.x
                         const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
@@ -547,7 +547,7 @@ export default Vue.extend({
                         //endPos >= 0 && endPos <= this.resource.sampleCount
                         //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signal[endPos] : 0
                         this.measurements = {
-                            distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
+                            distance: Math.round(((endPos - startPos)/this.resource.maxSamplingRate)*1000),
                             amplitude: Math.round((endAmp || 0) - (startAmp || 0)),
                         }
                         ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.y - wrapperPos.top}px`
@@ -712,7 +712,7 @@ export default Vue.extend({
                 return
             }
             // leftPad is the margin applied to the main chart to make the Y-axis zero-line visible
-            const leftPad = 1 * (this.pxPerHorizontalSquare*5/this.resource.resolution)
+            const leftPad = 1 * (this.pxPerHorizontalSquare*5/this.resource.maxSamplingRate)
             const leftWidth = Math.max(Math.floor((this.viewStart/this.resource.sampleCount)*naviWidth - leftPad), 0)
             const actWidth = Math.ceil(((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth)
             const rightWidth = Math.max(
@@ -764,15 +764,18 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
         updateViewStart: function () {
-            const xPxRatio = this.resource.resolution/(this.pxPerHorizontalSquare*5)
+            const xPxRatio = this.resource.maxSamplingRate/(this.pxPerHorizontalSquare*5)
             this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
         },
     },
     mounted () {
+        console.log(this.cmPermV, this.cmPerSec, this.containerSize, this.displayedTraceCount, this.firstTraceIndex,
+        this.marginBottom, this.marginLeft, this.pxPerHorizontalSquare, this.pxPerVerticalSquare, this.resource,
+        this.traceSpacing, this.yAxisRange, this.yPad)
         // Set left margin
         ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
         // Calculate max width for the navigator as a reference
-        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerHorizontalSquare*5
+        this.navigatorMaxWidth = this.resource.duration*this.pxPerHorizontalSquare*5
         // Calculate view bounds
         this.viewEnd = this.getViewEnd()
         this.redrawPlot()
@@ -781,10 +784,10 @@ export default Vue.extend({
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', this.handleMouseUp)
         ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
         // Set ruler scale
-        const hSqr = this.pxPerHorizontalSquare
-        const vSqr = this.pxPerVerticalSquare
-        ;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
-            = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
+        //const hSqr = this.pxPerHorizontalSquare
+        //const vSqr = this.pxPerVerticalSquare
+        //;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
+        //    = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
         // Load navigator
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement)
@@ -795,7 +798,7 @@ export default Vue.extend({
             .addEventListener('click', this.handleNavigatorMouseClick)
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
-    }
+    },
 })
 </script>
 

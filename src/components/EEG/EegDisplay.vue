@@ -171,7 +171,7 @@ export default Vue.extend({
     },
     computed: {
         downscaledResolution (): number {
-            return Math.floor(this.resource.resolution/this.downSampleFactor)
+            return Math.floor(this.resource.maxSamplingRate/this.downSampleFactor)
         },
         channelSignals (): any[] {
             const signals: any[] = []
@@ -248,7 +248,7 @@ export default Vue.extend({
             return signal
         },
         navigatorTicks (): number[] {
-            const step = this.navigatorMaxSamples/(this.resource.sampleCount/this.resource.resolution)
+            const step = this.navigatorMaxSamples/this.resource.duration
             const ticks = []
             let i = 0
             while (i*step < this.navigatorMaxSamples) {
@@ -301,7 +301,7 @@ export default Vue.extend({
          */
         xAxisRange (): number[] {
             return this.viewEnd > this.viewStart
-                    ? [...Array(Math.floor((this.viewEnd-this.viewStart)*this.resource.resolution)).keys()]
+                    ? [...Array(Math.floor((this.viewEnd-this.viewStart)*this.resource.maxSamplingRate)).keys()]
                     : []
         },
         xAxisTicks (): number[] {
@@ -568,7 +568,7 @@ export default Vue.extend({
                         // Horizontal paper scale; standard is 1 cm per 2 squares and 2.5cm per sec
                         const scaleF = (this.cmPerSec/2.5)/2
                         // Signal datapoints per second
-                        const ptsPerSec = this.resource.resolution/this.cmPerSec
+                        const ptsPerSec = this.resource.maxSamplingRate/this.cmPerSec
                         // Start position (datapoint)
                         const startX = this.mouseDownPoint.x - this.marginLeft
                         const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
@@ -583,7 +583,7 @@ export default Vue.extend({
                         //endPos >= 0 && endPos <= this.resource.sampleCount
                         //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signals[endPos] : 0
                         this.measurements = {
-                            distance: Math.round(((endPos - startPos)/this.resource.resolution)*1000),
+                            distance: Math.round(((endPos - startPos)/this.resource.maxSamplingRate)*1000),
                             amplitude: Math.round((endAmp || 0) - (startAmp || 0)),
                         }
                         ;(this.$refs['measurements'] as HTMLDivElement).style.top = `${e.y - wrapperPos.top}px`
@@ -687,17 +687,17 @@ export default Vue.extend({
             const range = this.filterRange
             const channels = this.resource.getAllMontageSignals(range.filter)
             for (let i=0; i<channels.length; i++) {
-                const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.resolution*this.downSampleFactor)
-                const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.resolution*this.downSampleFactor)
+                const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.maxSamplingRate*this.downSampleFactor)
+                const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.maxSamplingRate*this.downSampleFactor)
                 let offset, resFactor
                 if (!this.resource.setup) {
                     // If no setup is loaded, display the raw signals
                     offset = 1.0 - ((i + 1)/(channels.length + 1))
-                    resFactor = this.resource.resolution/this.resource.channels[i].resolution
+                    resFactor = this.resource.maxSamplingRate/this.resource.channels[i].samplingRate
                 } else {
                     // Display montage signals
                     offset = this.resource.activeMontage.channels[i].offset
-                    resFactor = this.resource.resolution/this.resource.activeMontage.channels[i].resolution
+                    resFactor = this.resource.maxSamplingRate/this.resource.activeMontage.channels[i].samplingRate
                 }
                 yValues[i] = [] as (number|null)[]
                 // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
@@ -748,13 +748,13 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
         updateViewStart: function () {
-            const xPxRatio = this.resource.resolution/(this.pxPerMinorGridline*5)
+            const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
             this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
         },
     },
     mounted () {
         // Calculate max width for the navigator as a reference
-        this.navigatorMaxWidth = (this.resource.sampleCount/this.resource.resolution)*this.pxPerMinorGridline*5
+        this.navigatorMaxWidth = this.resource.duration*this.pxPerMinorGridline*5
         // Calculate view bounds
         this.viewEnd = this.getViewEnd()
         this.redrawPlot()
