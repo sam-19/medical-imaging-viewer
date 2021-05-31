@@ -252,6 +252,7 @@ export default Vue.extend({
                         studies: { eeg: [], ekg: [], radiology: [] },
                     } as any
                     let topoImage = null as ImageResource | null
+                    let hasRecord = false // Check that there is at least one actual record in the visit
                     for (const study of studies) {
                         const types = study.type.split(':')
                         if (study.scope === 'radiology') {
@@ -310,12 +311,16 @@ export default Vue.extend({
                                                 // Set "middle" image as cover image
                                                 const coverIdx = Math.floor(imgStack.length/2)
                                                 imgStack.setCoverImage(coverIdx)
+                                                hasRecord = true
                                             }
                                         } else if (types[1] === 'topogram') {
                                             // Add as a topogram image
                                             topoImage = new DicomImage(
                                                 study.meta.modality, study.name, study.data.size, study.type, imageId
                                             )
+                                        } else {
+                                            // Some other image
+                                            hasRecord = true
                                         }
                                     }
                                 }
@@ -323,12 +328,14 @@ export default Vue.extend({
                         } else if (study.scope === 'ekg') {
                             // Add EKG record
                             visit.studies.ekg.push(new DicomWaveform(study.name, study.data))
+                            hasRecord = true
                         } else if (study.format === 'edf') {
                             // Pass the EDF data to EdfSignal class to determine record type
                             const record = new EdfSignal(study.name, study.data, study.meta.loader)
                             if (record.type === 'eeg') {
                                 // Add EEG record
                                 visit.studies.eeg.push(record)
+                                hasRecord = true
                             }
                         }
                     }
@@ -340,7 +347,12 @@ export default Vue.extend({
                             }
                         }
                     }
-                    this.visits.push(visit)
+                    if (visit && hasRecord) {
+                        this.visits.push(visit)
+                    } else {
+                        console.warn("Imported visit did not have any valid imaging studies, the visit was not added.")
+                        return
+                    }
                     // Open the first loaded visit, if none is active
                     if (!this.selectedVisit) {
                         this.selectedVisit = visit
@@ -364,7 +376,6 @@ export default Vue.extend({
                 console.error(reason)
                 this.loadingStudies = false
             })
-            console.log(this.selectedVisit)
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
             if (visit !== this.selectedVisit) {
