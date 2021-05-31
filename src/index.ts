@@ -34,6 +34,7 @@ import { faHandPaper } from '@fortawesome/pro-light-svg-icons/faHandPaper'
 import { faLayerGroup as faLayerGroupL } from '@fortawesome/pro-light-svg-icons/faLayerGroup'
 import { faLayerGroup as faLayerGroupR } from '@fortawesome/pro-regular-svg-icons/faLayerGroup'
 import { faLink } from '@fortawesome/pro-light-svg-icons/faLink'
+import { faQuestionCircle } from '@fortawesome/pro-duotone-svg-icons/faQuestionCircle'
 import { faRedoAlt } from '@fortawesome/pro-regular-svg-icons/faRedoAlt'
 import { faReply } from '@fortawesome/pro-light-svg-icons/faReply'
 import { faReplyAll } from '@fortawesome/pro-light-svg-icons/faReplyAll'
@@ -74,6 +75,7 @@ library.add(faHandPaper)
 library.add(faLayerGroupL)
 library.add(faLayerGroupR)
 library.add(faLink)
+library.add(faQuestionCircle)
 library.add(faRedoAlt)
 library.add(faReply)
 library.add(faReplyAll)
@@ -98,7 +100,7 @@ class MEDigiViewer {
     containerId: string = '#medigi-viewer'
     appName: string
     i18n: any
-    locale: string
+    locale: ValidLocale | null
     store: any
     viewer: Vue | undefined = undefined
 
@@ -112,7 +114,7 @@ class MEDigiViewer {
     constructor (
         appName: string = 'app',
         idSuffix?: string,
-        locale: ValidLocale = 'en',
+        locale: ValidLocale | null = null,
         wpPublicPath: string = './'
     ) {
         // Set webpack public path for script chunk loading (only has to be done once in fact)
@@ -173,9 +175,6 @@ class MEDigiViewer {
             )
         }
     }
-    setAppLocale (newLocale: ValidLocale): void {
-        console.log(newLocale)
-    }
     settingsChanged (setting: string, value: any) {
         if (setting === 'locale') {
             this.i18n.locale = value
@@ -191,19 +190,22 @@ class MEDigiViewer {
             import(/* webpackChunkName: "viewer" */'./components/App.vue'),
         ]).then((imports) => {
             const Viewer = imports[0].default
-            this.i18n = new MEDigiI18n().setup(Vue)
             this.store = new MEDigiStore().setup(Vue)
             this.store.commit(MutationTypes.SET_APP_NAME, this.appName)
             Vue.component('font-awesome-icon', FontAwesomeIcon)
-            // i18n and store need to be passed to Vue as constants
-            const i18n = this.i18n
-            const store = this.store
-            store.subscribe((mutation: any, state: any) => {
+            this.store.subscribe((mutation: any, state: any) => {
                 // Monitor settings changes
                 if (mutation.type && mutation.type === 'set-settings-value') {
                     this.settingsChanged(mutation.payload.field, mutation.payload.value)
                 }
             })
+            // Load locale from store if it wasn't specified
+            this.locale = this.locale || this.store.state.SETTINGS.locale as ValidLocale
+            this.i18n = new MEDigiI18n().setup(Vue, this.locale)
+            // i18n and store need to be passed to Vue as constants
+            const i18n = this.i18n
+            const store = this.store
+            // Create app
             const VM = Vue.extend(Viewer)
             this.viewer = new VM({
                 store,
@@ -211,6 +213,7 @@ class MEDigiViewer {
             }).$mount(this.containerId)
             return true
         }).catch((error) => {
+            console.error(error)
             return false
         })
     }

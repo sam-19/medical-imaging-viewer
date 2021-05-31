@@ -178,6 +178,8 @@ class MEDigiStore {
     }
     setup = function (vueInstance: VueConstructor) {
         vueInstance.use(Vuex)
+        // Check if we have locally saved settings
+        const localSettings = JSON.parse(window.localStorage.getItem('medigiViewerSettings') || '{}')
         // Create a local state to keep multiple instances isolated
         const state: State = {
             activeTool: null as null | string,
@@ -185,9 +187,9 @@ class MEDigiStore {
             cacheStatus: { count: 0, max: 0, size: 0 },
             linkedScrollPosition: 0,
             SETTINGS: {
-                locale: 'en',
+                locale: localSettings.locale || 'en',
                 scopePriority: ['radiology', 'ekg', 'eeg'],
-                screenDPI: 96,
+                screenDPI: localSettings.screenDPI || 96,
                 eeg: {
                     // Setups to load
                     setups: [

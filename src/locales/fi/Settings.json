@@ -1,10 +1,16 @@
 {
+    "Display settings": "Näyttöasetukset",
     "EEG": "EEG",
     "EKG": "EKG",
     "English": "Englanti",
     "Finnish": "Suomi",
     "General": "Yleiset",
-    "Language": "Kieli",
+    "Interface language": "Käyttöliittymän kieli",
+    "Language settings": "Kieliasetukset",
     "Radiology": "Radiologia",
+    "Reset": "Palauta",
+    "Save settings": "Tallenna asetukset",
+    "Screen DPI": "Näytön DPI",
+    "Screen DPI:help": "Dots Per Inch on näytön fyysinen ominaisuus. Säädä arvoa ylös tai alas, kunnes alla näkyvä palkki on 5cm mittainen.",
     "Settings": "Asetukset"
 }

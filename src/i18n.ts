@@ -27,10 +27,10 @@ class MEDigiI18n {
      * @param vueInstance A vue instance (real or test)
      * @return VueI18n
      */
-    setup (vueInstance: VueConstructor): VueI18n {
+    setup (vueInstance: VueConstructor, locale: ValidLocale): VueI18n {
         vueInstance.use(VueI18n)
         return new VueI18n({
-            locale: 'en',
+            locale: locale,
             fallbackLocale: 'en',
             messages: this.messages,
             dateTimeFormats: this.dateTimeFormats as any,

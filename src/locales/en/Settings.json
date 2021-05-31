@@ -1,10 +1,16 @@
 {
+    "Display settings": "Display settings",
     "EEG": "EEG",
     "EKG": "EKG",
     "English": "English",
     "Finnish": "Finnish",
     "General": "General",
-    "Language": "Languange",
+    "Interface language": "Interface language",
+    "Language settings": "Language settings",
     "Radiology": "Radiology",
+    "Reset": "Reset",
+    "Save settings": "Save settings",
+    "Screen DPI": "Screen DPI",
+    "Screen DPI:help": "Screen Dots Per Inch is a physical characteristic of the display. Adjust this value up or down until the bar below is exactly 5cm.",
     "Settings": "Settings"
 }

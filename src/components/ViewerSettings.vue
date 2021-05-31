@@ -39,7 +39,10 @@
             >
                 {{ t('General') }}
             </div>
-            <div class="medigi-viewer-settings-modal-tabend">&nbsp;</div>
+            <div class="medigi-viewer-settings-modal-tabend">
+                <input type="checkbox" v-model="saveSettings" />
+                {{ t('Save settings') }}
+            </div>
         </div>
         <div style="clear:both"></div>
         <!-- SETTINGS -->
@@ -59,9 +62,12 @@
             </div>
         </div>
         <div v-else class="medigi-viewer-settings-modal-content">
+            <div class="medigi-viewer-settings-modal-topic">
+                {{ t('Language settings') }}
+            </div>
             <div class="medigi-viewer-settings-modal-row">
                 <div class="medigi-viewer-settings-modal-label">
-                    {{ t('Language') }}
+                    {{ t('Interface language') }}
                 </div>
                 <div class="medigi-viewer-settings-modal-value">
                     <!-- TODO: Create config and fetch values from there -->
@@ -71,6 +77,26 @@
                     </select>
                     &nbsp;
                 </div>
+            </div>
+            <hr />
+            <div class="medigi-viewer-settings-modal-topic">
+                {{ t('Display settings') }}
+            </div>
+            <div class="medigi-viewer-settings-modal-row">
+                <div class="medigi-viewer-settings-modal-label">
+                    {{ t('Screen DPI') }}
+                    <font-awesome-icon :icon="['fad', 'question-circle']" style="cursor:help" :title="t('Screen DPI:help')" />
+                </div>
+                <div class="medigi-viewer-settings-modal-value">
+                    <input type="number" min="1" max="1000" step="1" v-model="appDPI" />
+                    <font-awesome-icon
+                        :icon="['far', 'undo-alt']"
+                        :title="t('Reset')"
+                        style="cursor:pointer"
+                        @click="appDPI = originalDPI"
+                    />
+                </div>
+                <div class="medigi-viewer-settings-modal-dpi-scale" :style="dpiScaleStyle"></div>
             </div>
         </div>
     </div>
@@ -86,14 +112,30 @@ export default Vue.extend({
     },
     data () {
         return {
+            appDPI: this.$store.state.SETTINGS.screenDPI,
             appLocale: this.$store.state.SETTINGS.locale,
+            originalDPI: this.$store.state.SETTINGS.screenDPI,
+            saveSettings: true,
             tab: this.scope || 'general',
         }
     },
     watch: {
+        appDPI: function (value: number, old: number) {
+            this.updateSetting('screenDPI', value)
+        },
         appLocale: function (value: string, old: string) {
-            this.$store.commit('set-settings-value', { field: 'locale', value: value })
-        }
+            this.updateSetting('locale', value)
+        },
+    },
+    computed: {
+        dpiScaleStyle () {
+            const width = this.$store.state.SETTINGS.screenDPI/2.56*5
+            if (width > 383) {
+                // Don't exceed field maximum width
+                return `width: 383px; background-color: red`
+            }
+            return `width: ${width}px`
+        },
     },
     methods: {
         /** Shorthand for component-specific translations */
@@ -108,6 +150,15 @@ export default Vue.extend({
             if (this.tab !== tab) {
                 this.tab = tab
             }
+        },
+        updateSetting: function (setting: string, value: any) {
+            this.$store.commit('set-settings-value', { field: setting, value: value })
+            if (!this.saveSettings) {
+                return
+            }
+            const localSettings = JSON.parse(window.localStorage.getItem('medigiViewerSettings') || '{}')
+            localSettings[setting as keyof typeof localSettings] = value
+            window.localStorage.setItem('medigiViewerSettings', JSON.stringify(localSettings))
         },
     },
 })
@@ -150,6 +201,7 @@ export default Vue.extend({
         border: 1px solid var(--medigi-viewer-border-faint);
         border-top: none;
         border-right: none;
+        text-align: right;
     }
 .medigi-viewer-settings-modal-content {
     height: calc(100% - 80px);
@@ -157,6 +209,16 @@ export default Vue.extend({
     border: 1px solid var(--medigi-viewer-border-faint);
     border-top: none !important;
 }
+    .medigi-viewer-settings-modal-content > hr {
+        border-color: var(--medigi-viewer-border-faint);
+        border-style: solid none none;
+        border-width: 1px 0px 0px;
+    }
+    .medigi-viewer-settings-modal-topic {
+        height: 36px;
+        line-height: 36px;
+        font-variant: small-caps;
+    }
     .medigi-viewer-settings-modal-row {
         height: 36px;
         line-height: 36px;
@@ -170,9 +232,16 @@ export default Vue.extend({
             width: 383px;
         }
             .medigi-viewer-settings-modal-value input[type=text],
+            .medigi-viewer-settings-modal-value input[type=number],
             .medigi-viewer-settings-modal-value select {
                 height: 24px;
                 width: 200px;
             }
+        .medigi-viewer-settings-modal-dpi-scale {
+            height: 10px;
+            margin: 5px 0 0 194px;
+            border: 1px solid var(--medigi-viewer-border-faint);
+            background-color: var(--medigi-viewer-background-emphasize);
+        }
 
 </style>
