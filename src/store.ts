@@ -18,7 +18,7 @@ type State = {
     SETTINGS: {
         locale: string,
         scopePriority: string[],
-        screenDPI: number,
+        screenPPI: number,
         eeg: {
             bottomBorder: {
                 color: string,
@@ -79,6 +79,7 @@ enum ActionTypes {
     IMAGE_LINK_STACKS = 'image:link-stacks',
     IMAGE_RESTORE_DEFAULT_SETTINGS = 'image:restore-default-settings',
     IMAGE_ROTATE_BY = 'image:rotate-by',
+    SETTINGS_CLOSED = 'settings:closed',
     TOOLS_REENABLE_ACTIVE = 'tools:re-enable-active',
 }
 type Actions = {
@@ -88,6 +89,7 @@ type Actions = {
     [ActionTypes.IMAGE_LINK_STACKS] (value: boolean): void,
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS] (): void,
     [ActionTypes.IMAGE_ROTATE_BY] (angle: number): void,
+    [ActionTypes.SETTINGS_CLOSED] (): void,
     [ActionTypes.TOOLS_REENABLE_ACTIVE] (): void,
 }
 const actions = {
@@ -97,6 +99,7 @@ const actions = {
     [ActionTypes.IMAGE_LINK_STACKS]() {},
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS]() {},
     [ActionTypes.IMAGE_ROTATE_BY]() {},
+    [ActionTypes.SETTINGS_CLOSED]() {},
     [ActionTypes.TOOLS_REENABLE_ACTIVE]() {},
 }
 // Mutations (commits)
@@ -189,7 +192,7 @@ class MEDigiStore {
             SETTINGS: {
                 locale: localSettings.locale || 'en',
                 scopePriority: ['radiology', 'ekg', 'eeg'],
-                screenDPI: localSettings.screenDPI || 96,
+                screenPPI: localSettings.screenPPI || 96,
                 eeg: {
                     // Setups to load
                     setups: [

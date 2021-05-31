@@ -155,11 +155,16 @@ export default Vue.extend({
         }
     },
     watch: {
-        scope: function (old, val) {
+        scope: function (val, old) {
             if (old === 'radiology' || val === 'radiology') {
                 this.toggleColorTheme()
             }
         },
+        settingsOpen: function (val, old) {
+            if (!val) {
+                this.$store.dispatch('settings:closed')
+            }
+        }
     },
     computed: {
         activeVisit (): PatientVisit | null {

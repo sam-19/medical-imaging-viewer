@@ -243,8 +243,8 @@ export default Vue.extend({
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
         // Calculate EKG paper square sizes
-        this.pxPerHorizontalSquare = Math.floor(((this.$store.state.SETTINGS.screenDPI/2.54)*this.cmPerSec)/5)
-        this.pxPerVerticalSquare = Math.floor(((this.$store.state.SETTINGS.screenDPI/2.54)*this.cmPermV)/2)
+        this.pxPerHorizontalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPerSec)/5)
+        this.pxPerVerticalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPermV)/2)
     },
 })
 </script>

@@ -159,6 +159,9 @@ export default Vue.extend({
             // Display an indicator when mouse is dragged on the trace
             mouseDragIndicator: false,
             measurements: null as null | object,
+            // Keep track of screen PPI changes
+            lastPPI: this.$store.state.SETTINGS.screenPPI,
+            settingsUnsub: null as any,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -229,7 +232,7 @@ export default Vue.extend({
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
-            return this.$store.state.SETTINGS.screenDPI/17.7
+            return this.$store.state.SETTINGS.screenPPI/17.7
         },
         navigatorSignal (): any {
             const navigatorColor = '#303030'
@@ -288,10 +291,10 @@ export default Vue.extend({
             return values
         },
         pxPerMicroVolt (): number {
-            return (this.$store.state.SETTINGS.screenDPI/2.54)/this.uVperCm
+            return (this.$store.state.SETTINGS.screenPPI/2.54)/this.uVperCm
         },
         pxPerMinorGridline (): number {
-            return Math.floor(((this.$store.state.SETTINGS.screenDPI/2.54)*this.cmPerSec)/5)
+            return Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPerSec)/5)
         },
         /**
          * The range that can accommodate the signal with the highest sampling rate accross the view range.
@@ -764,9 +767,21 @@ export default Vue.extend({
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
+        // Redraw plot if screen PPI changes
+        this.settingsUnsub = this.$store.subscribeAction((action: any) => {
+            // Monitor PPI setting changes.
+            // Redrawing the plot is slow so only update the value when settings menu is closed.
+            if (action.type === 'settings:closed' && this.$store.state.SETTINGS.screenPPI !== this.lastPPI) {
+                this.lastPPI = this.$store.state.SETTINGS.screenPPI
+                this.redrawPlot()
+            }
+        })
     },
     beforeDestroy () {
         window.removeEventListener('keydown', this.handleKeypress, false)
+        if (this.settingsUnsub !== null) {
+            this.settingsUnsub()
+        }
     },
 })
 </script>

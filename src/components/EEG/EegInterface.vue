@@ -178,7 +178,6 @@ export default Vue.extend({
         },
     },
     mounted () {
-        console.log('interface', this.resources)
         // Check for invalid config values (these should really come from outside the component in the future!)
         if (this.uVperCm <= 0 || this.cmPerSec <= 0) {
             console.error(`Vertical and horizontal scales must be greater than zero!`)

@@ -213,7 +213,7 @@ export default Vue.extend({
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
-            return this.$store.state.SETTINGS.screenDPI/17.7
+            return this.$store.state.SETTINGS.screenPPI/17.7
         },
         navigatorSignal (): any {
             const navigatorColor = '#303030'

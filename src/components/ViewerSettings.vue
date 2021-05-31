@@ -86,16 +86,16 @@
             </div>
             <div class="medigi-viewer-settings-modal-row">
                 <div class="medigi-viewer-settings-modal-label">
-                    {{ t('Screen DPI') }}
-                    <font-awesome-icon :icon="['fad', 'question-circle']" style="cursor:help" :title="t('Screen DPI:help')" />
+                    {{ t('Screen PPI') }}
+                    <font-awesome-icon :icon="['fad', 'question-circle']" style="cursor:help" :title="t('Screen PPI:help')" />
                 </div>
                 <div class="medigi-viewer-settings-modal-value">
-                    <input type="number" min="1" max="1000" step="1" v-model="appDPI" />
+                    <input type="number" min="72" max="1000" step="1" v-model="appPPI" />
                     <font-awesome-icon
                         :icon="['far', 'undo-alt']"
                         :title="t('Reset')"
                         style="cursor:pointer"
-                        @click="appDPI = originalDPI"
+                        @click="appPPI = originalPPI"
                     />
                 </div>
                 <div class="medigi-viewer-settings-modal-dpi-scale" :style="dpiScaleStyle"></div>
@@ -114,16 +114,16 @@ export default Vue.extend({
     },
     data () {
         return {
-            appDPI: this.$store.state.SETTINGS.screenDPI,
+            appPPI: this.$store.state.SETTINGS.screenPPI,
             appLocale: this.$store.state.SETTINGS.locale,
-            originalDPI: this.$store.state.SETTINGS.screenDPI,
+            originalPPI: this.$store.state.SETTINGS.screenPPI,
             saveSettings: true,
             tab: this.scope || 'general',
         }
     },
     watch: {
-        appDPI: function (value: number, old: number) {
-            this.updateSetting('screenDPI', value)
+        appPPI: function (value: number, old: number) {
+            this.updateSetting('screenPPI', value)
         },
         appLocale: function (value: string, old: string) {
             this.updateSetting('locale', value)
@@ -131,11 +131,11 @@ export default Vue.extend({
         scope: function (value: string, old: string) {
             // Change settings tab to match new scope
             this.tab = value
-        }
+        },
     },
     computed: {
         dpiScaleStyle () {
-            const width = this.$store.state.SETTINGS.screenDPI/2.56*5
+            const width = this.$store.state.SETTINGS.screenPPI/2.56*5
             if (width > 383) {
                 // Don't exceed field maximum width
                 return `width: 383px; background-color: red`
