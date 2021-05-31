@@ -1,4 +1,7 @@
 {
+    "EegSidebar": {
+        "LOADING STUDIES": "LADATAAN TUTKIMUKSIA"
+    },
     "EegSidebarItem": {
         "{d} days {h}:{m}:{s}": "{d} vrk {h}:{m}:{s}",
         "{h}:{m}:{s} hours": "{h}:{m}:{s} tuntia",

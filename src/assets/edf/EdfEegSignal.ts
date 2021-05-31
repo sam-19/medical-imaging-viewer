@@ -28,7 +28,6 @@ class EdfEegSignal implements EegResource {
         this._name = name
         if (data) {
             this.extractSignalsFromEdfData(data, loader || undefined)
-            console.log("data", data)
             // Create an 'as recorded' montage
 
         }

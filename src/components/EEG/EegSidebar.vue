@@ -31,6 +31,7 @@ import { MediaResource } from '../../types/common'
 export default Vue.extend({
     props: {
         items: Array,
+        loadingStudies: Boolean,
     },
     components: {
         EkgSidebarItem: () => import('./EegSidebarItem.vue'),
