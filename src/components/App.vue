@@ -10,11 +10,24 @@
             <viewer-settings :scope="scope"></viewer-settings>
         </div>
         <div :class="[
-            'medigi-viewer-interface-dropdown',
-            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
-        ]">
-            <div v-if="activeVisit" class="medigi-viewer-oneliner">{{ getVisitTitle() }}</div>
-            <div v-else class="medigi-viewer-oneliner">{{ t('No visit selected') }}</div>
+                'medigi-viewer-interface-dropdown',
+                { 'medigi-viewer-interface-dropdown-open' : menuOpen },
+                { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+            ]"
+            @mouseleave="toggleMenu(false)"
+        >
+            <div v-if="activeVisit"
+                class="medigi-viewer-oneliner"
+                @click="toggleMenu()"
+            >
+                {{ getVisitTitle() }}
+            </div>
+            <div v-else
+                class="medigi-viewer-oneliner"
+                @click="toggleMenu()"
+            >
+                {{ t('No visit selected') }}
+            </div>
             <font-awesome-icon
                 :icon="sidebarOpen ? ['fas', 'chevron-square-left'] : ['fas', 'chevron-square-right']"
                 :title="sidebarOpen ? t('Close sidebar') : t('Open sidebar')"
@@ -130,6 +143,7 @@ export default Vue.extend({
         return {
             fullscreen: false,
             loadingStudies: false,
+            menuOpen: false,
             scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             selectedVisit: null as PatientVisit|null,
             settingsMenuOpen: false,
@@ -405,6 +419,13 @@ export default Vue.extend({
         toggleFullscreen: function () {
             this.fullscreen = !this.fullscreen
         },
+        toggleMenu: function (value?: boolean) {
+            if (value !== undefined) {
+                this.menuOpen = value
+            } else {
+                this.menuOpen = !this.menuOpen
+            }
+        },
         toggleSettings: function () {
             this.settingsOpen = !this.settingsOpen
             if (this.settingsOpen && this.settingsMenuOpen) {
@@ -546,7 +567,7 @@ export default Vue.extend({
         z-index: 1;
         transition: left 0.5s;
     }
-        .medigi-viewer-interface-dropdown:hover {
+        .medigi-viewer-interface-dropdown-open {
             opacity: 1.0;
             height: auto;
         }
@@ -603,7 +624,7 @@ export default Vue.extend({
                 .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-studies:hover {
                     background-color: var(--medigi-viewer-background-highlight);
                 }
-        .medigi-viewer-interface-dropdown:hover > ul {
+        .medigi-viewer-interface-dropdown-open > ul {
             display: block;
         }
     .medigi-viewer-settings-button {
