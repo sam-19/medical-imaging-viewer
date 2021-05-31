@@ -40,8 +40,10 @@
                 {{ t('General') }}
             </div>
             <div class="medigi-viewer-settings-modal-tabend">
-                <input type="checkbox" v-model="saveSettings" />
-                {{ t('Save settings') }}
+                <label>
+                    <input type="checkbox" v-model="saveSettings" />
+                    {{ t('Save settings') }}
+                </label>
             </div>
         </div>
         <div style="clear:both"></div>
@@ -167,6 +169,9 @@ export default Vue.extend({
 
 <style scoped>
 
+label {
+    cursor: pointer;
+}
 .medigi-viewer-settings-modal {
     width: 620px;
     margin: 30px auto;

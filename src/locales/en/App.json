@@ -1,12 +1,13 @@
 {
-    "Close sidebar": "Close sidebar",
     "1 EEG study": "1 EEG study",
     "{n} EEG studies": "{n} EEG studies",
     "1 EKG study": "1 EKG study",
     "{n} EKG studies": "{n} EKG studies",
-    "No visit selected": "No visit selected",
-    "Open sidebar": "Open sidebar",
     "1 radiology study": "1 radiology study",
     "{n} radiology studies": "{n} radiology studies",
+    "Close sidebar": "Close sidebar",
+    "Full screen": "Full screen",
+    "No visit selected": "No visit selected",
+    "Open sidebar": "Open sidebar",
     "Settings": "Settings"
 }

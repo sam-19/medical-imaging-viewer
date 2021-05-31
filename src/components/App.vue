@@ -2,9 +2,11 @@
 
     <div :id="`${$store.state.appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
         <div :class="[
-            'medigi-viewer-settings',
-            { 'medigi-viewer-hidden': !settingsOpen },
-        ]">
+                'medigi-viewer-settings',
+                { 'medigi-viewer-hidden': !settingsOpen },
+            ]"
+            @click="handleModalClick"
+        >
             <viewer-settings :scope="scope"></viewer-settings>
         </div>
         <div :class="[
@@ -63,8 +65,22 @@
                 :icon="['fal', 'cog']"
                 :overlay="null"
                 :tooltip="t('Settings')"
-                @button-clicked="toggleSettings()"
+                @button-clicked="toggleSettingsMenu()"
             />
+        </div>
+        <div :class="[
+                'medigi-viewer-settings-menu',
+                { 'medigi-viewer-hidden' : !settingsMenuOpen }
+            ]"
+        >
+            <div class="medigi-viewer-settings-menu-row" @click="toggleFullscreen()">
+                <font-awesome-icon :icon="['far', fullscreen ? 'compress' : 'expand']" />
+                {{ t('Full screen') }}
+            </div>
+            <div class="medigi-viewer-settings-menu-row" @click="toggleSettings()">
+                <font-awesome-icon :icon="['far', 'cog']" />
+                {{ t('Settings') }}
+            </div>
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
@@ -112,12 +128,14 @@ export default Vue.extend({
     },
     data () {
         return {
-            scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
-            sidebarOpen: true,
+            fullscreen: false,
             loadingStudies: false,
-            visits: [] as PatientVisit[],
+            scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             selectedVisit: null as PatientVisit|null,
+            settingsMenuOpen: false,
             settingsOpen: false,
+            sidebarOpen: true,
+            visits: [] as PatientVisit[],
             // Theme change trigger
             themeChange: 0,
         }
@@ -193,6 +211,12 @@ export default Vue.extend({
             }).catch((e: Error) => {
                 // TODO: Implement errors in the file loader
             })
+        },
+        handleModalClick: function (ev: any) {
+            // Close the settings modal if the underlying (semi-transparent) background was clicked
+            if (ev.target === document.querySelector('div.medigi-viewer-settings')) {
+                this.settingsOpen = false
+            }
         },
         /**
          * Load studies from a given FilesystemItem.
@@ -378,8 +402,21 @@ export default Vue.extend({
                 }, 2100)
             }
         },
+        toggleFullscreen: function () {
+            this.fullscreen = !this.fullscreen
+        },
         toggleSettings: function () {
             this.settingsOpen = !this.settingsOpen
+            if (this.settingsOpen && this.settingsMenuOpen) {
+                this.settingsMenuOpen = false
+            }
+        },
+        toggleSettingsMenu: function () {
+            if (this.settingsOpen) {
+                this.settingsOpen = false
+            } else {
+                this.settingsMenuOpen = !this.settingsMenuOpen
+            }
         },
         toggleSidebar: function () {
             this.sidebarOpen = !this.sidebarOpen
@@ -577,4 +614,25 @@ export default Vue.extend({
         z-index: 1000; /* On top of modal */
         background-color: var(--medigi-viewer-background);
     }
+    .medigi-viewer-settings-menu {
+        position: absolute;
+        top: 80px;
+        right: 10px;
+        background-color: var(--medigi-viewer-background);
+        border-left: solid 1px var(--medigi-viewer-border-faint);
+        border-bottom: solid 1px var(--medigi-viewer-border-faint);
+        z-index: 500;
+    }
+        .medigi-viewer-settings-menu-row {
+            height: 32px;
+            line-height: 32px;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+            .medigi-viewer-settings-menu-row:hover {
+                background-color: var(--medigi-viewer-background-highlight);
+            }
+            .medigi-viewer-settings-menu-row > svg {
+                margin-right: 5px;
+            }
 </style>
