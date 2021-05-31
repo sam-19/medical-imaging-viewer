@@ -451,10 +451,10 @@ export default Vue.extend({
 <style>
 /* Global app styles */
 .medigi-viewer-theme-change, .medigi-viewer-theme-change * {
-    -ms-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
-    -moz-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
-    -webkit-transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
-    transition: color 1.0s ease, background-color 1.0s ease, border-color 1.0s ease;
+    -ms-transition: background-color 1.0s ease, border-color 1.0s ease;
+    -moz-transition: background-color 1.0s ease, border-color 1.0s ease;
+    -webkit-transition: background-color 1.0s ease, border-color 1.0s ease;
+    transition: background-color 1.0s ease, border-color 1.0s ease;
 }
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
