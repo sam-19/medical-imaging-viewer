@@ -79,84 +79,85 @@ class GenericStudyLoader implements StudyLoader {
                     } else {
                         // Need something else for larger files
                     }
-                }
-                try {
-                    const byteArray = new Uint8Array(await file.arrayBuffer())
-                    const dataSet = dicomParser.parseDicom(byteArray)
-                    if (!study.format) {
-                        // DICOM format
-                        study.format = 'dicom'
-                    }
-                    if (!study.meta.instanceId) {
-                        // Save study instance UID
-                        study.meta.instanceId = dataSet.string('x0020000d') || ''
-                    }
-                    if (!study.meta.modality) {
-                        study.meta.modality = (dataSet.string('x00080060') || '').toUpperCase()
-                    }
-                    // First try if this is a DICOM image file
-                    const imageType = dataSet.string('x00080008')
-                    if (imageType !== undefined) {
-                        // This is a radiological image
-                        if (!study.scope) {
-                            study.scope = 'radiology'
+                } else {
+                    // DICOM files may not have any extension, try DICOM first
+                    try {
+                        const byteArray = new Uint8Array(await file.arrayBuffer())
+                        const dataSet = dicomParser.parseDicom(byteArray)
+                        if (!study.format) {
+                            // DICOM format
+                            study.format = 'dicom'
                         }
-                        // Use the file as data object for WADOImageLoader
-                        study.data = file
-                        if (!study.type) {
-                            const typeParts = imageType.split('\\')
-                            // Part 3 defines a possible localizer (topogram) image
-                            if (typeParts[2].toLowerCase() === 'localizer') {
-                                study.type = 'image:topogram'
-                            } else {
-                                study.type = 'image'
+                        if (!study.meta.instanceId) {
+                            // Save study instance UID
+                            study.meta.instanceId = dataSet.string('x0020000d') || ''
+                        }
+                        if (!study.meta.modality) {
+                            study.meta.modality = (dataSet.string('x00080060') || '').toUpperCase()
+                        }
+                        // First try if this is a DICOM image file
+                        const imageType = dataSet.string('x00080008')
+                        if (imageType !== undefined) {
+                            // This is a radiological image
+                            if (!study.scope) {
+                                study.scope = 'radiology'
                             }
-                        }
-                        // Add possible related study instances
-                        if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
-                            for (const relItem of dataSet.elements.x00081140.items) {
-                                if (relItem.dataSet) {
-                                    if (!study.meta.relatedStudies) {
-                                        study.meta.relatedStudies = []
-                                    }
-                                    study.meta.relatedStudies.push(relItem.dataSet.string('x00081150'))
+                            // Use the file as data object for WADOImageLoader
+                            study.data = file
+                            if (!study.type) {
+                                const typeParts = imageType.split('\\')
+                                // Part 3 defines a possible localizer (topogram) image
+                                if (typeParts[2].toLowerCase() === 'localizer') {
+                                    study.type = 'image:topogram'
+                                } else {
+                                    study.type = 'image'
                                 }
                             }
-                        }
-                    } else if (dataSet.elements.x54000100) {
-                        // This is a waveform sequence
-                        if (study.meta.modality === 'ECG') {
+                            // Add possible related study instances
+                            if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
+                                for (const relItem of dataSet.elements.x00081140.items) {
+                                    if (relItem.dataSet) {
+                                        if (!study.meta.relatedStudies) {
+                                            study.meta.relatedStudies = []
+                                        }
+                                        study.meta.relatedStudies.push(relItem.dataSet.string('x00081150'))
+                                    }
+                                }
+                            }
+                        } else if (dataSet.elements.x54000100) {
+                            // This is a waveform sequence
+                            if (study.meta.modality === 'ECG') {
+                                if (!study.scope) {
+                                    study.scope = 'ekg'
+                                }
+                                if (!study.type) {
+                                    study.type = dataSet.string('x00081030') || ''
+                                }
+                                // Use the parsed dataset as data object
+                                study.data = dataSet
+                            }
+                        } else if (dataSet.elements.x00420011) {
+                            // This is an encapsulated document
                             if (!study.scope) {
-                                study.scope = 'ekg'
+                                study.scope = 'document'
                             }
-                            if (!study.type) {
-                                study.type = dataSet.string('x00081030') || ''
+                            if (!study.name) {
+                                study.name = dataSet.string('x00420010') || ''
                             }
-                            // Use the parsed dataset as data object
-                            study.data = dataSet
+                            if (!study.meta.mime) {
+                                study.meta.mime = dataSet.string('x00420012') || ''
+                            }
+                            // Document data can be retrieved from x00420011
+                            // study.data = dataSet.string('x00420011')
                         }
-                    } else if (dataSet.elements.x00420011) {
-                        // This is an encapsulated document
-                        if (!study.scope) {
-                            study.scope = 'document'
+                    } catch (e) {
+                        if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
+                            // This was not a DICOM file, try something else
+                        } else {
+                            console.error(e)
                         }
-                        if (!study.name) {
-                            study.name = dataSet.string('x00420010') || ''
-                        }
-                        if (!study.meta.mime) {
-                            study.meta.mime = dataSet.string('x00420012') || ''
-                        }
-                        // Document data can be retrieved from x00420011
-                        // study.data = dataSet.string('x00420011')
-                    }
-                } catch (e) {
-                    if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
-                        // This was not a DICOM file, try something else
-                    } else {
-                        console.error(e)
                     }
                 }
-                break
             }
         }
         if (!study.name) {
