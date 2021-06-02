@@ -78,6 +78,8 @@ export default Vue.extend({
             traceSpacing: 6, // The number of squares (0.5cm) between traces
             yAxisRange: 0,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
+            // Ubsubscribe from actions
+            unsubActions: null as any,
             // React to some property changes
             elementsChanged: 0,
         }
@@ -224,7 +226,7 @@ export default Vue.extend({
         redrawCharts: function () {
             if (Array.isArray(this.$refs['waveform-element'])) {
                 this.$refs['waveform-element'].forEach((item: any) => {
-                    item.redrawPlot(true)
+                    item.redrawPlot()
                 })
             } else {
                 (this.$refs['waveform-element'] as any).redrawPlot()
@@ -246,9 +248,21 @@ export default Vue.extend({
         }
         // Set up resize observer for the media container
         new ResizeObserver(this.mediaResized).observe((this.$refs['media'] as Element))
-        // Calculate EKG paper square sizes
+        // Calculate EKG paper square sizes and update values if settings are updated
         this.pxPerHorizontalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPerSec)/5)
         this.pxPerVerticalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPermV)/2)
+        this.unsubActions = this.$store.subscribeAction((action) => {
+            if (action.type === "settings:closed") {
+                this.pxPerHorizontalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPerSec)/5)
+                this.pxPerVerticalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPermV)/2)
+                this.$nextTick(() => {
+                    this.redrawCharts()
+                })
+            }
+        })
+    },
+    beforeDestroy () {
+        this.unsubActions()
     },
 })
 </script>

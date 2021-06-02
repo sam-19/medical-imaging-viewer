@@ -62,6 +62,7 @@ type State = {
             yPadding: number,
         },
         ekg: {
+            fillView: boolean,
             showRuler: boolean,
         },
     },
@@ -240,6 +241,7 @@ class MEDigiStore {
                     yPadding: 1,
                 },
                 ekg: {
+                    fillView: false,
                     showRuler: false,
                 },
             },

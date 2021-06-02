@@ -1,7 +1,7 @@
 <template>
 
     <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div ref="trace" class="medi-viewer-waveform-trace">
+        <div ref="trace" class="medi-viewer-waveform-trace" @scroll.passive="updateViewBounds">
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
                 'medigi-viewer-ekg-mousedrag',
@@ -73,7 +73,7 @@ export default Vue.extend({
             chartConfig: {
                 // Props are initialized before data
                 width: 0,
-                margin: { t: 0, r: 0, b: this.marginBottom, l: 1 },//this.marginLeft },
+                margin: { t: 0, r: 0, b: this.marginBottom, l: 1 },
                 showlegend: false,
                 dragmode: false,
                 xaxis: {
@@ -157,12 +157,14 @@ export default Vue.extend({
                 responsive: false,
             },
             sensitivityAdjust: 1,
+            dataStart: -1,
+            dataEnd: 0,
+            lastDataBounds: [0, 0],
             viewStart: 0,
             viewEnd: 0,
-            lastViewBounds: [0, 0],
             downSampleFactor: 1,
             navigatorMaxSamples: 1000,
-            navigatorMaxWidth: 0,
+            dataMaxWidth: 0,
             // Keep track of some event data for chart interaction
             //lastHoverPoint: { x: -1, y: -1 },
             traceLeftPos: 0,
@@ -177,8 +179,14 @@ export default Vue.extend({
         }
     },
     watch: {
-        containerSize (value: number[], old: number[]) {
-            this.updateViewStart()
+        containerSize: function (value: number[], old: number[]) {
+            if (value[0] - this.traceLeftMargin > this.dataMaxWidth) {
+                this.recalibrateChart()
+            }
+            this.updateViewBounds()
+        },
+        dataStart: function (value: number, old: number) {
+            this.updateDataEnd()
         },
     },
     computed: {
@@ -196,7 +204,7 @@ export default Vue.extend({
                     name: this.t(chanLabel),
                     type: 'scattergl',
                     mode: 'lines',
-                    x: this.xAxisRange,
+                    x: [...Array(this.xAxisRange).keys()],
                     y: [],
                     line: { color: traceColor, width: 1 },
                     hoverinfo: 'none',
@@ -205,7 +213,7 @@ export default Vue.extend({
             // Add something to x2, y2 to show the gridlines
             signals.push({
                 name: '',
-                x: this.xAxisRange,
+                x: [...Array(this.xAxisRange).keys()],
                 y: [],
                 xaxis: 'x2',
                 yaxis: 'y2',
@@ -274,13 +282,18 @@ export default Vue.extend({
             }
             return values
         },
-        xAxisRange (): number[] {
-            return this.viewEnd > this.viewStart
-                    ? [...Array(Math.floor(this.viewEnd-this.viewStart)).keys()]
-                    : []
+        traceLeftMargin (): number {
+            return this.marginLeft + this.chartConfig.margin.l
+        },
+        traceRightMargin (): number {
+            // Would be nice to have a final gridline at the end of the trace, but this just doesn't work for some reason
+            return Math.ceil(this.resource.maxSamplingRate/(5*this.pxPerHorizontalSquare)) + 1
+        },
+        xAxisRange (): number {
+            return this.dataEnd > this.dataStart ? Math.floor(this.dataEnd-this.dataStart) : 0
         },
         xAxisTicks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
+            const range = Math.ceil(5*(this.xAxisRange)/this.downscaledResolution)
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(i*this.downscaledResolution/5)
@@ -288,7 +301,7 @@ export default Vue.extend({
             return ticks
         },
         xAxis2Ticks (): number[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
+            const range = Math.ceil(5*(this.xAxisRange)/this.downscaledResolution)
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(
@@ -301,12 +314,11 @@ export default Vue.extend({
             return ticks
         },
         xAxisValues (): string[] {
-            const range = 5*(this.viewEnd - this.viewStart)/this.downscaledResolution
+            const range = Math.ceil(5*(this.xAxisRange)/this.downscaledResolution) + 5
             const values = []
             for (let i=0; i<range; i++) {
                 // Only print empty labels
                 values.push('')
-                continue
             }
             return values
         },
@@ -348,8 +360,6 @@ export default Vue.extend({
             } else {
                 return (this.$t('components.EKG.Dicom.DicomWaveformDisplay') as any)[str]
             }
-        },
-        calculateMontageSignals: function () {
         },
         getChannelLabel: function (index: number): string {
             const labelParts = this.resource.channels[index].label.toLowerCase().split(/[_|\s]+/g)
@@ -397,13 +407,6 @@ export default Vue.extend({
             }
             return sigVal
         },
-        getViewEnd: function (clip=false): number  {
-            // Calculate the chart's left and right margins
-            const viewWidth: number = this.containerSize[0] as number - (this.marginLeft + this.chartConfig.margin.l)
-            const finalWidth = viewWidth > this.navigatorMaxWidth || clip ? viewWidth : this.navigatorMaxWidth
-            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
-            return this.viewStart + newWidth
-        },
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
@@ -450,12 +453,11 @@ export default Vue.extend({
             // If no tool is active, use drag to scroll the trace
             if (!this.$store.state.activeTool) {
                 // No need to scroll if the entire trace is already visible
-                if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
+                if (this.viewStart === 0 && this.viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                     return
                 }
                 const dX = e.clientX - this.mouseDownPoint.x
                 ;(this.$refs['trace'] as HTMLDivElement).scrollLeft = this.traceLeftPos - dX
-                this.updateViewStart()
                 this.refreshNavigatorOverlay()
             } else if (this.$store.state.activeTool === 'measure') {
                 // Do not allow dragging outside the wrapper
@@ -487,7 +489,7 @@ export default Vue.extend({
                     // The drag cover div spans the entire page, so have to adjust before comparing values
                     const relXOffset = e.offsetX - wrapperPos.left
                     const wrapperWidth = wrapperPos.right - wrapperPos.left
-                    const trueMouseDown = this.mouseDownPoint.x + this.marginLeft
+                    const trueMouseDown = this.mouseDownPoint.x + this.traceLeftMargin - (this.$refs['trace'] as HTMLDivElement).scrollLeft
                     if (trueMouseDown < relXOffset) {
                         // Dragging from left to right
                         // Place static left marker to mouse down position
@@ -530,9 +532,9 @@ export default Vue.extend({
                         // Signal datapoints per second
                         const ptsPerSec = this.resource.maxSamplingRate/this.cmPerSec
                         // Start position (datapoint)
-                        const startX = this.mouseDownPoint.x
+                        const startX = this.mouseDownPoint.x + this.chartConfig.margin.l
                         const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
-                        const endX = e.offsetX - wrapperPos.left - this.marginLeft
+                        const endX = e.offsetX - wrapperPos.left - this.marginLeft + (this.$refs['trace'] as HTMLDivElement).scrollLeft
                         // Since we measure from ruler end to ruler end, both inclusive, we need to fix the end position
                         // depending on the direction of the drag
                         const rToLFix = startX > endX ? 1 : 0
@@ -569,16 +571,15 @@ export default Vue.extend({
             const startPos = trace.scrollLeft
             const mouseDrag = (e: any) => {
                 // No need to scroll if the entire trace is already visible
-                if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
+                if (this.viewStart === 0 && this.viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                     return
                 }
                 const dX = downPos - e.clientX
                 // Adjust for navigator resolution
-                const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
-                const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
+                const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.traceLeftMargin - 20
+                const naviWidth = naviTrueWidth < this.dataMaxWidth ? naviTrueWidth : this.dataMaxWidth
                 const relDragX = dX/naviWidth
                 trace.scrollLeft = startPos + this.traceLeftPos - relDragX*trace.offsetWidth
-                this.updateViewStart()
                 this.refreshNavigatorOverlay()
             }
             const stopDrag = (e: any) => {
@@ -609,20 +610,21 @@ export default Vue.extend({
 
         },
         recalibrateChart: function (force=false) {
-            this.viewEnd = this.getViewEnd()
-            this.refreshNavigatorOverlay()
+            this.updateDataEnd()
             // Redrawing the plot is slow, so only do it if necessary
-            if (this.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
+            if (this.dataStart === this.lastDataBounds[0] && this.dataEnd === this.lastDataBounds[1]) {
                 if (!force) {
                     return
                 }
             } else {
-                this.lastViewBounds = [this.viewStart, this.viewEnd]
+                this.lastDataBounds = [this.dataStart, this.dataEnd]
             }
-            // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
+            // Calculate chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const y2TickVals = this.yAxisTicks2
-            const traceWidth = (this.containerSize[0] as number - this.marginLeft) > this.navigatorMaxWidth
-                               ? this.containerSize[0] as number - this.marginLeft : this.navigatorMaxWidth
+            const neededWidth = this.dataMaxWidth + this.chartConfig.margin.l
+            const availWidth = this.containerSize[0] as number - this.traceLeftMargin
+            const traceWidth = availWidth > neededWidth && this.$store.state.SETTINGS.ekg.fillView
+                               ? availWidth : neededWidth
             const chartLayout = {
                 width: traceWidth,
                 height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
@@ -637,6 +639,7 @@ export default Vue.extend({
                     ticktext: Array(y2TickVals.length).fill(''),
                 }),
             }
+            // Update the chart
             Plotly.relayout(this.$refs['container'], chartLayout)
             this.refreshTraces()
         },
@@ -649,9 +652,12 @@ export default Vue.extend({
             ).then(() => {
                 // Render Y-axis signal data
                 this.refreshNavigator()
+                this.refreshNavigatorOverlay()
             })
         },
         redrawPlot: function () {
+            // Update reference width
+            this.dataMaxWidth = this.resource.duration*this.pxPerHorizontalSquare*5
             this.chart = Plotly.newPlot(
                 this.$refs['container'],
                 this.channelSignals,
@@ -660,18 +666,19 @@ export default Vue.extend({
             ).then(() => {
                 // Render Y-axis signal labels and signal data
                 this.recalibrateChart(true)
+                this.redrawNavigator()
             })
         },
         refreshNavigator: function () {
             const signalLen = this.navigatorSignal.x.length
-            const downSampleFactor = Math.ceil(this.resource.sampleCount/this.navigatorMaxSamples)
+            const downSampleFactor = this.resource.sampleCount/this.navigatorMaxSamples
             const signal = [] as (number|null)[]
             for (let i=0; i<this.resource.channels.length; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 if (chanLabel.toLowerCase().indexOf('ii') === -1 && chanLabel.toLowerCase().indexOf('i') !== -1) {
                     // Use the I-channel signal
                     for (let j=0; j<signalLen; j++) {
-                        const corrVal = this.getCorrectedSignalValue(i, j*downSampleFactor)
+                        const corrVal = this.getCorrectedSignalValue(i, Math.floor(j*downSampleFactor))
                         if (corrVal !== undefined) {
                             signal.push(corrVal)
                         } else {
@@ -683,8 +690,8 @@ export default Vue.extend({
             Plotly.restyle(this.$refs['navigator'], 'y', [signal])
             const availableWidth = document.fullscreenElement === null
                                    ? this.containerSize[0] : screen.width
-            const naviWidth = (availableWidth as number) > this.navigatorMaxWidth + this.marginLeft + 20
-                              ? this.navigatorMaxWidth + this.marginLeft + 20 : availableWidth
+            const naviWidth = (availableWidth as number) > this.dataMaxWidth + this.traceLeftMargin + 20
+                              ? this.dataMaxWidth + this.traceLeftMargin + 20 : availableWidth
             const naviLayout = {
                 width: naviWidth,
                 xaxis: Object.assign({}, this.navigatorConfig.xaxis, {
@@ -699,10 +706,10 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['navigator'], naviLayout)
         },
         refreshNavigatorOverlay: function () {
-            const viewEnd = this.getViewEnd(true)
+            // Determine visible view start and end
             const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
-            const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
-            if (this.viewStart === 0 && viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
+            const naviWidth = naviTrueWidth < this.dataMaxWidth ? naviTrueWidth : this.dataMaxWidth
+            if (this.viewStart === 0 && this.viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                 ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `0px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${this.marginLeft}px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${naviWidth}px`
@@ -712,9 +719,9 @@ export default Vue.extend({
             // leftPad is the margin applied to the main chart to make the Y-axis zero-line visible
             const leftPad = 1 * (this.pxPerHorizontalSquare*5/this.resource.maxSamplingRate)
             const leftWidth = Math.max(Math.floor((this.viewStart/this.resource.sampleCount)*naviWidth - leftPad), 0)
-            const actWidth = Math.ceil(((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth)
+            const actWidth = Math.ceil(((this.viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth)
             const rightWidth = Math.max(
-                Math.floor(((this.resource.sampleCount - viewEnd)/this.resource.sampleCount)*naviWidth - leftPad), 0
+                Math.floor(((this.resource.sampleCount - this.viewEnd)/this.resource.sampleCount)*naviWidth - leftPad), 0
             )
             ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `${leftWidth}px`
             ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + this.marginLeft}px`
@@ -730,7 +737,7 @@ export default Vue.extend({
             for (let i=0; i<max; i++) {
                 const offset = (max - i - 1)*this.traceSpacing + this.yPad
                 yValues.push([] as (number|null)[])
-                for (let j=0; j<this.xAxisRange.length*this.downSampleFactor; j++) {
+                for (let j=0; j<this.xAxisRange*this.downSampleFactor; j++) {
                     if (j%this.downSampleFactor) {
                         continue
                     }
@@ -743,7 +750,7 @@ export default Vue.extend({
                 }
             }
             // Update chart signal data
-            Plotly.restyle(this.$refs['container'], 'x', this.xAxisRange)
+            Plotly.restyle(this.$refs['container'], 'x', [...Array(this.xAxisRange).keys()])
             Plotly.restyle(this.$refs['container'], 'y', yValues)
             // Update x-axis styles
             const x2TickVals = this.xAxis2Ticks
@@ -761,18 +768,31 @@ export default Vue.extend({
             //;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
             Plotly.relayout(this.$refs['container'], chartLayout)
         },
-        updateViewStart: function () {
-            const xPxRatio = this.resource.maxSamplingRate/(this.pxPerHorizontalSquare*5)
-            this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
+        updateDataEnd: function () {
+            // Update dataEnd to match dataStart
+            const viewWidth: number = this.containerSize[0] as number - this.traceLeftMargin
+            const finalWidth = viewWidth > this.dataMaxWidth && this.$store.state.SETTINGS.ekg.fillView
+                               ? viewWidth : this.dataMaxWidth
+            const newWidth = this.downscaledResolution*(finalWidth/(this.pxPerHorizontalSquare*5))
+            this.dataEnd = this.dataStart + newWidth
         },
+        updateViewBounds: function () {
+            // Vue can't reactively monitor element's scroll position, so we have to do it manually
+            const scrollPos = (this.$refs['trace'] as HTMLDivElement).scrollLeft
+            const xPxRatio = this.resource.maxSamplingRate/(this.pxPerHorizontalSquare*5)
+            this.viewStart = scrollPos*xPxRatio
+            const viewWidth: number = this.containerSize[0] as number - this.traceLeftMargin
+            this.viewEnd = this.viewStart + this.downscaledResolution*(viewWidth/(this.pxPerHorizontalSquare*5))
+            this.refreshNavigatorOverlay()
+        }
     },
     mounted () {
         // Set left margin
         ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
         // Calculate max width for the navigator as a reference
-        this.navigatorMaxWidth = this.resource.duration*this.pxPerHorizontalSquare*5
         // Calculate view bounds
-        this.viewEnd = this.getViewEnd()
+        this.dataStart = 0
+        this.updateViewBounds()
         this.redrawPlot()
         // Bind event listeners
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
