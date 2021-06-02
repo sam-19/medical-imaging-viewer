@@ -407,12 +407,7 @@ export default Vue.extend({
         },
         getViewEnd: function (clip=false): number  {
             // Calculate the chart's left and right margins
-            let viewWidth: number = -this.marginLeft
-            if (document.fullscreenElement === null) {
-                viewWidth += this.containerSize[0] as number
-            } else {
-                viewWidth += screen.width
-            }
+            const viewWidth: number = this.containerSize[0] as number - this.marginLeft
             const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
             return this.viewStart + newWidth
         },

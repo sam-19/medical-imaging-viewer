@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer`" class="medigi-viewer medigi-viewer-dark-mode">
+    <div :id="`${$store.state.appName}-medigi-viewer`" ref="app" class="medigi-viewer medigi-viewer-dark-mode">
         <div :class="[
                 'medigi-viewer-settings',
                 { 'medigi-viewer-hidden': !settingsOpen },
@@ -86,9 +86,9 @@
                 { 'medigi-viewer-hidden' : !settingsMenuOpen }
             ]"
         >
-            <div class="medigi-viewer-settings-menu-row" @click="toggleFullscreen()">
+            <div v-if="fullscreen !== null" class="medigi-viewer-settings-menu-row" @click="toggleFullscreen()">
                 <font-awesome-icon :icon="['far', fullscreen ? 'compress' : 'expand']" />
-                {{ t('Full screen') }}
+                {{ t('Fullscreen') }}
             </div>
             <div class="medigi-viewer-settings-menu-row" @click="toggleSettings()">
                 <font-awesome-icon :icon="['far', 'cog']" />
@@ -141,7 +141,7 @@ export default Vue.extend({
     },
     data () {
         return {
-            fullscreen: false,
+            fullscreen: false as boolean | null,
             loadingStudies: false,
             menuOpen: false,
             scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
@@ -155,6 +155,15 @@ export default Vue.extend({
         }
     },
     watch: {
+        fullscreen: function (val, old) {
+            if (val === null) {
+                return
+            } else if (val) {
+                (this.$refs['app'] as HTMLDivElement).requestFullscreen()
+            } else {
+                document.exitFullscreen()
+            }
+        },
         scope: function (val, old) {
             if (old === 'radiology' || val === 'radiology') {
                 this.toggleColorTheme()
@@ -433,6 +442,9 @@ export default Vue.extend({
             }
         },
         toggleFullscreen: function () {
+            if (this.fullscreen === null) {
+                return
+            }
             this.fullscreen = !this.fullscreen
         },
         toggleMenu: function (value?: boolean) {
@@ -477,6 +489,21 @@ export default Vue.extend({
         }
     },
     mounted () {
+        // Check that fullscreen API is available
+        if (!Element.prototype.requestFullscreen) {
+            Element.prototype.requestFullscreen = (Element.prototype as any).mozRequestFullscreen ||
+                                                  (Element.prototype as any).webkitRequestFullscreen ||
+                                                  (Element.prototype as any).msRequestFullscreen
+        }
+        if (!document.exitFullscreen) {
+            document.exitFullscreen = (document as any).webkitExitFullscreen ||
+                                      (document as any).mozCancelFullScreen ||
+                                      (document as any).msExitFullscreen
+        }
+        if (!Element.prototype.requestFullscreen || !document.exitFullscreen) {
+            console.warn("Fullscreen API is not available")
+            this.fullscreen = null
+        }
         this.$store.commit('set-settings-value', { field: 'eeg.yPadding', value: 1.5 })
         this.$store.commit('set-settings-value', { field: 'eeg.channelSpacing', value: 1 })
         this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.5 })
@@ -551,6 +578,10 @@ export default Vue.extend({
 }
     .medigi-viewer div {
         box-sizing: border-box;
+    }
+    .medigi-viewer-disabled {
+        opacity: 0.5;
+        cursor: default;
     }
     .medigi-viewer-hidden {
         display: none !important;

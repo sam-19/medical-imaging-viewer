@@ -70,6 +70,7 @@ export default Vue.extend({
 </script>
 
 <style scoped>
+
 .medigi-viewer-toolbar-select {
     display: flex;
     position: relative;
