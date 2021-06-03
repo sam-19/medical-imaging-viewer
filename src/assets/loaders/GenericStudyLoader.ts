@@ -49,7 +49,7 @@ class GenericStudyLoader implements StudyLoader {
                 || prop === 'meta' && Object.keys(study[prop as keyof StudyObject]).length === 0
             ) {
                 // Try to load the file, according to extension
-                if (file.name.endsWith('.edf')) {
+                if (file.name.toLowerCase().endsWith('.edf')) {
                     // EDF Decoder is very handy forf small files, but cannot be used to pipe data from large files
                     if (file.size < 50*1024*1024) {
                         try {
@@ -79,6 +79,19 @@ class GenericStudyLoader implements StudyLoader {
                     } else {
                         // Need something else for larger files
                     }
+                } else if (file.name.toLowerCase().endsWith('.pdf')) {
+                    // TODO: Implement PDF loader
+                } else if (file.name.toLowerCase().endsWith('.txt')) {
+                    // TODO: Implement text file loader (reports)
+                } else if (file.name.toLowerCase().endsWith('.zip')) {
+                    // Zip files would be tricky. They would first have to be decompressed
+                    // and then passed through this again.
+                }  else if (file.name.toLowerCase().endsWith('.jpg') ||
+                            file.name.toLowerCase().endsWith('.jpeg') ||
+                            file.name.toLowerCase().endsWith('.png') ||
+                            file.name.toLowerCase().endsWith('.gif')
+                ) {
+                    // TODO: Implement image file loaders?
                 } else {
                     // DICOM files may not have any extension, try DICOM first
                     try {
@@ -323,7 +336,6 @@ class GenericStudyLoader implements StudyLoader {
                 for (let i=0; i<visitDir.directories.length; i++) {
                     const curDir = visitDir.directories[i]
                     if (curDir.directories.length) {
-                        // I guess this can't ever occur in current configuration
                         console.warn(`${curDir.path} was omitted because it contained subdirectories.`)
                         continue
                     } else if (!curDir.files.length) {
@@ -372,14 +384,13 @@ class GenericStudyLoader implements StudyLoader {
                         }
                     }
                 }
-                visits.push(
-                    Object.assign(
-                        { studies: studies },
-                        { title: visitDir.name },
-                        config.visits[visitDir.name],
-                        config.visits[visitDir.path]
-                    )
+                const newVisit = Object.assign(
+                    { studies: studies },
+                    { title: visitDir.name },
+                    config.visits[visitDir.name],
+                    config.visits[visitDir.path]
                 )
+                visits.push(newVisit)
             }
         } else {
             console.warn("Dropped item had an empty root directory!")

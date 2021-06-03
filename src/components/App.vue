@@ -258,6 +258,7 @@ export default Vue.extend({
                 for (const { title, date, studies } of visits) {
                     // Don't add empty visits
                     if (!studies.length) {
+                        console.warn(`Imported visit ${title} did not have any valid imaging studies, the visit was not added.`)
                         continue
                     }
                     const visit = {
@@ -322,6 +323,7 @@ export default Vue.extend({
                                             // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
                                             if (!imgStack.length) {
                                                 visit.studies.radiology.splice(resourceIdx, 1)
+                                                console.warn(`Imported study ${visit.studies.radiology[resourceIdx]} did not have any valid images, the study was not added.`)
                                             } else {
                                                 // Set "middle" image as cover image
                                                 const coverIdx = Math.floor(imgStack.length/2)
@@ -374,9 +376,9 @@ export default Vue.extend({
                     if (visit && hasRecord) {
                         this.visits.push(visit)
                     } else {
-                        console.warn("Imported visit did not have any valid imaging studies, the visit was not added.")
+                        console.warn(`Imported visit ${title} did not have any valid imaging studies, the visit was not added.`)
                         this.loadingStudies = false
-                        return
+                        continue
                     }
                     // Open the first loaded visit, if none is active
                     if (!this.selectedVisit) {
