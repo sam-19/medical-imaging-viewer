@@ -118,14 +118,9 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import { FileSystemItem, PatientVisit } from '../types/common'
-import DicomImage from '../assets/dicom/DicomImage'
-import DicomWaveform from '../assets/dicom/DicomWaveform'
-import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
 import GenericVisitLoader from '../assets/loaders/GenericVisitLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
-import EdfSignal from '../assets/edf/EdfEegSignal'
 
 export default Vue.extend({
     components: {
@@ -248,166 +243,15 @@ export default Vue.extend({
         /**
          * Load studies from a given FilesystemItem.
          * @param fsItem FilesystemItem to load
+         * @param config External visit configuration
          */
-        loadStudiesFromFsItem: async function (fsItem: FileSystemItem) {
-            /*
-            const studyLoader = new GenericStudyLoader()
-            this.loadingStudies = true
-            studyLoader.loadFromFileSystem(fsItem).then(async visits => {
-                let visitCounter = 1
-                for (const { title, date, studies } of visits) {
-                    // Don't add empty visits
-                    if (!studies.length) {
-                        console.warn(`Imported visit ${title} did not have any valid imaging studies, the visit was not added.`)
-                        continue
-                    }
-                    const visit = {
-                        title: title || this.$t(`Visit #${visitCounter++}`),
-                        date: date || '',
-                        studies: { eeg: [], ekg: [], radiology: [] },
-                    } as any
-                    let topoImages = [] as DicomImage[]
-                    let hasRecord = false // Check that there is at least one actual record in the visit
-                    for (const study of studies) {
-                        const types = study.type.split(':')
-                        if (study.scope === 'radiology') {
-                            if (types[0] === 'image') {
-                                if (study.format === 'dicom') {
-                                    // Data element should always be a loaded file
-                                    const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.data)
-                                    if (imageId) {
-                                        if (types.length === 1) {
-                                            // Add a single image
-                                            (visit.studies.radiology as DicomImage[]).push(
-                                                new DicomImage(
-                                                    study.meta.modality, study.name, study.data.size, study.type, imageId
-                                                )
-                                            )
-                                            hasRecord = true
-                                        } else if (types[1] === 'series') {
-                                            // Add an image stack
-                                            const imgStack = new DicomImage(
-                                                study.meta.modality, study.name, study.files.length, study.type, ''
-                                            )
-                                            ;(visit.studies.radiology as DicomImage[]).push(imgStack)
-                                            const resourceIdx = visit.studies.radiology.length - 1
-                                            // Add all loaded files
-                                            for (let i=0; i<study.files.length; i++) {
-                                                const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(study.files[i])
-                                                if (imageId) {
-                                                    imgStack.push(
-                                                        new DicomImage(
-                                                            study.meta.modality,
-                                                            study.files[i].name,
-                                                            study.files[i].size,
-                                                            study.type.split(':')[0],
-                                                            imageId
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            // Add URLs that haven't been loaded yet
-                                            for (let i=0; i<study.urls.length; i++) {
-                                                if (imageId) {
-                                                    imgStack.push(
-                                                        new DicomImage(
-                                                            study.meta.modality,
-                                                            `${study.name}-${i}`,
-                                                            0,
-                                                            study.type.split(':')[0],
-                                                            `wadouri:${study.urls[i]}`
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            // Don't add an empty image stack (WADOImageLoader may have failed adding local files)
-                                            if (!imgStack.length) {
-                                                visit.studies.radiology.splice(resourceIdx, 1)
-                                                console.warn(`Imported study ${visit.studies.radiology[resourceIdx]} did not have any valid images, the study was not added.`)
-                                            } else {
-                                                // Set "middle" image as cover image
-                                                const coverIdx = Math.floor(imgStack.length/2)
-                                                await imgStack.setCoverImage(coverIdx)
-                                                hasRecord = true
-                                            }
-                                        } else if (types[1] === 'topogram') {
-                                            // Add as a topogram image
-                                            const topo = new DicomImage(
-                                                study.meta.modality, study.name, study.data.size, study.type, imageId
-                                            )
-                                            await topo.preloadAndCacheImage()
-                                            topoImages.push(topo)
-                                        } else {
-                                            // Some other image
-                                            hasRecord = true
-                                        }
-                                    }
-                                }
-                            }
-                        } else if (study.scope === 'ekg') {
-                            // Add EKG record
-                            visit.studies.ekg.push(new DicomWaveform(study.name, study.data))
-                            hasRecord = true
-                        } else if (study.format === 'edf') {
-                            // Pass the EDF data to EdfSignal class to determine record type
-                            const record = new EdfSignal(study.name, study.data, study.meta.loader)
-                            if (record.type === 'eeg') {
-                                // Add EEG record
-                                visit.studies.eeg.push(record)
-                                hasRecord = true
-                            }
-                        }
-                    }
-                    // Attach possible topogram image to all applicable stacks
-                    if (topoImages.length) {
-                        for (const resource of visit.studies.radiology) {
-                            for (const topo of topoImages) {
-                                // Match correct topogram by modality and study ID
-                                if (resource.isStack &&
-                                    topo.modality === resource.modality &&
-                                    topo.studyID === resource.coverImage.studyID
-                                ) {
-                                    resource.topogram = topo
-                                    break
-                                }
-                            }
-                        }
-                    }
-                    if (visit && hasRecord) {
-                        this.visits.push(visit)
-                    } else {
-                        console.warn(`Imported visit ${title} did not have any valid imaging studies, the visit was not added.`)
-                        this.loadingStudies = false
-                        continue
-                    }
-                    // Open the first loaded visit, if none is active
-                    if (!this.selectedVisit) {
-                        this.selectedVisit = visit
-                        // Open the study with the highest priority
-                        let bestScope = ''
-                        const scopePrio = this.$store.state.SETTINGS.scopePriority
-                        for (const scope in visit.studies) {
-                            if (scopePrio.indexOf(scope) !== -1 && visit.studies[scope].length &&
-                                (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
-                            ) {
-                                bestScope = scope
-                            }
-                        }
-                        if (bestScope !== '') {
-                            this.scope = bestScope
-                        }
-                    }
-                }
-                this.loadingStudies = false
-            }).catch((reason) => {
-                console.error(reason)
-                this.loadingStudies = false
-            })
-            */
-            this.$store.state.loadingStudies = true
+        loadStudiesFromFsItem: async function (fsItem: FileSystemItem, config?: any) {
+            if (!this.$store.state.loadingStudies) {
+                this.$store.state.loadingStudies = true
+            }
             this.$nextTick(async () => {
                 const visitLoader = new GenericVisitLoader()
-                visitLoader.loadFromFsItem(fsItem).then(async visits => {
+                visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
                     this.visits = visits
                     this.$store.state.loadingStudies = false
                     for (const visit of visits) {

@@ -18,9 +18,9 @@ class GenericVisitLoader implements VisitLoader {
      * Load visits from the given file system item.
      * @param fsItem FileSystemItem
      */
-    public async loadFromFsItem (fsItem: FileSystemItem): Promise<PatientVisit[]> {
+    public async loadFromFsItem (fsItem: FileSystemItem, config?: any): Promise<PatientVisit[]> {
         const studyLoader = new GenericStudyLoader()
-        return studyLoader.loadFromFsItem(fsItem).then(async visits => {
+        return studyLoader.loadFromFsItem(fsItem, config).then(async visits => {
             let visitCounter = 1
             const loadedVisits = [] as PatientVisit[]
             for (const { title, date, studies } of visits) {
