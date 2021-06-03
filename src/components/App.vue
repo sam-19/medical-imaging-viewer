@@ -249,36 +249,34 @@ export default Vue.extend({
             if (!this.$store.state.loadingStudies) {
                 this.$store.state.loadingStudies = true
             }
-            this.$nextTick(async () => {
-                const visitLoader = new GenericVisitLoader()
-                visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
-                    this.visits = visits
-                    this.$store.state.loadingStudies = false
-                    for (const visit of visits) {
-                        // Check that the visit has a proper title
-                        if (!this.selectedVisit) {
-                            this.selectedVisit = visit
-                            // Open the study with the highest priority
-                            let bestScope = ''
-                            const scopePrio = this.$store.state.SETTINGS.scopePriority
-                            for (const scope in visit.studies) {
-                                if (scopePrio.indexOf(scope) !== -1 &&
-                                    visit.studies[scope as keyof typeof visit.studies].length &&
-                                    (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
-                                ) {
-                                    bestScope = scope
-                                }
-                            }
-                            if (bestScope !== '') {
-                                this.scope = bestScope
+            const visitLoader = new GenericVisitLoader()
+            visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
+                this.visits = visits
+                this.$store.state.loadingStudies = false
+                for (const visit of visits) {
+                    // Check that the visit has a proper title
+                    if (!this.selectedVisit) {
+                        this.selectedVisit = visit
+                        // Open the study with the highest priority
+                        let bestScope = ''
+                        const scopePrio = this.$store.state.SETTINGS.scopePriority
+                        for (const scope in visit.studies) {
+                            if (scopePrio.indexOf(scope) !== -1 &&
+                                visit.studies[scope as keyof typeof visit.studies].length &&
+                                (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
+                            ) {
+                                bestScope = scope
                             }
                         }
+                        if (bestScope !== '') {
+                            this.scope = bestScope
+                        }
                     }
-                    return visits
-                }).catch((reason) => {
-                    console.error(reason)
-                    this.$store.state.loadingStudies = false
-                })
+                }
+                return visits
+            }).catch((error) => {
+                console.error(error)
+                this.$store.state.loadingStudies = false
             })
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
