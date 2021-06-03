@@ -251,7 +251,7 @@ export default Vue.extend({
             }
             const visitLoader = new GenericVisitLoader()
             visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
-                this.visits = visits
+                this.visits.push(...visits)
                 for (const visit of visits) {
                     // Check that the visit has a proper title
                     if (!this.selectedVisit) {
@@ -277,6 +277,7 @@ export default Vue.extend({
                 console.error(error)
                 this.$store.state.loadingStudies = false
             })
+            console.log(this.visits)
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
             if (visit !== this.selectedVisit) {
