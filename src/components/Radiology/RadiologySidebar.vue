@@ -20,7 +20,7 @@
             </vue-draggable>
             <div :class="[
                 'medigi-viewer-sidebar-loading',
-                { 'medigi-viewer-hidden': !loadingStudies }
+                { 'medigi-viewer-hidden': !$store.state.loadingStudies }
             ]">
                 <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
                 {{ t('LOADING STUDIES') }}
@@ -51,7 +51,6 @@ export default Vue.extend({
     props: {
         allowSorting: Boolean,
         dicomItems: Array,
-        loadingStudies: Boolean,
     },
     data () {
         return {

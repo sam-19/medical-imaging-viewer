@@ -8,6 +8,7 @@
         <div class="medigi-viewer-toolbar">
             <ekg-toolbar
                 :activeItems="activeItems"
+                :hasAnyItems="resources.length > 0"
                 :displayedTraceCount="displayedTraceCount"
                 :firstTraceIndex.sync="firstTraceIndex"
             />
@@ -15,7 +16,6 @@
         <div class="medigi-viewer-sidebar">
             <ekg-sidebar
                 :items="resources"
-                :loadingStudies="loadingStudies"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />
@@ -57,7 +57,6 @@ export default Vue.extend({
         DicomWaveformDisplay: () => import('./DicomWaveformDisplay.vue'),
     },
     props: {
-        loadingStudies: Boolean,
         resources: Array,
         sidebarOpen: Boolean,
     },

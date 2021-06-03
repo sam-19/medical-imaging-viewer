@@ -14,6 +14,7 @@ type State = {
     appName: string,
     cacheStatus: { count: number, max: number, size: number },
     linkedScrollPosition: number,
+    loadingStudies: boolean,
     // App settings
     SETTINGS: {
         locale: string,
@@ -190,6 +191,7 @@ class MEDigiStore {
             appName: '' as string,
             cacheStatus: { count: 0, max: 0, size: 0 },
             linkedScrollPosition: 0,
+            loadingStudies: false,
             SETTINGS: {
                 locale: localSettings.locale || 'en',
                 scopePriority: ['radiology', 'ekg', 'eeg'],

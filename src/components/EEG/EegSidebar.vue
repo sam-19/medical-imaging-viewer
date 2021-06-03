@@ -14,7 +14,7 @@
             />
             <div :class="[
                 'medigi-viewer-sidebar-loading',
-                { 'medigi-viewer-hidden': !loadingStudies }
+                { 'medigi-viewer-hidden': !$store.state.loadingStudies }
             ]">
                 <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
                 {{ t('LOADING STUDIES') }}
@@ -31,7 +31,6 @@ import { MediaResource } from '../../types/common'
 export default Vue.extend({
     props: {
         items: Array,
-        loadingStudies: Boolean,
     },
     components: {
         EkgSidebarItem: () => import('./EegSidebarItem.vue'),

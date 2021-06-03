@@ -8,12 +8,12 @@
         <div class="medigi-viewer-toolbar">
             <eeg-toolbar
                 :activeItems="activeItems"
+                :hasAnyItems="resources.length > 0"
             />
         </div>
         <div class="medigi-viewer-sidebar">
             <eeg-sidebar
                 :items="resources"
-                :loadingStudies="loadingStudies"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />

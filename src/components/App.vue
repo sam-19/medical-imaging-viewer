@@ -97,20 +97,17 @@
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
-            :loadingStudies="loadingStudies"
             :resources="activeVisit ? activeVisit.studies.radiology : []"
             :sidebarOpen="sidebarOpen"
             v-on:update-item-order="updateDicomImageOrder"
         />
         <dicom-waveform-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
-            :loadingStudies="loadingStudies"
             :resources="activeVisit ? activeVisit.studies.ekg : []"
             :sidebarOpen="sidebarOpen"
         />
         <eeg-interface v-else-if="scope==='eeg'"
             ref="eeg-interface"
-            :loadingStudies="loadingStudies"
             :resources="activeVisit ? activeVisit.studies.eeg : []"
             :sidebarOpen="sidebarOpen"
         />
@@ -122,12 +119,11 @@
 
 import Vue from 'vue'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
-import { FileSystemItem } from '../types/common'
-import { ImageResource } from '../types/radiology'
-import { PatientVisit } from '../types/viewer'
+import { FileSystemItem, PatientVisit } from '../types/common'
 import DicomImage from '../assets/dicom/DicomImage'
 import DicomWaveform from '../assets/dicom/DicomWaveform'
 import GenericStudyLoader from '../assets/loaders/GenericStudyLoader'
+import GenericVisitLoader from '../assets/loaders/GenericVisitLoader'
 import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 import EdfSignal from '../assets/edf/EdfEegSignal'
 
@@ -142,7 +138,6 @@ export default Vue.extend({
     data () {
         return {
             fullscreen: false as boolean | null,
-            loadingStudies: false,
             menuOpen: false,
             scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             selectedVisit: null as PatientVisit|null,
@@ -232,11 +227,15 @@ export default Vue.extend({
         handleFileDrop: async function (event: DragEvent) {
             // Generic file drop, check each resource type?
             const fileLoader = new LocalFileLoader()
+            this.$store.state.loadingStudies = true
             fileLoader.readFilesFromSource(event).then((fileTree) => {
                 if (fileTree) {
                     this.loadStudiesFromFsItem(fileTree)
+                } else {
+                    this.$store.state.loadingStudies = false
                 }
-            }).catch((e: Error) => {
+            }).catch((error) => {
+                this.$store.state.loadingStudies = false
                 // TODO: Implement errors in the file loader
             })
         },
@@ -251,6 +250,7 @@ export default Vue.extend({
          * @param fsItem FilesystemItem to load
          */
         loadStudiesFromFsItem: async function (fsItem: FileSystemItem) {
+            /*
             const studyLoader = new GenericStudyLoader()
             this.loadingStudies = true
             studyLoader.loadFromFileSystem(fsItem).then(async visits => {
@@ -402,6 +402,39 @@ export default Vue.extend({
             }).catch((reason) => {
                 console.error(reason)
                 this.loadingStudies = false
+            })
+            */
+            this.$store.state.loadingStudies = true
+            this.$nextTick(async () => {
+                const visitLoader = new GenericVisitLoader()
+                visitLoader.loadFromFsItem(fsItem).then(async visits => {
+                    this.visits = visits
+                    this.$store.state.loadingStudies = false
+                    for (const visit of visits) {
+                        // Check that the visit has a proper title
+                        if (!this.selectedVisit) {
+                            this.selectedVisit = visit
+                            // Open the study with the highest priority
+                            let bestScope = ''
+                            const scopePrio = this.$store.state.SETTINGS.scopePriority
+                            for (const scope in visit.studies) {
+                                if (scopePrio.indexOf(scope) !== -1 &&
+                                    visit.studies[scope as keyof typeof visit.studies].length &&
+                                    (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
+                                ) {
+                                    bestScope = scope
+                                }
+                            }
+                            if (bestScope !== '') {
+                                this.scope = bestScope
+                            }
+                        }
+                    }
+                    return visits
+                }).catch((reason) => {
+                    console.error(reason)
+                    this.$store.state.loadingStudies = false
+                })
             })
         },
         selectActiveResource(visit: PatientVisit, scope: string) {

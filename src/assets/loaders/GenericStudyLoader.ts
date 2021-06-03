@@ -185,7 +185,7 @@ class GenericStudyLoader implements StudyLoader {
      * @param config optional configuration detailing the contained studies.
      * @return a promise containing the loaded studies as { title: string, date?: string, studies: StudyObject[] }
      */
-    public async loadFromFileSystem (fileTree: FileSystemItem, config: any = {}): Promise<StudyDict[]> {
+    public async loadFromFsItem (fileTree: FileSystemItem, config: any = {}): Promise<StudyDict[]> {
         if (!fileTree) {
             return []
         }

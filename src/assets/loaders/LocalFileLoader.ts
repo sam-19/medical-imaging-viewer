@@ -44,8 +44,7 @@ class LocalFileLoader implements FileLoader {
             }
         }
         if (!Array.isArray(cache)) {
-            console.error("Reader did not return a file list!", cache)
-            return dir
+            throw new Error("Reader did not return a file list!")
         }
         // Go through the queue until it is empty
         while (cache.length > 0) {
@@ -71,7 +70,7 @@ class LocalFileLoader implements FileLoader {
                 reader.readEntries(resolve, reject)
             })
         } catch (error) {
-            console.error(error)
+            throw new Error(error)
         }
     }
 

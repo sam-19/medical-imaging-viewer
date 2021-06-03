@@ -22,7 +22,24 @@ interface FileLoader {
 }
 interface StudyLoader {
     loadFromFile(file: File, config?: object): Promise<StudyObject>
-    loadFromFileSystem(fileTree: FileSystemItem, config?: object): Promise<any>
+    loadFromFsItem(fileTree: FileSystemItem, config?: object): Promise<any>
+}
+interface PatientVisit {
+    conclusion: string
+    context: string
+    counter: number
+    date: number
+    examination: string
+    history: string
+    studies: {
+        eeg: BiosignalResource[]
+        ekg: BiosignalResource[]
+        radiology: MediaResource[]
+    }
+    title: string
+}
+interface VisitLoader {
+    loadFromFsItem(fileTree: FileSystemItem, config?: object): Promise<any>
 }
 /**
  * A generic study type returned by the study loader (version 1.0).
@@ -99,5 +116,6 @@ export {
     BiosignalResource, BiosignalAnnotation, BiosignalChannel,
     FileSystemItem, FileLoader,
     MediaResource,
-    StudyLoader, StudyObject
+    StudyLoader, StudyObject,
+    VisitLoader, PatientVisit,
 }
