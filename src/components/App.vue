@@ -282,6 +282,7 @@ export default Vue.extend({
                                                     study.meta.modality, study.name, study.data.size, study.type, imageId
                                                 )
                                             )
+                                            hasRecord = true
                                         } else if (types[1] === 'series') {
                                             // Add an image stack
                                             const imgStack = new DicomImage(
