@@ -9,10 +9,10 @@
         <div class="medigi-viewer-toolbar">
             <radiology-toolbar
                 :allLinked="allResourcesLinked"
-                :anyActive="activeItems.length > 0"
+                :anyActive="anyActiveItem"
+                :anyItem="resources.length > 0"
                 :anyStack="anyActiveStack"
                 :gridLayout.sync="gridLayout"
-                :hasAnyItems="resources.length > 0"
                 :synchronizers="synchronizers"
                 v-on:link-all-resources="linkAllResources"
             />
@@ -219,6 +219,16 @@ export default Vue.extend({
                 }
             }
             return someLinkable
+        },
+        anyActiveItem (): boolean {
+            // Active items array may include null items, so check if there are any actual items
+            console.log(this.activeItems)
+            for (const item of this.activeItems) {
+                if (item) {
+                    return true
+                }
+            }
+            return false
         },
         anyActiveStack (): boolean {
             for (const item of this.activeItems) {

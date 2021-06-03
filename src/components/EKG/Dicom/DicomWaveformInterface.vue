@@ -8,7 +8,7 @@
         <div class="medigi-viewer-toolbar">
             <ekg-toolbar
                 :activeItems="activeItems"
-                :hasAnyItems="resources.length > 0"
+                :anyItem="resources.length > 0"
                 :displayedTraceCount="displayedTraceCount"
                 :firstTraceIndex.sync="firstTraceIndex"
             />

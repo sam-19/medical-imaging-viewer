@@ -8,7 +8,7 @@
         <div class="medigi-viewer-toolbar">
             <eeg-toolbar
                 :activeItems="activeItems"
-                :hasAnyItems="resources.length > 0"
+                :anyItem="resources.length > 0"
             />
         </div>
         <div class="medigi-viewer-sidebar">

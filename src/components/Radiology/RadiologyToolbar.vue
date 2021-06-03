@@ -116,6 +116,10 @@ export default Vue.extend({
             type: Boolean,
             default: false,
         },
+        anyItem: {
+            type: Boolean,
+            default: false,
+        },
         anyStack: {
             type: Boolean,
             default: false,
@@ -444,6 +448,8 @@ export default Vue.extend({
          */
         isEnabled (button: string): boolean {
             switch (button) {
+                case 'group:layout':
+                    return this.anyItem
                 case 'tool:Crosshairs':
                 case 'tool:StackScroll':
                 case 'action:link':
