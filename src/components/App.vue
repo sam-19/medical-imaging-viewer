@@ -250,10 +250,10 @@ export default Vue.extend({
          * Load studies from a given FilesystemItem.
          * @param fsItem FilesystemItem to load
          */
-        loadStudiesFromFsItem: function (fsItem: FileSystemItem) {
+        loadStudiesFromFsItem: async function (fsItem: FileSystemItem) {
             const studyLoader = new GenericStudyLoader()
             this.loadingStudies = true
-            studyLoader.loadFromFileSystem(fsItem).then(visits => {
+            studyLoader.loadFromFileSystem(fsItem).then(async visits => {
                 let visitCounter = 1
                 for (const { title, date, studies } of visits) {
                     // Don't add empty visits
@@ -265,7 +265,7 @@ export default Vue.extend({
                         date: date || '',
                         studies: { eeg: [], ekg: [], radiology: [] },
                     } as any
-                    let topoImage = null as ImageResource | null
+                    let topoImages = [] as DicomImage[]
                     let hasRecord = false // Check that there is at least one actual record in the visit
                     for (const study of studies) {
                         const types = study.type.split(':')
@@ -277,7 +277,7 @@ export default Vue.extend({
                                     if (imageId) {
                                         if (types.length === 1) {
                                             // Add a single image
-                                            (visit.studies.radiology as ImageResource[]).push(
+                                            (visit.studies.radiology as DicomImage[]).push(
                                                 new DicomImage(
                                                     study.meta.modality, study.name, study.data.size, study.type, imageId
                                                 )
@@ -288,7 +288,7 @@ export default Vue.extend({
                                             const imgStack = new DicomImage(
                                                 study.meta.modality, study.name, study.files.length, study.type, ''
                                             )
-                                            ;(visit.studies.radiology as ImageResource[]).push(imgStack)
+                                            ;(visit.studies.radiology as DicomImage[]).push(imgStack)
                                             const resourceIdx = visit.studies.radiology.length - 1
                                             // Add all loaded files
                                             for (let i=0; i<study.files.length; i++) {
@@ -325,14 +325,16 @@ export default Vue.extend({
                                             } else {
                                                 // Set "middle" image as cover image
                                                 const coverIdx = Math.floor(imgStack.length/2)
-                                                imgStack.setCoverImage(coverIdx)
+                                                await imgStack.setCoverImage(coverIdx)
                                                 hasRecord = true
                                             }
                                         } else if (types[1] === 'topogram') {
                                             // Add as a topogram image
-                                            topoImage = new DicomImage(
+                                            const topo = new DicomImage(
                                                 study.meta.modality, study.name, study.data.size, study.type, imageId
                                             )
+                                            await topo.preloadAndCacheImage()
+                                            topoImages.push(topo)
                                         } else {
                                             // Some other image
                                             hasRecord = true
@@ -355,10 +357,17 @@ export default Vue.extend({
                         }
                     }
                     // Attach possible topogram image to all applicable stacks
-                    if (topoImage !== null) {
+                    if (topoImages.length) {
                         for (const resource of visit.studies.radiology) {
-                            if (resource.isStack && topoImage.modality === resource.modality) {
-                                (resource as ImageResource).topogram = topoImage
+                            for (const topo of topoImages) {
+                                // Match correct topogram by modality and study ID
+                                if (resource.isStack &&
+                                    topo.modality === resource.modality &&
+                                    topo.studyID === resource.coverImage.studyID
+                                ) {
+                                    resource.topogram = topo
+                                    break
+                                }
                             }
                         }
                     }
@@ -366,6 +375,7 @@ export default Vue.extend({
                         this.visits.push(visit)
                     } else {
                         console.warn("Imported visit did not have any valid imaging studies, the visit was not added.")
+                        this.loadingStudies = false
                         return
                     }
                     // Open the first loaded visit, if none is active

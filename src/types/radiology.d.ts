@@ -37,6 +37,7 @@ interface DicomImageResource extends ImageResource {
     getIndexById(id: string): number
     getIndexByUrl(url: string): number
     push(image: ImageResource): void
+    preloadAndCacheImage(): Promise<object>
     preloadAndSortImages(): Promise<object>
     readMetadataFromImage(image: DicomImageResource): void
     removeFromCache(): void

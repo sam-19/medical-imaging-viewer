@@ -396,7 +396,10 @@ class DicomImage implements DicomImageResource {
     }
     public async preloadAndCacheImage (): Promise<Object> {
         if (!this.isStack && this._url) {
-            return await cornerstone.loadAndCacheImage(this._url).then((image: any) => image)
+            return await cornerstone.loadAndCacheImage(this._url).then((image: any) => {
+                this.readMetadataFromImage(image)
+                return image
+            })
         } else {
             return {}
         }
@@ -453,8 +456,10 @@ class DicomImage implements DicomImageResource {
             if (this.isStack || !this._url) {
                 return false
             }
-            // Load and cache the image if it wasn't given as a param
-            image = await this.preloadAndCacheImage()
+            // Load and cache this object's image if it wasn't given as a param
+            image = await cornerstone.loadAndCacheImage(this._url).then((loadedImage: any) => {
+                return loadedImage
+            })
         }
         // Store image metadata
         this._dimensions = [image.width, image.height]
@@ -484,11 +489,19 @@ class DicomImage implements DicomImageResource {
             } finally {}
         }
     }
-    public setCoverImage (image: DicomImageResource | number | null) {
+    public async setCoverImage (image: DicomImageResource | number | null) {
         if (typeof image === 'number' && this._images[image]) {
             this._coverImage = this._images[image]
         } else {
             this._coverImage = image as DicomImageResource | null
+        }
+        // Preload the image and read metadata from it
+        if (this._coverImage) {
+            const refImg = await this._coverImage.preloadAndCacheImage()
+            if (!this._preloaded) {
+                // Get stack metadata from the cover image
+                await this.readMetadataFromImage(refImg)
+            }
         }
     }
     public setCurrentPositionById (id: string) {
