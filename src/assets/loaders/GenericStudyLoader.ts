@@ -9,6 +9,9 @@ import dicomParser from 'dicom-parser'
 import * as edfdecoder from 'edfdecoder'
 import { FileSystemItem, StudyLoader, StudyObject } from '../../types/common'
 const CONFIG_FILE_NAME = 'medigi_study_config.json'
+const VALID_MODALITIES = {
+    RADIOLOGY: ['CR', 'CT', 'MR', 'US']
+}
 
 interface StudyDict {
     title: string,
@@ -97,6 +100,7 @@ class GenericStudyLoader implements StudyLoader {
                     try {
                         const byteArray = new Uint8Array(await file.arrayBuffer())
                         const dataSet = dicomParser.parseDicom(byteArray)
+                        console.log(dataSet)
                         if (!study.format) {
                             // DICOM format
                             study.format = 'dicom'
@@ -110,7 +114,8 @@ class GenericStudyLoader implements StudyLoader {
                         }
                         // First try if this is a DICOM image file
                         const imageType = dataSet.string('x00080008')
-                        if (imageType !== undefined) {
+                        const imageModality = dataSet.string('x00080060')
+                        if (imageType || (imageModality && VALID_MODALITIES.RADIOLOGY.indexOf(imageModality) !== -1)) {
                             // This is a radiological image
                             if (!study.scope) {
                                 study.scope = 'radiology'
@@ -118,7 +123,7 @@ class GenericStudyLoader implements StudyLoader {
                             // Use the file as data object for WADOImageLoader
                             study.data = file
                             if (!study.type) {
-                                const typeParts = imageType.split('\\')
+                                const typeParts = (imageType || '\\\\').split('\\')
                                 // Part 3 defines a possible localizer (topogram) image
                                 if (typeParts[2].toLowerCase() === 'localizer') {
                                     study.type = 'image:topogram'
@@ -126,6 +131,8 @@ class GenericStudyLoader implements StudyLoader {
                                     study.type = 'image'
                                 }
                             }
+                            study.meta.type = imageType
+                            study.meta.modality = imageModality
                             // Add possible related study instances
                             if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
                                 for (const relItem of dataSet.elements.x00081140.items) {
