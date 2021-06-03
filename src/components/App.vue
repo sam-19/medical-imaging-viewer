@@ -252,7 +252,6 @@ export default Vue.extend({
             const visitLoader = new GenericVisitLoader()
             visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
                 this.visits = visits
-                this.$store.state.loadingStudies = false
                 for (const visit of visits) {
                     // Check that the visit has a proper title
                     if (!this.selectedVisit) {
@@ -273,7 +272,7 @@ export default Vue.extend({
                         }
                     }
                 }
-                return visits
+                this.$store.state.loadingStudies = false
             }).catch((error) => {
                 console.error(error)
                 this.$store.state.loadingStudies = false
