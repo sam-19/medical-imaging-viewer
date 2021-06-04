@@ -307,10 +307,6 @@ export default Vue.extend({
         traceLeftMargin (): number {
             return this.marginLeft + this.chartConfig.margin.l
         },
-        traceRightMargin (): number {
-            // Would be nice to have a final gridline at the end of the trace, but this just doesn't work for some reason
-            return Math.ceil(this.resource.maxSamplingRate/(5*this.pxPerHorizontalSquare)) + 1
-        },
         xAxisRange (): number {
             return this.dataEnd > this.dataStart ? Math.floor(this.dataEnd-this.dataStart) : 0
         },
