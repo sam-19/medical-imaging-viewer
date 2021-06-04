@@ -45,7 +45,7 @@
 
 import Vue from 'vue'
 import cornerstoneTools from 'cornerstone-tools'
-import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
+import { ToolbarControlElement } from '../../types/viewer'
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
     active: boolean
@@ -194,11 +194,11 @@ export default Vue.extend({
         }
     },
     computed: {
-        activeGroupButtons (): ToolbarButton[] {
+        activeGroupButtons (): ToolbarControlElement[] {
             if (!this.activeGroup) {
                 return []
             }
-            const buttons = [] as ToolbarButton[]
+            const buttons = [] as ToolbarControlElement[]
             let buttonSet = null as number | null
             ;(this.groups as any)[this.activeGroup].buttons.forEach((button: any) => {
                 // Add visible buttons
@@ -214,7 +214,10 @@ export default Vue.extend({
                         id: button.id,
                         active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
                         enabled: this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        set: buttonSet || 0,
                         setFirst: newSet,
+                        label: button.label,
+                        options: button.options,
                         icon: this.getButtonIcon(button),
                         overlay: this.getButtonOverlay(button),
                         tooltip: this.getButtonTooltip(button),
@@ -230,9 +233,9 @@ export default Vue.extend({
                 return (this.groups as any)[this.activeGroup].offset
             }
         },
-        buttonRow (): ToolbarButton[] {
+        buttonRow (): ToolbarControlElement[] {
             this.buttonsUpdated // Trigger refresh when this value changes
-            const buttons = [] as ToolbarButton[]
+            const buttons = [] as ToolbarControlElement[]
             let buttonSet = null as number | null
             this.buttons.forEach((button) => {
                 // Add visible buttons
@@ -248,7 +251,10 @@ export default Vue.extend({
                         id: button.id,
                         active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
                         enabled: this.isEnabled(button.id) && this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        set: buttonSet || 0,
                         setFirst: newSet,
+                        label: '',
+                        options: [],
                         icon: this.getButtonIcon(button),
                         overlay: this.getButtonOverlay(button),
                         tooltip: this.getButtonTooltip(button),

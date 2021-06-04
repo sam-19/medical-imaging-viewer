@@ -22,7 +22,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import DicomWaveform from '../../assets/dicom/DicomWaveform'
-import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
+import { ToolbarControlElement } from '../../types/viewer'
 
 // We need an interface for buttons to access them dynamically
 interface ButtonState {
@@ -49,7 +49,7 @@ export default Vue.extend({
     data () {
         return {
             // This array is used to build the button row
-            buttons: [] as { id: string, set: number, groups: string[], icon: string[][], tooltip: any[] }[],
+            buttons: [] as { id: string, set: number, groups: string[], icon: string[][] | null, tooltip: any[] }[],
             buttonStates: {} as any,
             // This is needed to keep the button row up to date
             buttonsUpdated: 0,
@@ -69,9 +69,9 @@ export default Vue.extend({
         },
     },
     computed: {
-        buttonRow (): ToolbarButton[] {
+        buttonRow (): ToolbarControlElement[] {
             this.buttonsUpdated // Trigger refresh when this value changes
-            let buttons = [] as ToolbarButton[]
+            let buttons = [] as ToolbarControlElement[]
             let buttonSet = null as number | null
             this.buttons.forEach((button) => {
                 // Add visible buttons
@@ -87,7 +87,10 @@ export default Vue.extend({
                         id: button.id,
                         active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
                         enabled: this.isEnabled(button.id) && this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        set: buttonSet || 0,
                         setFirst: newSet,
+                        label: '',
+                        options: [],
                         icon: this.getButtonIcon(button),
                         overlay: this.getButtonOverlay(button),
                         tooltip: this.getButtonTooltip(button),
@@ -133,10 +136,10 @@ export default Vue.extend({
             }
             // Deactivate other buttons that share a group with this button
             let button = this.buttons.find((btn) => { return btn.id === buttonId })
-            if (button !== undefined && button.groups.length) {
+            if (button !== undefined && button.groups?.length) {
                 this.buttons.forEach((btn) => {
-                    if (btn.id !== button?.id && btn.groups.length &&
-                        btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length
+                    if (btn.id !== button?.id && btn.groups?.length &&
+                        btn.groups.filter(a => button?.groups?.indexOf(a) !== -1).length
                     ) {
                         this.buttonStates[btn.id as keyof ButtonRow].active = false
                     }

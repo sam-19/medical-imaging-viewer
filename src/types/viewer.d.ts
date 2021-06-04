@@ -18,13 +18,20 @@ type ImageModality = 'US' | 'XR' | 'CT' | 'MRI' | 'PET' | 'SPECT' | 'UNKNOWN'
 type BiosignalModality = 'ECG' | 'EEG' | 'EOG' | 'UNKNOWN'
 type AnyModality = BiosignalModality | ImageModality
 
-interface ToolbarButton {
+interface ToolbarSelectOption {
+    label: string,
+    value: any,
+}
+interface ToolbarControlElement {
     id: string
     active: boolean
     enabled: boolean
-    setFirst?: boolean  // Does this button start a new set?
-    groups?: string[]  // Tool groups this button belongs to
+    set: number
+    setFirst?: boolean // Does this element start a new set?
+    groups?: string[] // Tool groups this element belongs to
     icon: string[] | string[][]
+    label: string,
+    options: ToolbarSelectOption[],
     overlay?: string
     tooltip: string
 }
@@ -34,5 +41,5 @@ export {
     MOUSE_BUTTON,
     // Types
     AnyModality, MediaType, ImageModality, BiosignalModality,
-    ToolbarButton,
+    ToolbarControlElement,
 }

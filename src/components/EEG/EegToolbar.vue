@@ -1,19 +1,20 @@
 <template>
 
     <div :id="`${$store.state.appName}-medigi-viewer-ekg-toolbar`">
-        <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
-            :id="button.id"
-            :emit="button.emit"
-            :enabled="button.enabled"
-            :icon="button.icon"
-            :overlay="button.overlay"
-            :tooltip="button.tooltip"
+        <component v-for="(control, idx) in controlRow" :key="`toolbar-button-${idx}`"
+            :is="control.type === 'select' ? 'toolbar-select' : 'toolbar-button'"
+            :id="control.id"
+            :emit="control.emit"
+            :enabled="control.enabled"
+            :icon="control.icon"
+            :overlay="control.overlay"
+            :tooltip="control.tooltip"
             :class="{
-                'medigi-viewer-disabled': !button.enabled,
-                'element-active': typeof button.active === 'boolean' ? button.active : button.active(),
-                'medigi-viewer-toolbar-setfirst': button.setFirst
+                'medigi-viewer-disabled': !control.enabled,
+                'element-active': typeof control.active === 'boolean' ? control.active : control.active(),
+                'medigi-viewer-toolbar-setfirst': control.setFirst
             }"
-            @button-clicked="buttonClicked"
+            @button-clicked="controlClicked"
         />
     </div>
 
@@ -22,19 +23,15 @@
 <script lang="ts">
 import Vue from 'vue'
 import DicomWaveform from '../../assets/dicom/DicomWaveform'
-import { ToolbarButton } from '../../types/viewer' // TODO: This shares its name with the Vue component, change one?
+import { ToolbarControlElement } from '../../types/viewer'
 
 // We need an interface for buttons to access them dynamically
-interface ButtonState {
+interface ControlState {
     active: boolean,
     visible: boolean,
     enabled: boolean,
 }
-interface ButtonRow {
-    'previous': ButtonState
-    'next': ButtonState
-    'measure': ButtonState
-    'ruler': ButtonState
+interface ControlRow {
 }
 
 export default Vue.extend({
@@ -45,14 +42,15 @@ export default Vue.extend({
     },
     components: {
         ToolbarButton: () => import('../ToolbarButton.vue'),
+        ToolbarSelect: () => import('../ToolbarSelect.vue'),
     },
     data () {
         return {
             // This array is used to build the button row
-            buttons: [] as { id: string, set: number, groups: string[], icon: string[][], tooltip: any[] }[],
-            buttonStates: {} as any,
+            controls: [] as ToolbarControlElement[],
+            controlStates: {} as any,
             // This is needed to keep the button row up to date
-            buttonsUpdated: 0,
+            controlsUpdated: 0,
             // Unsubscribe from store actions
             unsubscribeActions: null as any,
         }
@@ -69,28 +67,31 @@ export default Vue.extend({
         },
     },
     computed: {
-        buttonRow (): ToolbarButton[] {
-            this.buttonsUpdated // Trigger refresh when this value changes
-            let buttons = [] as ToolbarButton[]
+        buttonRow (): ToolbarControlElement[] {
+            this.controlsUpdated // Trigger refresh when this value changes
+            let buttons = [] as ToolbarControlElement[]
             let buttonSet = null as number | null
-            this.buttons.forEach((button) => {
+            this.controls.forEach((control) => {
                 // Add visible buttons
-                if (this.buttonStates[button.id as keyof ButtonRow].visible) {
+                if (this.controlStates[control.id as keyof ControlRow].visible) {
                     let newSet = false
                     if (buttonSet === null) {
-                        buttonSet = button.set
-                    } else if (button.set > buttonSet) {
+                        buttonSet = control.set
+                    } else if (control.set > buttonSet) {
                         newSet = true
-                        buttonSet = button.set
+                        buttonSet = control.set
                     }
                     buttons.push({
-                        id: button.id,
-                        active: this.isActive(button.id) || this.buttonStates[button.id as keyof ButtonRow].active,
-                        enabled: this.isEnabled(button.id) && this.buttonStates[button.id as keyof ButtonRow].enabled,
+                        id: control.id,
+                        active: this.isActive(control.id) || this.controlStates[control.id as keyof ControlRow].active,
+                        enabled: this.isEnabled(control.id) && this.controlStates[control.id as keyof ControlRow].enabled,
+                        set: buttonSet || 0,
                         setFirst: newSet,
-                        icon: this.getButtonIcon(button),
-                        overlay: this.getButtonOverlay(button),
-                        tooltip: this.getButtonTooltip(button),
+                        label: control.label,
+                        options: control.options,
+                        icon: this.getButtonIcon(control),
+                        overlay: this.getButtonOverlay(control),
+                        tooltip: this.getButtonTooltip(control),
                     })
                 }
             })
@@ -132,13 +133,13 @@ export default Vue.extend({
                 this.toggleRuler()
             }
             // Deactivate other buttons that share a group with this button
-            let button = this.buttons.find((btn) => { return btn.id === buttonId })
-            if (button !== undefined && button.groups.length) {
-                this.buttons.forEach((btn) => {
-                    if (btn.id !== button?.id && btn.groups.length &&
-                        btn.groups.filter(a => button?.groups.indexOf(a) !== -1).length
+            let button = this.controls.find((btn) => { return btn.id === buttonId })
+            if (button !== undefined && button.groups?.length) {
+                this.controls.forEach((btn) => {
+                    if (btn.id !== button?.id && btn.groups?.length &&
+                        btn.groups.filter(a => button?.groups?.indexOf(a) !== -1).length
                     ) {
-                        this.buttonStates[btn.id as keyof ButtonRow].active = false
+                        this.controlStates[btn.id as keyof ControlRow].active = false
                     }
                 })
             }
@@ -148,16 +149,16 @@ export default Vue.extend({
                 }
             })
             // Refresh button row
-            this.buttonsUpdated++
+            this.controlsUpdated++
         },
         /**
          * Disable a single button.
          * @param string buttonId
          */
         disableButton: function (buttonId: string) {
-            const match = this.buttons.find((btn) => { return btn.id === buttonId })
+            const match = this.controls.find((btn) => { return btn.id === buttonId })
             if (match !== undefined) {
-                this.buttonStates[match.id as keyof ButtonRow].enabled = false
+                this.controlStates[match.id as keyof ControlRow].enabled = false
             }
         },
         /**
@@ -165,21 +166,21 @@ export default Vue.extend({
          * @param string buttonId
          */
         enableButton: function (buttonId: string) {
-            const match = this.buttons.find((btn) => { return btn.id === buttonId })
+            const match = this.controls.find((btn) => { return btn.id === buttonId })
             if (match !== undefined) {
-                this.buttonStates[match.id as keyof ButtonRow].enabled = true
+                this.controlStates[match.id as keyof ControlRow].enabled = true
             }
         },
         enableDefaults: function () {
         },
         /**
          * Get the button icon appropriate for button state.
-         * @param button this.buttons array member or button ID string
+         * @param button this.controls array member or button ID string
          * @return [] | undefined
          */
         getButtonIcon: function (button: any): string[] {
             if (typeof button === 'string') {
-                button = this.buttons.find((btn) => { return btn.id === button })
+                button = this.controls.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
                 return button.icon[
@@ -191,23 +192,23 @@ export default Vue.extend({
         },
         /**
          * Get the appropriate overlay for the given button.
-         * @param button this.buttons array member or button ID string
+         * @param button this.controls array member or button ID string
          * @return string
          */
         getButtonOverlay: function (button: any): string {
             if (typeof button === 'string') {
-                button = this.buttons.find((btn) => { return btn.id === button })
+                button = this.controls.find((btn) => { return btn.id === button })
             }
             return ''
         },
         /**
          * Get the button tooltip appropriate for button state.
-         * @param button this.buttons array member or button ID string
+         * @param button this.controls array member or button ID string
          * @return string
          */
         getButtonTooltip: function (button: any): string {
             if (typeof button === 'string') {
-                button = this.buttons.find((btn) => { return btn.id === button })
+                button = this.controls.find((btn) => { return btn.id === button })
             }
             if (typeof button !== undefined) {
                 return button.tooltip[
@@ -221,7 +222,7 @@ export default Vue.extend({
          * Check button active state dynamically if needed, else return false.
          */
         isActive (button: string): boolean {
-            return this.buttonStates[button as keyof ButtonRow].active
+            return this.controlStates[button as keyof ControlRow].active
         },
         /**
          * Check if button should be enabled.
@@ -252,15 +253,15 @@ export default Vue.extend({
          * Toggle the measurement tool.
          */
         toggleMeasure: function () {
-            this.buttonStates['measure'].active = !this.buttonStates['measure'].active
+            this.controlStates['measure'].active = !this.controlStates['measure'].active
             this.$store.commit('set-active-tool', 'measure')
         },
         /**
          * Toggle ruler display when making measurements.
          */
         toggleRuler: function () {
-            this.buttonStates['ruler'].active = !this.buttonStates['ruler'].active
-            this.$store.commit('ekg:show-ruler', this.buttonStates['ruler'].active)
+            this.controlStates['ruler'].active = !this.controlStates['ruler'].active
+            this.$store.commit('ekg:show-ruler', this.controlStates['ruler'].active)
         },
         /**
          * Disable a set of buttons.
@@ -268,17 +269,17 @@ export default Vue.extend({
          */
         setDisabledButtons: function (buttonIds: string[]): void {
             // First set all buttons as enabled
-            Object.keys(this.buttonStates).map(key => {
-                this.buttonStates[key as keyof ButtonRow].enabled = true
+            Object.keys(this.controlStates).map(key => {
+                this.controlStates[key as keyof ControlRow].enabled = true
             })
             buttonIds.forEach((button) => {
-                let match = this.buttons.find((btn) => { return btn.id === button })
+                let match = this.controls.find((btn) => { return btn.id === button })
                 if (match !== undefined) {
-                    this.buttonStates[match.id as keyof ButtonRow].enabled = false
+                    this.controlStates[match.id as keyof ControlRow].enabled = false
                 }
             })
             // Refresh button row
-            this.buttonsUpdated++
+            this.controlsUpdated++
         },
         /**
          * Hide a set of buttons.
@@ -286,18 +287,18 @@ export default Vue.extend({
          */
         setHiddenButtons: function (buttonIds: string[]): void {
             // First set all buttons as visible
-            Object.keys(this.buttonStates).map(key => {
-                this.buttonStates[key as keyof ButtonRow].visible = true
+            Object.keys(this.controlStates).map(key => {
+                this.controlStates[key as keyof ControlRow].visible = true
             })
             buttonIds.forEach((button) => {
-                let match = this.buttons.find((btn) => { return btn.id === button })
+                let match = this.controls.find((btn) => { return btn.id === button })
                 if (match !== undefined) {
-                    this.buttonStates[match.id as keyof ButtonRow].active = false // Can't leave an invisible button active
-                    this.buttonStates[match.id as keyof ButtonRow].visible = false
+                    this.controlStates[match.id as keyof ControlRow].active = false // Can't leave an invisible button active
+                    this.controlStates[match.id as keyof ControlRow].visible = false
                 }
             })
             // Refresh button row
-            this.buttonsUpdated++
+            this.controlsUpdated++
         },
         updateBrowseButtons: function () {
             if (!this.hasNextTrace) {
