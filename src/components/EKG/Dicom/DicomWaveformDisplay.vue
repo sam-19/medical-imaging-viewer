@@ -1,8 +1,12 @@
 <template>
 
     <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div ref="trace" class="medi-viewer-waveform-trace" @scroll.passive="updateViewBounds">
-            <div ref="container" @contextmenu.prevent></div>
+        <div ref="trace" class="medigi-viewer-waveform-trace" @scroll.passive="updateViewBounds">
+            <div ref="container"
+                class="medigi-viewer-waveform-container"
+                :style="containerStyles"
+                @contextmenu.prevent
+            ></div>
             <div ref="mousedrag" :class="[
                 'medigi-viewer-ekg-mousedrag',
                 { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
@@ -73,7 +77,7 @@ export default Vue.extend({
             chartConfig: {
                 // Props are initialized before data
                 width: 0,
-                margin: { t: 0, r: 0, b: this.marginBottom, l: 1 },
+                margin: { t: 0, r: 0, b: 0, l: 0 },
                 showlegend: false,
                 dragmode: false,
                 xaxis: {
@@ -81,18 +85,17 @@ export default Vue.extend({
                     ticklen: 5, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
-                    gridcolor: '#FFB6C1',
-                    gridwidth: 1,
-                    zerolinecolor: '#FFB6C1',
-                    zerolinewidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.ekg.majorGrid.color,
+                    gridwidth: this.$store.state.SETTINGS.ekg.majorGrid.width,
+                    zeroline: false,
                     overlaying: 'x2',
                     fixedrange: true,
                 },
                 xaxis2: {
                     tickmode: 'array',
                     rangemode: 'tozero',
-                    gridcolor: '#FFEDF0',
-                    gridwidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.ekg.minorGrid.color,
+                    gridwidth: this.$store.state.SETTINGS.ekg.minorGrid.width,
                     matches: 'x',
                     zeroline: false,
                     fixedrange: true,
@@ -103,10 +106,9 @@ export default Vue.extend({
                     ticklen: 0,//10, // This serves as padding between axis and label
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
-                    gridcolor: '#FFB6C1',
-                    gridwidth: 1,
-                    zerolinecolor: '#FFB6C1',
-                    zerolinewidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.ekg.majorGrid.color,
+                    gridwidth: this.$store.state.SETTINGS.ekg.majorGrid.width,
+                    zeroline: false,
                     overlaying: 'y2',
                     fixedrange: true,
                 },
@@ -114,8 +116,8 @@ export default Vue.extend({
                     autorange: false,
                     tickmode: 'array',
                     rangemode: 'tozero',
-                    gridcolor: '#FFEDF0',
-                    gridwidth: 1,
+                    gridcolor: this.$store.state.SETTINGS.ekg.minorGrid.color,
+                    gridwidth: this.$store.state.SETTINGS.ekg.minorGrid.width,
                     matches: 'y',
                     zeroline: false,
                     fixedrange: true,
@@ -173,6 +175,8 @@ export default Vue.extend({
             // Display an indicator when mouse is dragged on the trace
             mouseDragIndicator: false,
             measurements: null as null | object,
+            // Need to keep old container styles in memory and update them only after options are closed
+            oldStyles: {} as any,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -221,6 +225,24 @@ export default Vue.extend({
                 hoverinfo: 'none',
             })
             return signals
+        },
+        /**
+         * Reactively calculate container styles to match plot styles
+         */
+        containerStyles (): any {
+            if (this.$store.state.optionsOpen) {
+                // Plot is redrawn only after settings are closed, so wait until then
+                return this.oldStyles
+            }
+            const opts = this.$store.state.SETTINGS.ekg
+            const styles = {
+                border: `solid ${opts.majorGrid.width}px ${opts.majorGrid.color}`,
+            }
+            if (opts.fillView) {
+                (styles as any).borderRight = 'none'
+            }
+            this.oldStyles = styles // Update new styles
+            return styles
         },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
@@ -381,32 +403,6 @@ export default Vue.extend({
             const offset = (max - index - 1)*this.traceSpacing + this.yPad
             return offset*this.pxPerVerticalSquare
         },
-        /**
-         * Get datapoint value with all corrections applied.
-         * @param number channel index
-         * @param number datapoint index
-         */
-        getCorrectedSignalValue: function (channel: number, datapoint: number): number | undefined {
-            if (channel >= this.resource.channels.length
-                || datapoint >= this.resource.channels[channel].signal.length
-            ) {
-                return undefined
-            }
-            let sigVal = this.resource.channels[channel].signal[datapoint]
-            // Apply required corrections
-            if (this.resource.channels[channel].baseline) {
-                // According to my sources the baseline correction is really
-                // applied before the sensitivity corrections
-                sigVal += this.resource.channels[channel].baseline
-            }
-            if (this.resource.channels[channel].sensitivity) {
-                sigVal *= this.resource.channels[channel].sensitivity
-            }
-            if (this.resource.channels[channel].sensitivityCF) {
-                sigVal *= this.resource.channels[channel].sensitivityCF
-            }
-            return sigVal
-        },
         handleMouseDown: function (e: any) {
             this.mouseDragIndicator = false
             this.measurements = null
@@ -540,10 +536,10 @@ export default Vue.extend({
                         const rToLFix = startX > endX ? 1 : 0
                         const endPos = Math.round((scaleF*(endX - rToLFix)/this.pxPerHorizontalSquare)*ptsPerSec)
                         // Use default 0 amplitude if start or end is outside the trace bounds
-                        const startAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, startPos)
+                        const startAmp = this.resource.getAdjustedSignalValue(this.mouseDownTrace + this.firstTraceIndex, startPos)
                         //startPos >= 0 && startPos <= this.resource.sampleCount
                         //                 ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signal[startPos] : 0
-                        const endAmp = this.getCorrectedSignalValue(this.mouseDownTrace + this.firstTraceIndex, endPos)
+                        const endAmp = this.resource.getAdjustedSignalValue(this.mouseDownTrace + this.firstTraceIndex, endPos)
                         //endPos >= 0 && endPos <= this.resource.sampleCount
                         //               ? this.resource.channels[this.mouseDownTrace + this.firstTraceIndex].signal[endPos] : 0
                         this.measurements = {
@@ -678,7 +674,7 @@ export default Vue.extend({
                 if (chanLabel.toLowerCase().indexOf('ii') === -1 && chanLabel.toLowerCase().indexOf('i') !== -1) {
                     // Use the I-channel signal
                     for (let j=0; j<signalLen; j++) {
-                        const corrVal = this.getCorrectedSignalValue(i, Math.floor(j*downSampleFactor))
+                        const corrVal = this.resource.getAdjustedSignalValue(i, Math.floor(j*downSampleFactor))
                         if (corrVal !== undefined) {
                             signal.push(corrVal)
                         } else {
@@ -741,7 +737,7 @@ export default Vue.extend({
                     if (j%this.downSampleFactor) {
                         continue
                     }
-                    const corrVal = this.getCorrectedSignalValue(i+this.firstTraceIndex, j)
+                    const corrVal = this.resource.getAdjustedSignalValue(i+this.firstTraceIndex, j)
                     if (corrVal !== undefined) {
                         yValues[i].push(corrVal*ampScale + offset)
                     } else {
@@ -787,8 +783,9 @@ export default Vue.extend({
         }
     },
     mounted () {
-        // Set left margin
+        // Set left and bottom margins
         ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
+        ;(this.$refs['trace'] as HTMLDivElement).style.marginBottom = `${this.marginBottom}px`
         // Calculate max width for the navigator as a reference
         // Calculate view bounds
         this.dataStart = 0
@@ -818,8 +815,11 @@ export default Vue.extend({
 </script>
 
 <style>
-.medi-viewer-waveform-trace {
+.medigi-viewer-waveform-trace {
     overflow-x: auto;
+}
+.medigi-viewer-waveform-container {
+    display: inline-block;
 }
 .medigi-viewer-ekg-mousedrag {
     position: absolute;

@@ -163,7 +163,26 @@ class DicomWaveform implements DicomEkgResource {
             this.channels.push(chanData)
         }
     }
-
+    /**
+     * Get datapoint value with all adjustments applied.
+     * @param number channel index
+     * @param number datapoint index
+     */
+    getAdjustedSignalValue (channel: number, datapoint: number): number | undefined {
+        if (channel >= this.channels.length
+            || datapoint >= this.channels[channel].signal.length
+        ) {
+            return undefined
+        }
+        // Apply required corrections
+        let sigVal = this.channels[channel].signal[datapoint]
+        // According to my sources the baseline correction is really
+        // applied before the sensitivity corrections
+        sigVal += this.channels[channel].baseline || 0 // For cases when the value is undefined
+        sigVal *= this.channels[channel].sensitivity || 1
+        sigVal *= this.channels[channel].sensitivityCF || 1
+        return sigVal
+    }
 }
 export default DicomWaveform
 export { DicomEkgResource }

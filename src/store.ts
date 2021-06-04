@@ -63,10 +63,24 @@ type State = {
             yPadding: number,
         },
         ekg: {
+            backgroundColor: string,
             fillView: boolean,
+            majorGrid: {
+                show: boolean,
+                color: string,
+                style: string,
+                width: number,
+            },
+            minorGrid: {
+                show: boolean,
+                color: string,
+                style: string,
+                width: number,
+            },
             showRuler: boolean,
         },
     },
+    settingsOpen: boolean,
 }
 // Getters
 type Getters = {
@@ -243,10 +257,24 @@ class MEDigiStore {
                     yPadding: 1,
                 },
                 ekg: {
+                    backgroundColor: 'transparent',
                     fillView: false,
+                    majorGrid: {
+                        show: true,
+                        color: '#FFB6C1',
+                        style: 'solid',
+                        width: 1,
+                    },
+                    minorGrid: {
+                        show: true,
+                        color: '#FFEDF0',
+                        style: 'solid',
+                        width: 1,
+                    },
                     showRuler: false,
                 },
             },
+            settingsOpen: false,
         }
         const store: MDStore = new Store({
             state,

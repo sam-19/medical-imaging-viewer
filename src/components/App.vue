@@ -163,6 +163,7 @@ export default Vue.extend({
             if (!val) {
                 this.$store.dispatch('settings:closed')
             }
+            this.$store.state.settingsOpen = this.settingsOpen
         }
     },
     computed: {
