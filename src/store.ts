@@ -95,7 +95,6 @@ enum ActionTypes {
     IMAGE_LINK_STACKS = 'image:link-stacks',
     IMAGE_RESTORE_DEFAULT_SETTINGS = 'image:restore-default-settings',
     IMAGE_ROTATE_BY = 'image:rotate-by',
-    SETTINGS_CLOSED = 'settings:closed',
     TOOLS_REENABLE_ACTIVE = 'tools:re-enable-active',
 }
 type Actions = {
@@ -105,7 +104,6 @@ type Actions = {
     [ActionTypes.IMAGE_LINK_STACKS] (value: boolean): void,
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS] (): void,
     [ActionTypes.IMAGE_ROTATE_BY] (angle: number): void,
-    [ActionTypes.SETTINGS_CLOSED] (): void,
     [ActionTypes.TOOLS_REENABLE_ACTIVE] (): void,
 }
 const actions = {
@@ -115,7 +113,6 @@ const actions = {
     [ActionTypes.IMAGE_LINK_STACKS]() {},
     [ActionTypes.IMAGE_RESTORE_DEFAULT_SETTINGS]() {},
     [ActionTypes.IMAGE_ROTATE_BY]() {},
-    [ActionTypes.SETTINGS_CLOSED]() {},
     [ActionTypes.TOOLS_REENABLE_ACTIVE]() {},
 }
 // Mutations (commits)
@@ -125,6 +122,7 @@ enum MutationTypes {
     SET_CACHE_STATUS = 'set-cache-status',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
     SET_SETTINGS_VALUE = 'set-settings-value',
+    TOGGLE_SETTINGS = 'toggle-settings'
 }
 type Mutations<S = State> = {
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
@@ -132,6 +130,7 @@ type Mutations<S = State> = {
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
     [MutationTypes.SET_SETTINGS_VALUE] (state: S, payload: { field: string, value: string | number }): void,
+    [MutationTypes.TOGGLE_SETTINGS] (state: S, payload?: boolean): void,
 }
 const mutations: MutationTree<State> & Mutations = {
     [MutationTypes.SET_ACTIVE_TOOL] (state, payload: string) {
@@ -169,6 +168,13 @@ const mutations: MutationTree<State> & Mutations = {
             i++
         }
     },
+    [MutationTypes.TOGGLE_SETTINGS] (state, payload?) {
+        if (payload !== undefined) {
+            state.settingsOpen = payload
+        } else {
+            state.settingsOpen = !state.settingsOpen
+        }
+    }
 }
 // Actual type declaration of the store
 type MDStore = Omit<

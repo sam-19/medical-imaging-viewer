@@ -763,10 +763,12 @@ export default Vue.extend({
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
         // Redraw plot if screen PPI changes
-        this.settingsUnsub = this.$store.subscribeAction((action: any) => {
+        this.settingsUnsub = this.$store.subscribe((mutation) => {
             // Monitor PPI setting changes.
             // Redrawing the plot is slow so only update the value when settings menu is closed.
-            if (action.type === 'settings:closed' && this.$store.state.SETTINGS.screenPPI !== this.lastPPI) {
+            if (mutation.type === 'toggle-settings' && !this.$store.state.settingsOpen
+                && this.$store.state.SETTINGS.screenPPI !== this.lastPPI
+            ) {
                 this.lastPPI = this.$store.state.SETTINGS.screenPPI
                 this.redrawPlot()
             }

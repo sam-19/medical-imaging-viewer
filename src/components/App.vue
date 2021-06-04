@@ -3,7 +3,7 @@
     <div :id="`${$store.state.appName}-medigi-viewer`" ref="app" class="medigi-viewer medigi-viewer-dark-mode">
         <div :class="[
                 'medigi-viewer-settings',
-                { 'medigi-viewer-hidden': !settingsOpen },
+                { 'medigi-viewer-hidden': !$store.state.settingsOpen },
             ]"
             @click="handleModalClick"
         >
@@ -137,7 +137,6 @@ export default Vue.extend({
             scope: this.$store.state.SETTINGS.scopePriority[0] || 'radiology',
             selectedVisit: null as PatientVisit|null,
             settingsMenuOpen: false,
-            settingsOpen: false,
             sidebarOpen: true,
             visits: [] as PatientVisit[],
             // Theme change trigger
@@ -159,12 +158,6 @@ export default Vue.extend({
                 this.toggleColorTheme()
             }
         },
-        settingsOpen: function (val, old) {
-            if (!val) {
-                this.$store.dispatch('settings:closed')
-            }
-            this.$store.state.settingsOpen = this.settingsOpen
-        }
     },
     computed: {
         activeVisit (): PatientVisit | null {
@@ -238,7 +231,7 @@ export default Vue.extend({
         handleModalClick: function (ev: any) {
             // Close the settings modal if the underlying (semi-transparent) background was clicked
             if (ev.target === document.querySelector('div.medigi-viewer-settings')) {
-                this.settingsOpen = false
+                this.$store.commit('toggle-settings', false)
             }
         },
         /**
@@ -344,14 +337,14 @@ export default Vue.extend({
             }
         },
         toggleSettings: function () {
-            this.settingsOpen = !this.settingsOpen
-            if (this.settingsOpen && this.settingsMenuOpen) {
+            this.$store.commit('toggle-settings')
+            if (this.$store.state.settingsOpen && this.settingsMenuOpen) {
                 this.settingsMenuOpen = false
             }
         },
         toggleSettingsMenu: function () {
-            if (this.settingsOpen) {
-                this.settingsOpen = false
+            if (this.$store.state.settingsOpen) {
+                this.$store.commit('toggle-settings', false)
             } else {
                 this.settingsMenuOpen = !this.settingsMenuOpen
             }
