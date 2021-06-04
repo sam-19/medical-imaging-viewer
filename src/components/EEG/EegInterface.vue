@@ -8,7 +8,11 @@
         <div class="medigi-viewer-toolbar">
             <eeg-toolbar
                 :activeItems="activeItems"
+                :allAtEnd="allAtEnd"
+                :allAtStart="allAtStart"
                 :anyItem="resources.length > 0"
+                v-on:previous-page="previousPage()"
+                v-on:next-page="nextPage()"
             />
         </div>
         <div class="medigi-viewer-sidebar">
@@ -33,6 +37,9 @@
                     :resource="resource"
                     :yPad="yPad"
                     :uVperCm="uVperCm"
+                    v-on:at-end="traceEndUpdated(idx, $event)"
+                    v-on:at-start="traceStartUpdated(idx, $event)"
+                    v-on:destroyed="traceDestroyed(idx)"
                 />
             </div>
         </div>
@@ -64,6 +71,11 @@ export default Vue.extend({
             traceMarginLeft: 80,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             uVperCm: 100,
+            // Trace navigation positions
+            traceAtEnd: [] as boolean[],
+            allAtEnd: true,
+            traceAtStart: [] as boolean[],
+            allAtStart: true,
             // React to some property changes
             elementsChanged: 0,
         }
@@ -151,6 +163,24 @@ export default Vue.extend({
                 this.recalibrateCharts()
             })
         },
+        nextPage: function () {
+            if (Array.isArray(this.$refs['eeg-element'])) {
+                this.$refs['eeg-element'].forEach((item: any) => {
+                    item.nextPage()
+                })
+            } else if (this.$refs['eeg-element']) {
+                ;(this.$refs['eeg-element'] as any).nextPage()
+            }
+        },
+        previousPage: function () {
+            if (Array.isArray(this.$refs['eeg-element'])) {
+                this.$refs['eeg-element'].forEach((item: any) => {
+                    item.previousPage()
+                })
+            } else if (this.$refs['eeg-element']) {
+                ;(this.$refs['eeg-element'] as any).previousPage()
+            }
+        },
         /**
          * Recalibrate the data on any active charts.
          */
@@ -176,6 +206,18 @@ export default Vue.extend({
             } else {
                 (this.$refs['eeg-element'] as any).redrawPlot()
             }
+        },
+        traceDestroyed: function (idx: number) {
+            this.traceAtEnd.splice(idx, 1)
+            this.traceAtStart.splice(idx, 1)
+        },
+        traceEndUpdated: function (idx: number, value: boolean) {
+            this.traceAtEnd[idx] = value
+            this.allAtEnd = !this.traceAtEnd.includes(false)
+        },
+        traceStartUpdated: function (idx: number, value: boolean) {
+            this.traceAtStart[idx] = value
+            this.allAtStart = !this.traceAtStart.includes(false)
         },
         updateElements: function () {
             this.elementsChanged++

@@ -8,5 +8,10 @@
         "{m}:{s} minutes": "{m}:{s} minutes",
         "{n} channels": "{n} channels",
         "{s} seconds": "{s} seconds"
+    },
+    "EegToolbar": {
+        "Analyse signal": "Analyse signal",
+        "Next page": "Next page",
+        "Previous page": "Previous page"
     }
 }

@@ -8,5 +8,10 @@
         "{m}:{s} minutes": "{m}:{s} minuuttia",
         "{n} channels": "{n} kanavaa",
         "{s} seconds": "{s} sekuntia"
+    },
+    "EegToolbar": {
+        "Analyse signal": "Analysoi signaalia",
+        "Next page": "Seuraava sivu",
+        "Previous page": "Edellinen sivu"
     }
 }

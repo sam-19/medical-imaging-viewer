@@ -12,6 +12,8 @@ import { FileSystemItem, MediaResource } from './types/common'
 // FontAwesome icons
 import { faAdjust } from '@fortawesome/pro-duotone-svg-icons/faAdjust'
 import { faArrowAltDown } from '@fortawesome/pro-light-svg-icons/faArrowAltDown'
+import { faArrowAltLeft } from '@fortawesome/pro-light-svg-icons/faArrowAltLeft'
+import { faArrowAltRight } from '@fortawesome/pro-light-svg-icons/faArrowAltRight'
 import { faArrowAltUp } from '@fortawesome/pro-light-svg-icons/faArrowAltUp'
 import { faArrowsAltH } from '@fortawesome/pro-regular-svg-icons/faArrowsAltH'
 import { faArrowsAltV } from '@fortawesome/pro-regular-svg-icons/faArrowsAltV'
@@ -54,6 +56,8 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(faAdjust)
 library.add(faArrowAltDown)
+library.add(faArrowAltLeft)
+library.add(faArrowAltRight)
 library.add(faArrowAltUp)
 library.add(faArrowsAltH)
 library.add(faArrowsAltV)

@@ -237,6 +237,9 @@ export default Vue.extend({
             }
             return ranges
         },
+        isAtEnd (): boolean {
+            return (this.viewEnd >= this.resource.duration)
+        },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
             return this.$store.state.SETTINGS.screenPPI/17.7
@@ -419,29 +422,12 @@ export default Vue.extend({
             return this.resource.viewStart + newWidth
         },
         handleKeypress: function (event: KeyboardEvent) {
-            let stepLength = 10 // Ten seconds per step
             if (event.key === 'PageUp') {
-                // Browse left
-                if (this.resource.viewStart) {
-                    // Do not backtrack beyound the start of the recording
-                    if (this.resource.viewStart - stepLength < 0) {
-                        stepLength = this.resource.viewStart
-                    }
-                    this.resource.viewStart -= stepLength
-                    this.viewEnd -= stepLength
-                }
+                this.previousPage()
                 event.preventDefault()
-                this.refreshTraces()
             } else if (event.key === 'PageDown') {
-                // Browse right
-                // Do not exceed the end of the recording
-                if (this.viewEnd >= this.resource.duration) {
-                    return
-                }
-                this.resource.viewStart += stepLength
-                this.viewEnd += stepLength
+                this.nextPage()
                 event.preventDefault()
-                this.refreshTraces()
             }
         },
         handleMouseDown: function (e: any) {
@@ -598,6 +584,44 @@ export default Vue.extend({
         },
         hideAnnotationMenu: function () {
 
+        },
+        nextPage: function () {
+            let stepLength = 10 // Ten seconds per step
+            // Browse right
+            // Do not exceed the end of the recording
+            if (this.isAtEnd) {
+                return
+            }
+            this.resource.viewStart += stepLength
+            this.viewEnd += stepLength
+            this.refreshTraces()
+            if (this.isAtEnd) {
+                this.$emit('at-end', true)
+            }
+            if (this.resource.viewStart) {
+                this.$emit('at-start', false)
+            }
+        },
+        previousPage: function () {
+            let stepLength = 10
+            // Browse left
+            // Do not backtrack beyound the start of the recording
+            if (!this.resource.viewStart) {
+                return
+            }
+            if (this.resource.viewStart - stepLength < 0) {
+                stepLength = this.resource.viewStart
+            }
+            this.resource.viewStart -= stepLength
+            this.viewEnd -= stepLength
+            this.refreshTraces()
+            if (!this.resource.viewStart) {
+                this.$emit('at-start', true)
+            }
+            if (!this.isAtEnd) {
+                // TODO: Do not emit this every time
+                this.$emit('at-end', false)
+            }
         },
         recalibrateChart: function (force=false) {
             this.viewEnd = this.getViewEnd()
@@ -780,12 +804,16 @@ export default Vue.extend({
                 this.redrawPlot()
             }
         })
+        // Emit navigation position
+        this.$emit('at-start', this.resource.viewStart === 0)
+        this.$emit('at-end', this.isAtEnd)
     },
     beforeDestroy () {
         window.removeEventListener('keydown', this.handleKeypress, false)
         if (this.settingsUnsub !== null) {
             this.settingsUnsub()
         }
+        this.$emit('destroyed')
     },
 })
 </script>
