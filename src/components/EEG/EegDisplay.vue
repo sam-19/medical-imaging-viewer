@@ -144,7 +144,6 @@ export default Vue.extend({
                 responsive: false,
             },
             sensitivityAdjust: 1,
-            viewStart: 0,
             viewEnd: 0,
             lastViewBounds: [0, 0],
             downSampleFactor: 1,
@@ -226,8 +225,8 @@ export default Vue.extend({
         filterRange (): { filter: number[], signal: number[] } {
             // Check for possible padding needed for signal filtering
             const ranges = {
-                filter: [this.viewStart, this.viewEnd],
-                signal: [this.viewStart, this.viewEnd],
+                filter: [this.resource.viewStart, this.viewEnd],
+                signal: [this.resource.viewStart, this.viewEnd],
             }
             if (this.lpFilter || this.hpFilter || this.notchFilter) {
                 // Start cannot be below zero and end cannot exceed record length
@@ -308,27 +307,27 @@ export default Vue.extend({
          * The range that can accommodate the signal with the highest sampling rate accross the view range.
          */
         xAxisRange (): number[] {
-            return this.viewEnd > this.viewStart
-                    ? [...Array(Math.floor((this.viewEnd-this.viewStart)*this.resource.maxSamplingRate)).keys()]
+            return this.viewEnd > this.resource.viewStart
+                    ? [...Array(Math.floor((this.viewEnd-this.resource.viewStart)*this.resource.maxSamplingRate)).keys()]
                     : []
         },
         xAxisTicks (): number[] {
-            const range = this.viewEnd - this.viewStart
+            const range = this.viewEnd - this.resource.viewStart
             const ticks = []
             for (let i=0; i<range; i++) {
-                ticks.push((i - this.viewStart%1)*this.downscaledResolution)
+                ticks.push((i - this.resource.viewStart%1)*this.downscaledResolution)
             }
             return ticks
         },
         xAxis2Ticks (): number[] {
-            const range = this.viewEnd - this.viewStart
+            const range = this.viewEnd - this.resource.viewStart
             const ticks = []
             for (let i=0; i<range; i++) {
                 ticks.push(
-                    (i + 1/5 - this.viewStart%1)*this.downscaledResolution,
-                    (i + 2/5 - this.viewStart%1)*this.downscaledResolution,
-                    (i + 3/5 - this.viewStart%1)*this.downscaledResolution,
-                    (i + 4/5 - this.viewStart%1)*this.downscaledResolution,
+                    (i + 1/5 - this.resource.viewStart%1)*this.downscaledResolution,
+                    (i + 2/5 - this.resource.viewStart%1)*this.downscaledResolution,
+                    (i + 3/5 - this.resource.viewStart%1)*this.downscaledResolution,
+                    (i + 4/5 - this.resource.viewStart%1)*this.downscaledResolution,
                 )
             }
             return ticks
@@ -341,7 +340,7 @@ export default Vue.extend({
                     values.push('')
                     continue
                 }
-                let point = Math.floor(this.viewStart) + i
+                let point = Math.floor(this.resource.viewStart) + i
                 let hrs: number = Math.floor(point/60/60)
                 let mins: number = Math.floor((point - hrs*60*60)/60)
                 let secs: number = point - hrs*60*60 - mins*60
@@ -417,18 +416,18 @@ export default Vue.extend({
             // Calculate the chart's left and right margins
             const viewWidth: number = this.containerSize[0] as number - this.marginLeft
             const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
-            return this.viewStart + newWidth
+            return this.resource.viewStart + newWidth
         },
         handleKeypress: function (event: KeyboardEvent) {
             let stepLength = 10 // Ten seconds per step
             if (event.key === 'PageUp') {
                 // Browse left
-                if (this.viewStart) {
+                if (this.resource.viewStart) {
                     // Do not backtrack beyound the start of the recording
-                    if (this.viewStart - stepLength < 0) {
-                        stepLength = this.viewStart
+                    if (this.resource.viewStart - stepLength < 0) {
+                        stepLength = this.resource.viewStart
                     }
-                    this.viewStart -= stepLength
+                    this.resource.viewStart -= stepLength
                     this.viewEnd -= stepLength
                 }
                 event.preventDefault()
@@ -439,7 +438,7 @@ export default Vue.extend({
                 if (this.viewEnd >= this.resource.duration) {
                     return
                 }
-                this.viewStart += stepLength
+                this.resource.viewStart += stepLength
                 this.viewEnd += stepLength
                 event.preventDefault()
                 this.refreshTraces()
@@ -492,7 +491,7 @@ export default Vue.extend({
             // If no tool is active, use drag to scroll the trace
             if (!this.$store.state.activeTool) {
                 // No need to scroll if the entire trace is already visible
-                if (this.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
+                if (this.resource.viewStart === 0 && this.getViewEnd(true) >= this.resource.sampleCount/this.downSampleFactor) {
                     return
                 }
                 const dX = e.clientX - this.mouseDownPoint.x
@@ -604,12 +603,12 @@ export default Vue.extend({
             this.viewEnd = this.getViewEnd()
             this.refreshNavigatorOverlay()
             // Redrawing the plot is slow, so only do it if necessary
-            if (this.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
+            if (this.resource.viewStart === this.lastViewBounds[0] && this.viewEnd === this.lastViewBounds[1]) {
                 if (!force) {
                     return
                 }
             } else {
-                this.lastViewBounds = [this.viewStart, this.viewEnd]
+                this.lastViewBounds = [this.resource.viewStart, this.viewEnd]
             }
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
             const chartLayout = {
@@ -668,15 +667,15 @@ export default Vue.extend({
             const viewEnd = this.getViewEnd(true)
             const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
             const naviWidth = naviTrueWidth < this.navigatorMaxWidth ? naviTrueWidth : this.navigatorMaxWidth
-            if (this.viewStart === 0 && viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
+            if (this.resource.viewStart === 0 && viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                 ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `0px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${this.marginLeft}px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${naviWidth}px`
                 ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `0px`
                 return
             }
-            const leftWidth = (this.viewStart/this.resource.sampleCount)*naviWidth
-            const actWidth = ((viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth
+            const leftWidth = (this.resource.viewStart/this.resource.sampleCount)*naviWidth
+            const actWidth = ((viewEnd - this.resource.viewStart)/this.resource.sampleCount)*naviWidth
             const rightWidth = ((this.resource.sampleCount - viewEnd)/this.resource.sampleCount)*naviWidth
             ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `${leftWidth}px`
             ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + this.marginLeft}px`
@@ -752,7 +751,7 @@ export default Vue.extend({
         },
         updateViewStart: function () {
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
-            this.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
+            this.resource.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
         },
     },
     mounted () {

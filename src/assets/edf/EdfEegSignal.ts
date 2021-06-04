@@ -21,6 +21,7 @@ class EdfEegSignal implements EegResource {
     protected _maxSamplingRate: number = 0 // Maximum resolution in this recording
     protected _type: string = 'unknown'
     protected _url: string = ''
+    protected _viewStart: number = 0
 
     constructor (name: string, data?: object, loader?: string) {
         // Generate a pseudo-random identifier for this object
@@ -89,6 +90,12 @@ class EdfEegSignal implements EegResource {
     }
     set url (url: string) {
         this._url = url
+    }
+    get viewStart () {
+        return this._viewStart
+    }
+    set viewStart (start: number) {
+        this._viewStart = start
     }
     // Methods
     addMontage (label: string, name: string, config?: any) {
