@@ -62,8 +62,6 @@ export default Vue.extend({
         containerSize: Array,
         displayedTraceCount: Number,
         firstTraceIndex: Number,
-        marginBottom: Number,
-        marginLeft: Number,
         pxPerHorizontalSquare: Number,
         pxPerVerticalSquare: Number,
         resource: Object, // SignalResource
@@ -130,13 +128,19 @@ export default Vue.extend({
             navigator: null as any,
             navigatorConfig: {
                 width: 0,
-                height: 100,
-                margin: { t: 20, r: 20, b: 30, l: this.marginLeft },
+                height: this.$store.state.SETTINGS.ekg.navigator.height,
+                margin: {
+                    t: this.$store.state.SETTINGS.ekg.navigator.margin.top,
+                    r: this.$store.state.SETTINGS.ekg.navigator.margin.right
+                       - (this.$store.state.SETTINGS.ekg.fillView ? 0 : this.$store.state.SETTINGS.ekg.majorGrid.width),
+                    b: this.$store.state.SETTINGS.ekg.navigator.margin.bottom,
+                    l: this.$store.state.SETTINGS.ekg.navigator.margin.left
+                },
                 showlegend: false,
                 dragmode: false,
                 xaxis: {
                     tickmode: 'array',
-                    ticklen: 5,
+                    ticklen: 10,
                     tickcolor: 'rgba(0,0,0,0)',
                     rangemode: 'tozero',
                     gridcolor: 'rgba(0,0,0,0)',
@@ -237,6 +241,9 @@ export default Vue.extend({
             const opts = this.$store.state.SETTINGS.ekg
             const styles = {
                 border: `solid ${opts.majorGrid.width}px ${opts.majorGrid.color}`,
+                marginTop: `${opts.margin.top}px`,
+                marginRight: `${opts.margin.right}px`,
+                marginBottom: `${opts.margin.bottom}px`,
             }
             if (opts.fillView) {
                 (styles as any).borderRight = 'none'
@@ -249,14 +256,13 @@ export default Vue.extend({
             return this.$store.state.SETTINGS.screenPPI/17.7
         },
         navigatorSignal (): any {
-            const navigatorColor = '#303030'
             const signal = {
                 name: 'I',
                 type: 'scattergl',
                 mode: 'lines',
                 x: [...Array(this.navigatorMaxSamples).keys()],
                 y: [],
-                line: { color: navigatorColor, width: 1 },
+                line: { color: this.$store.state.SETTINGS.ekg.navigator.color, width: 1 },
                 hoverinfo: 'none',
             }
             return signal
@@ -305,7 +311,7 @@ export default Vue.extend({
             return values
         },
         traceLeftMargin (): number {
-            return this.marginLeft + this.chartConfig.margin.l
+            return this.$store.state.SETTINGS.ekg.margin.left + this.$store.state.SETTINGS.ekg.majorGrid.width
         },
         xAxisRange (): number {
             return this.dataEnd > this.dataStart ? Math.floor(this.dataEnd-this.dataStart) : 0
@@ -454,7 +460,7 @@ export default Vue.extend({
             } else if (this.$store.state.activeTool === 'measure') {
                 // Do not allow dragging outside the wrapper
                 if (e.offsetX < wrapperPos.left || e.offsetX > wrapperPos.right
-                    || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.marginBottom
+                    || e.offsetY < wrapperPos.top || e.offsetY > wrapperPos.bottom - this.$store.state.SETTINGS.ekg.margin.bottom
                 ) {
                     this.handleMouseOut(e)
                     return
@@ -526,7 +532,8 @@ export default Vue.extend({
                         // Start position (datapoint)
                         const startX = this.mouseDownPoint.x + this.chartConfig.margin.l
                         const startPos = Math.round((scaleF*startX/this.pxPerHorizontalSquare)*ptsPerSec)
-                        const endX = e.offsetX - wrapperPos.left - this.marginLeft + (this.$refs['trace'] as HTMLDivElement).scrollLeft
+                        const endX = e.offsetX - wrapperPos.left - this.$store.state.SETTINGS.ekg.margin.left
+                                     + (this.$refs['trace'] as HTMLDivElement).scrollLeft
                         // Since we measure from ruler end to ruler end, both inclusive, we need to fix the end position
                         // depending on the direction of the drag
                         const rToLFix = startX > endX ? 1 : 0
@@ -551,7 +558,6 @@ export default Vue.extend({
         },
         handleNavigatorMouseClick (e: any) {
             // TODO: Navigate to position when clicking on a hidden part on the navigator
-            console.log('navigator click')
         },
         handleNavigatorMouseDown (e: any) {
             if (e.button !== 0 || e.buttons > 1) {
@@ -568,10 +574,12 @@ export default Vue.extend({
                 }
                 const dX = downPos - e.clientX
                 // Adjust for navigator resolution
-                const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.traceLeftMargin - 20
+                const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth
+                                      - this.$store.state.SETTINGS.ekg.navigator.margin.left
+                                      - this.$store.state.SETTINGS.ekg.navigator.margin.right
                 const naviWidth = naviTrueWidth < this.dataMaxWidth ? naviTrueWidth : this.dataMaxWidth
                 const relDragX = dX/naviWidth
-                trace.scrollLeft = startPos + this.traceLeftPos - relDragX*trace.offsetWidth
+                trace.scrollLeft = startPos - relDragX*trace.offsetWidth
                 this.refreshNavigatorOverlay()
             }
             const stopDrag = (e: any) => {
@@ -619,7 +627,7 @@ export default Vue.extend({
                                ? availWidth : neededWidth
             const chartLayout = {
                 width: traceWidth,
-                height: this.pxPerVerticalSquare*this.yAxisRange + this.marginBottom,
+                height: this.pxPerVerticalSquare*this.yAxisRange + this.$store.state.SETTINGS.ekg.margin.bottom,
                 yaxis: Object.assign({}, this.chartConfig.yaxis, {
                     range: [0, this.yAxisRange],
                     tickvals: this.yAxisTicks,
@@ -680,10 +688,11 @@ export default Vue.extend({
                 }
             }
             Plotly.restyle(this.$refs['navigator'], 'y', [signal])
-            const availableWidth = document.fullscreenElement === null
-                                   ? this.containerSize[0] : screen.width
-            const naviWidth = (availableWidth as number) > this.dataMaxWidth + this.traceLeftMargin + 20
-                              ? this.dataMaxWidth + this.traceLeftMargin + 20 : availableWidth
+            const availableWidth = this.containerSize[0]
+            const totalMargin = this.$store.state.SETTINGS.ekg.navigator.margin.left
+                                + this.$store.state.SETTINGS.ekg.navigator.margin.right
+            const naviWidth = (availableWidth as number) > (this.dataMaxWidth + totalMargin)
+                              ? (this.dataMaxWidth + totalMargin) : availableWidth
             const naviLayout = {
                 width: naviWidth,
                 xaxis: Object.assign({}, this.navigatorConfig.xaxis, {
@@ -698,26 +707,39 @@ export default Vue.extend({
             Plotly.relayout(this.$refs['navigator'], naviLayout)
         },
         refreshNavigatorOverlay: function () {
+            const settings = this.$store.state.SETTINGS.ekg
             // Determine visible view start and end
-            const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth - this.marginLeft - 20
-            const naviWidth = naviTrueWidth < this.dataMaxWidth ? naviTrueWidth : this.dataMaxWidth
+            const naviTrueWidth = (this.$refs['navigator'] as HTMLDivElement).offsetWidth
+                                  - settings.navigator.margin.left - settings.navigator.margin.right
+            const isClipped = (naviTrueWidth < this.dataMaxWidth)
+            // Apply margins
+            ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.top = `${settings.navigator.margin.top}px`
+            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.top = `${settings.navigator.margin.top}px`
+            ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.top = `${settings.navigator.margin.top}px`
+            ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.right = settings.navigator.margin.right
+                                                                                     - (isClipped && !settings.fillView
+                                                                                       ? settings.majorGrid.width : 0)
+                                                                                     + 'px'
+            const naviWidth = isClipped ? naviTrueWidth
+                              : this.dataMaxWidth + (settings.fillView ? 0 : settings.majorGrid.width)
             if (this.viewStart === 0 && this.viewEnd >= this.resource.sampleCount/this.downSampleFactor) {
                 ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `0px`
-                ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${this.marginLeft}px`
+                ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${settings.navigator.margin.left}px`
                 ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${naviWidth}px`
                 ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `0px`
                 return
             }
-            // leftPad is the margin applied to the main chart to make the Y-axis zero-line visible
-            const leftPad = 1 * (this.pxPerHorizontalSquare*5/this.resource.maxSamplingRate)
-            const leftWidth = Math.max(Math.floor((this.viewStart/this.resource.sampleCount)*naviWidth - leftPad), 0)
-            const actWidth = Math.ceil(((this.viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth)
-            const rightWidth = Math.max(
-                Math.floor(((this.resource.sampleCount - this.viewEnd)/this.resource.sampleCount)*naviWidth - leftPad), 0
+            const leftWidth = Math.floor((this.viewStart/this.resource.sampleCount)*naviWidth)
+            const actWidth = Math.ceil(
+                ((this.viewEnd - this.viewStart)/this.resource.sampleCount)*naviWidth
+                 + (isClipped ? settings.majorGrid.width : 0)
             )
+            const rightWidth = Math.floor(((this.resource.sampleCount - this.viewEnd)/this.resource.sampleCount)*naviWidth)
+            // Don't exceed the navigator trace if the main trace has right padding
+            const leftPad = Math.max(leftWidth + actWidth - naviWidth, 0)
             ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.width = `${leftWidth}px`
-            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + this.marginLeft}px`
-            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${actWidth}px`
+            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.left = `${leftWidth + settings.navigator.margin.left}px`
+            ;(this.$refs['navigator-overlay-active'] as HTMLDivElement).style.width = `${actWidth - leftPad}px`
             // Exclude the last pixel from right overlay width, so if shows as "visible" on the trace
             ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `${rightWidth}px`
         },
@@ -773,15 +795,15 @@ export default Vue.extend({
             const scrollPos = (this.$refs['trace'] as HTMLDivElement).scrollLeft
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerHorizontalSquare*5)
             this.viewStart = scrollPos*xPxRatio
-            const viewWidth: number = this.containerSize[0] as number - this.traceLeftMargin
+            const viewWidth = this.containerSize[0] as number - this.traceLeftMargin
             this.viewEnd = this.viewStart + this.downscaledResolution*(viewWidth/(this.pxPerHorizontalSquare*5))
             this.refreshNavigatorOverlay()
         }
     },
     mounted () {
         // Set left and bottom margins
-        ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.marginLeft}px`
-        ;(this.$refs['trace'] as HTMLDivElement).style.marginBottom = `${this.marginBottom}px`
+        ;(this.$refs['trace'] as HTMLDivElement).style.marginLeft = `${this.$store.state.SETTINGS.ekg.margin.left}px`
+        ;(this.$refs['trace'] as HTMLDivElement).style.marginBottom = `${this.$store.state.SETTINGS.ekg.margin.bottom}px`
         // Calculate max width for the navigator as a reference
         // Calculate view bounds
         this.dataStart = 0
@@ -797,7 +819,7 @@ export default Vue.extend({
         //;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
         //    = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
         // Load navigator
-        ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
+        ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.$store.state.SETTINGS.ekg.margin.left}px`
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement)
             .addEventListener('click', this.handleNavigatorMouseClick)
         ;(this.$refs['navigator-overlay-active'] as HTMLDivElement)
@@ -870,7 +892,6 @@ export default Vue.extend({
 }
     .medigi-viewer-waveform-navigator-overlay-left {
         position: absolute;
-        top: 20px;
         height: 50px;
         background-color: #FFFFFF;
         opacity: 0.75;
@@ -878,7 +899,6 @@ export default Vue.extend({
     }
     .medigi-viewer-waveform-navigator-overlay-active {
         position: absolute;
-        top: 20px;
         height: 50px;
         background-color: #000000;
         opacity: 0.025;
@@ -888,7 +908,6 @@ export default Vue.extend({
     .medigi-viewer-waveform-navigator-overlay-right {
         position: absolute;
         top: 20px;
-        right: 20px;
         height: 50px;
         background-color: #FFFFFF;
         opacity: 0.75;
