@@ -1,17 +1,16 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div ref="trace" class="medi-viewer-waveform-trace">
+    <div ref="wrapper" class="medigi-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
+        <div ref="trace" class="medi-viewer-eeg-trace">
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
-                'medigi-viewer-ekg-mousedrag',
+                'medigi-viewer-eeg-mousedrag',
                 { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
                 { 'medigi-viewer-hidden': !mouseDragIndicator },
-                { 'medigi-viewer-ekg-ruler': $store.state.showEkgRuler },
             ]"></div>
             <div ref="measurements"
                 :class="[
-                    'medigi-viewer-ekg-measurements',
+                    'medigi-viewer-eeg-measurements',
                     { 'medigi-viewer-hidden': !measurements }
                 ]"
                 @contextmenu.prevent
@@ -26,12 +25,19 @@
                 </div>
             </div>
         </div>
+        <!-- Video -->
+        <div ref="video"
+            :class="[
+                'medigi-viewer-eeg-video',
+                { 'medigi-viewer-hidden': !resource.video || !showVideo }
+            ]"
+        ></div>
         <!-- Navigator -->
-        <div class="medigi-viewer-waveform-navigator">
+        <div class="medigi-viewer-eeg-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-left" ref="navigator-overlay-left"></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-active" ref="navigator-overlay-active"></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-right" ref="navigator-overlay-right"></div>
+            <div class="medigi-viewer-eeg-navigator-overlay-left" ref="navigator-overlay-left"></div>
+            <div class="medigi-viewer-eeg-navigator-overlay-active" ref="navigator-overlay-active"></div>
+            <div class="medigi-viewer-eeg-navigator-overlay-right" ref="navigator-overlay-right"></div>
         </div>
     </div>
 
@@ -159,6 +165,8 @@ export default Vue.extend({
             // Display an indicator when mouse is dragged on the trace
             mouseDragIndicator: false,
             measurements: null as null | object,
+            // Video properties
+            showVideo: false,
             // Keep track of screen PPI changes
             lastPPI: this.$store.state.SETTINGS.screenPPI,
             settingsUnsub: null as any,
@@ -787,50 +795,37 @@ export default Vue.extend({
 .medi-viewer-waveform-trace {
     overflow-x: auto;
 }
-.medigi-viewer-ekg-mousedrag {
+.medigi-viewer-eeg-mousedrag {
     position: absolute;
     background-color: rgba(255, 0, 0, 0.2);
     pointer-events: none;
     opacity: 0.5;
 }
-    .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler {
-        border-bottom: solid 1px var(--medigi-viewer-border);
-        background-image:
-            linear-gradient(rgba(0, 0, 0, 0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.4) 1px, transparent 1px),
-            linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-    }
-        .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler.medigi-viewer-drag-active {
-            background-color: rgba(255, 0, 0, 0.1);
-            border-right: solid 1px var(--medigi-viewer-border);
-            opacity: 1;
-        }
-    .medigi-viewer-ekg-mousedrag:not(.medigi-viewer-ekg-ruler).medigi-viewer-drag-active {
+    .medigi-viewer-eeg-mousedrag:not(.medigi-viewer-ekg-ruler).medigi-viewer-drag-active {
         background-color: rgba(255, 0, 0, 0.1);
         border-left: solid 1px var(--medigi-viewer-border);
         border-right: solid 1px var(--medigi-viewer-border);
         opacity: 1;
     }
-.medigi-viewer-ekg-measurements {
+.medigi-viewer-eeg-measurements {
     position: absolute;
     background-color: var(--medigi-viewer-background-highlight);
     padding: 6px 10px;
     border: solid 1px var(--medigi-viewer-border);
     pointer-events: none;
 }
-    .medigi-viewer-ekg-measurements > div > span {
+    .medigi-viewer-eeg-measurements > div > span {
         display: inline-block;
         height: 24px;
         line-height: 24px;
     }
-    .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
+    .medigi-viewer-eeg-measurements > div > span:nth-child(1) {
         width: 80px;
     }
-.medigi-viewer-waveform-navigator {
+.medigi-viewer-eeg-navigator {
     position: relative;
 }
-    .medigi-viewer-waveform-navigator-overlay-left {
+    .medigi-viewer-eeg-navigator-overlay-left {
         position: absolute;
         top: 20px;
         height: 50px;
@@ -839,7 +834,7 @@ export default Vue.extend({
         pointer-events: none;
         cursor: default;
     }
-    .medigi-viewer-waveform-navigator-overlay-active {
+    .medigi-viewer-eeg-navigator-overlay-active {
         position: absolute;
         top: 20px;
         height: 50px;
@@ -847,7 +842,7 @@ export default Vue.extend({
         opacity: 0.025;
         cursor: pointer;
     }
-    .medigi-viewer-waveform-navigator-overlay-right {
+    .medigi-viewer-eeg-navigator-overlay-right {
         position: absolute;
         top: 20px;
         right: 20px;
@@ -858,8 +853,8 @@ export default Vue.extend({
         cursor: default;
     }
 /* Do not allow adjusting the range */
-.medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
-.medigi-viewer-waveform-wrapper .rangeslider-grabber-max {
+.medigi-viewer-eeg-wrapper .rangeslider-grabber-min,
+.medigi-viewer-eeg-wrapper .rangeslider-grabber-max {
     pointer-events: none !important;
 }
 </style>
