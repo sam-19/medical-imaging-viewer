@@ -21,9 +21,15 @@ type State = {
         scopePriority: string[],
         screenPPI: number,
         eeg: {
-            bottomBorder: {
-                color: string,
-                width: number,
+            border: {
+                bottom: {
+                    color: string,
+                    width: number,
+                },
+                left: {
+                    color: string,
+                    width: number,
+                },
             },
             channelSpacing: number,
             groupSpacing: number,
@@ -31,10 +37,6 @@ type State = {
                 show: boolean,
                 color: string,
                 style: string,
-                width: number,
-            },
-            leftBorder: {
-                color: string,
                 width: number,
             },
             majorGrid: {
@@ -240,13 +242,15 @@ class MEDigiStore {
                     // Display settings
                     channelSpacing: 1,
                     groupSpacing: 1,
-                    bottomBorder: {
-                        color: '#C0C0C0',
-                        width: 1,
-                    },
-                    leftBorder: {
-                        color: '#C0C0C0',
-                        width: 1,
+                    border: {
+                        bottom: {
+                            color: '#C0C0C0',
+                            width: 1,
+                        },
+                        left: {
+                            color: '#C0C0C0',
+                            width: 1,
+                        },
                     },
                     isoelLine: {
                         show: false,

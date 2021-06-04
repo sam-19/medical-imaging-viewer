@@ -71,8 +71,8 @@ export default Vue.extend({
                                ? this.$store.state.SETTINGS.eeg.majorGrid.color : 'rgba(0,0,0,0)',
                     gridwidth: this.$store.state.SETTINGS.eeg.majorGrid.show
                                ? this.$store.state.SETTINGS.eeg.majorGridLineWidth : 0,
-                    zerolinecolor: this.$store.state.SETTINGS.eeg.leftBorder.color || 'rgba(0,0,0,0)',
-                    zerolinewidth: this.$store.state.SETTINGS.eeg.leftBorder.width || 0,
+                    zerolinecolor: this.$store.state.SETTINGS.eeg.border.left.color || 'rgba(0,0,0,0)',
+                    zerolinewidth: this.$store.state.SETTINGS.eeg.border.left.width || 0,
                     overlaying: 'x2',
                     fixedrange: true,
                 },
@@ -97,8 +97,8 @@ export default Vue.extend({
                                ? this.$store.state.SETTINGS.eeg.isoelLine.color : 'rgba(0,0,0,0)',
                     gridwidth: this.$store.state.SETTINGS.eeg.isoelLine.show
                                ? this.$store.state.SETTINGS.eeg.isoelLine.width : 0,
-                    zerolinecolor: this.$store.state.SETTINGS.eeg.bottomBorder.color || 'rgba(0,0,0,0)',
-                    zerolinewidth: this.$store.state.SETTINGS.eeg.bottomBorder.width || 0,
+                    zerolinecolor: this.$store.state.SETTINGS.eeg.border.bottom.color || 'rgba(0,0,0,0)',
+                    zerolinewidth: this.$store.state.SETTINGS.eeg.border.bottom.width || 0,
                     fixedrange: true,
                 },
             },
