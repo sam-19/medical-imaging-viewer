@@ -19,6 +19,7 @@ type BiosignalModality = 'ECG' | 'EEG' | 'EOG' | 'UNKNOWN'
 type AnyModality = BiosignalModality | ImageModality
 
 interface ToolbarSelectOption {
+    group: string,
     label: string,
     value: any,
 }
@@ -32,8 +33,10 @@ interface ToolbarControlElement {
     icon: string[] | string[][]
     label: string,
     options: ToolbarSelectOption[],
+    selected?: number
     overlay?: string
     tooltip: string
+    type?: string
 }
 
 export {
@@ -41,5 +44,5 @@ export {
     MOUSE_BUTTON,
     // Types
     AnyModality, MediaType, ImageModality, BiosignalModality,
-    ToolbarControlElement,
+    ToolbarControlElement, ToolbarSelectOption,
 }

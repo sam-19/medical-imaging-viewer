@@ -10,8 +10,13 @@
         "{s} seconds": "{s} sekuntia"
     },
     "EegToolbar": {
+        "As recorded": "Kuten rekisteröity",
         "Analyse signal": "Analysoi signaalia",
+        "Default montages": "Oletuskytkennät",
+        "Montage": "Kytkentä",
+        "Double banana": "Tuplabanaani",
         "Next page": "Seuraava sivu",
-        "Previous page": "Edellinen sivu"
+        "Previous page": "Edellinen sivu",
+        "Select montage": "Valitse kytkentä"
     }
 }

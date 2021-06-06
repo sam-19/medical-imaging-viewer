@@ -37,6 +37,7 @@ import { faHandPaper } from '@fortawesome/pro-light-svg-icons/faHandPaper'
 import { faLayerGroup as faLayerGroupL } from '@fortawesome/pro-light-svg-icons/faLayerGroup'
 import { faLayerGroup as faLayerGroupR } from '@fortawesome/pro-regular-svg-icons/faLayerGroup'
 import { faLink } from '@fortawesome/pro-light-svg-icons/faLink'
+import { faList } from '@fortawesome/pro-light-svg-icons/faList'
 import { faQuestionCircle } from '@fortawesome/pro-duotone-svg-icons/faQuestionCircle'
 import { faRedoAlt } from '@fortawesome/pro-regular-svg-icons/faRedoAlt'
 import { faReply } from '@fortawesome/pro-light-svg-icons/faReply'
@@ -81,6 +82,7 @@ library.add(faHandPaper)
 library.add(faLayerGroupL)
 library.add(faLayerGroupR)
 library.add(faLink)
+library.add(faList)
 library.add(faQuestionCircle)
 library.add(faRedoAlt)
 library.add(faReply)

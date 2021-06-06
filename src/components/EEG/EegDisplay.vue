@@ -168,7 +168,7 @@ export default Vue.extend({
             showVideo: false,
             // Keep track of screen PPI changes
             lastPPI: this.$store.state.SETTINGS.screenPPI,
-            settingsUnsub: null as any,
+            unsubscribeSettings: null as any,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
@@ -794,7 +794,7 @@ export default Vue.extend({
         this.redrawNavigator()
         this.refreshNavigatorOverlay()
         // Redraw plot if screen PPI changes
-        this.settingsUnsub = this.$store.subscribe((mutation) => {
+        this.unsubscribeSettings = this.$store.subscribe((mutation) => {
             // Monitor PPI setting changes.
             // Redrawing the plot is slow so only update the value when settings menu is closed.
             if (mutation.type === 'toggle-settings' && !this.$store.state.settingsOpen
@@ -810,8 +810,8 @@ export default Vue.extend({
     },
     beforeDestroy () {
         window.removeEventListener('keydown', this.handleKeypress, false)
-        if (this.settingsUnsub !== null) {
-            this.settingsUnsub()
+        if (this.unsubscribeSettings !== null) {
+            this.unsubscribeSettings()
         }
         this.$emit('destroyed')
     },

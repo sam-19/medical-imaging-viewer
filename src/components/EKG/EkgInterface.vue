@@ -78,7 +78,7 @@ export default Vue.extend({
             // Keep track of screen PPI changes
             lastPPI: this.$store.state.SETTINGS.screenPPI,
             // Ubsubscribe from mutations
-            settingsUnsub: null as any,
+            unsubscribeSettings: null as any,
             // React to some property changes
             elementsChanged: 0,
         }
@@ -255,7 +255,7 @@ export default Vue.extend({
         // Calculate EKG paper square sizes and update values if settings are updated
         this.pxPerHorizontalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPerSec)/5)
         this.pxPerVerticalSquare = Math.floor(((this.$store.state.SETTINGS.screenPPI/2.54)*this.cmPermV)/2)
-        this.settingsUnsub = this.$store.subscribe((mutation) => {
+        this.unsubscribeSettings = this.$store.subscribe((mutation) => {
             if (mutation.type === "toggle-settings" && !this.$store.state.settingsOpen
                  && this.$store.state.SETTINGS.screenPPI !== this.lastPPI
             ) {
@@ -269,7 +269,7 @@ export default Vue.extend({
         })
     },
     beforeDestroy () {
-        this.settingsUnsub()
+        this.unsubscribeSettings()
     },
 })
 </script>

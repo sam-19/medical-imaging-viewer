@@ -7,7 +7,10 @@
             :emit="control.emit"
             :enabled="control.enabled"
             :icon="control.icon"
+            :label="control.label"
+            :options="control.options"
             :overlay="control.overlay"
+            :selected="control.selected"
             :tooltip="control.tooltip"
             :class="{
                 'medigi-viewer-disabled': !control.enabled,
@@ -15,6 +18,7 @@
                 'medigi-viewer-toolbar-setfirst': control.setFirst
             }"
             @button-clicked="controlClicked"
+            @option-selected="optionSelected(control.id, $event)"
         />
     </div>
 
@@ -22,7 +26,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { ToolbarControlElement } from '../../types/viewer'
+import { ToolbarControlElement, ToolbarSelectOption } from '../../types/viewer'
 
 // We need an interface for controls to access them dynamically
 interface ControlState {
@@ -31,9 +35,10 @@ interface ControlState {
     enabled: boolean,
 }
 interface ControlRow {
-    'analyse': ControlState,
-    'next': ControlState,
-    'previous': ControlState,
+    'action:next': ControlState,
+    'action:previous': ControlState,
+    'select:montage': ControlState,
+    'tool:analyse': ControlState,
 }
 
 export default Vue.extend({
@@ -51,7 +56,17 @@ export default Vue.extend({
     data () {
         return {
             // This array is used to build the control row
-            controls: [] as { id: string, set: number, groups: string[], icon: string[][] | null, label: string, options: any[], tooltip: any[], type: string }[],
+            controls: [] as {
+                id: string,
+                set: number,
+                groups: string[],
+                icon: string[][] | null,
+                label: string,
+                options: ToolbarSelectOption[],
+                selected?: number,
+                tooltip: any[],
+                type: string
+            }[],
             controlStates: {} as any,
             // This is needed to keep the control row up to date
             controlsUpdated: 0,
@@ -73,7 +88,7 @@ export default Vue.extend({
     computed: {
         controlRow (): ToolbarControlElement[] {
             this.controlsUpdated // Trigger refresh when this value changes
-            let controls = [] as ToolbarControlElement[]
+            const controls = [] as ToolbarControlElement[]
             let controlSet = null as number | null
             this.controls.forEach((control) => {
                 // Add visible controls
@@ -93,9 +108,11 @@ export default Vue.extend({
                         setFirst: newSet,
                         label: control.label,
                         options: control.options,
+                        selected: control.selected,
                         icon: this.getButtonIcon(control),
                         overlay: this.getButtonOverlay(control),
                         tooltip: this.getButtonTooltip(control),
+                        type: control.type
                     })
                 }
             })
@@ -122,11 +139,11 @@ export default Vue.extend({
          * @param controlId string ID of the control
          */
         controlClicked: function (controlId: string) {
-            if (controlId === 'measure') {
+            if (controlId === 'tool:analyse') {
                 this.toggleAnalysis()
-            } else if (controlId === 'next') {
+            } else if (controlId === 'action:next') {
                 this.$emit('next-page')
-            } else if (controlId === 'previous') {
+            } else if (controlId === 'action:previous') {
                 this.$emit('previous-page')
             }
             // Deactivate other controls that share a group with this control
@@ -226,9 +243,9 @@ export default Vue.extend({
          */
         isEnabled (control: string): boolean {
             switch (control) {
-                case 'next':
+                case 'action:next':
                     return this.hasNextPage
-                case 'previous':
+                case 'action:previous':
                     return this.hasPreviousPage
                 default:
                     return this.activeItems.length > 0
@@ -240,6 +257,20 @@ export default Vue.extend({
         nextPage: function () {
             if (this.hasNextPage) {
 
+            }
+        },
+        /**
+         * Update the selected attribute on a select control
+         */
+        optionSelected: function (select: string, option: number) {
+            for (const ctrl of this.controls) {
+                if (ctrl.id === select) {
+                    for (let i=0; i<ctrl.options.length; i++) {
+                        if (ctrl.options[i].value === option) {
+                            ctrl.selected = i
+                        }
+                    }
+                }
             }
         },
         /**
@@ -302,25 +333,40 @@ export default Vue.extend({
         this.controls = [
             {
                 // A unique identifier for the button. Must match a key in the ButtonRow interface.
-                id: 'previous',
+                id: 'select:montage',
                 // Button set number (incremental). A small separator is placed on the button row between adjacent sets.
                 set: 0,
                 // Groups this button belongs to. When a button is activated, all other buttons in the group are disabled.
                 // Tools that use the same mouse button must all share the same group as well!
                 groups: [],
                 // Label is shown on select when no option is selected
-                label: '',
+                label: this.t('Montage'),
                 // Select control options
-                options: [],
+                options: [
+                    // TODO: Fetch possible options from the record metadata
+                    { group: this.t('Default montages'), label: this.t('As recorded'), value: '' },
+                    { group: this.t('Default montages'), label: this.t('Double banana'), value: 'default:db' },
+                ],
+                selected: 0,
                 // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                icon: [ ['fal', 'arrow-alt-left'] ],
+                icon: [ ['fal', 'list'] ],
                 // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
+                tooltip:[ this.t('Select montage') ],
+                type: 'select',
+            },
+            {
+                id: 'action:previous',
+                set: 1,
+                groups: [],
+                label: '',
+                options: [],
+                icon: [ ['fal', 'arrow-alt-left'] ],
                 tooltip:[ this.t('Previous page') ],
                 type: 'button',
             },
             {
-                id: 'next',
-                set: 0,
+                id: 'action:next',
+                set: 1,
                 groups: [],
                 label: '',
                 options: [],
@@ -329,8 +375,8 @@ export default Vue.extend({
                 type: 'button',
             },
             {
-                id: 'analyse',
-                set: 1,
+                id: 'tool:analyse',
+                set: 2,
                 groups: ['interact'],
                 label: '',
                 options: [],
@@ -340,9 +386,10 @@ export default Vue.extend({
             },
         ]
         this.controlStates = {
-            'analyse':          { active: false, visible: true, enabled: true } as ControlState,
-            'next':             { active: false, visible: true, enabled: true } as ControlState,
-            'previous':         { active: false, visible: true, enabled: true } as ControlState,
+            'action:next':          { active: false, visible: true, enabled: true } as ControlState,
+            'action:previous':      { active: false, visible: true, enabled: true } as ControlState,
+            'select:montage':       { active: false, visible: true, enabled: true } as ControlState,
+            'tool:analyse':         { active: false, visible: true, enabled: true } as ControlState,
         }
         // Subscribe to store dispatches
         this.unsubscribeActions = this.$store.subscribeAction((action) => {
