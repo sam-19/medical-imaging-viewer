@@ -21,10 +21,10 @@
             />
         </div>
         <div ref="media" class="medigi-viewer-media">
-            <div class="medigi-viewer-waveforms">
-                <dicom-waveform-display v-for="(resource, idx) in activeItems"
+            <div class="medigi-viewer-ekg-traces">
+                <ekg-display v-for="(resource, idx) in activeItems"
                     :key="`${$store.state.appName}-medigi-viewer-element-${resource.id}`"
-                    :ref="`waveform-element`"
+                    :ref="`ekg-element`"
                     :cmPermV="cmPermV"
                     :cmPerSec="cmPerSec"
                     :containerSize="mediaContainerSize"
@@ -48,13 +48,13 @@
 <script lang="ts">
 import Vue from 'vue'
 import ResizeObserver from 'resize-observer-polyfill'
-import DicomWaveform from '../../../assets/dicom/DicomWaveform'
+import DicomWaveform from '../../assets/dicom/DicomWaveform'
 
 export default Vue.extend({
     components: {
-        EkgSidebar: () => import('../EkgSidebar.vue'),
-        EkgToolbar: () => import('../EkgToolbar.vue'),
-        DicomWaveformDisplay: () => import('./DicomWaveformDisplay.vue'),
+        EkgSidebar: () => import('./EkgSidebar.vue'),
+        EkgToolbar: () => import('./EkgToolbar.vue'),
+        EkgDisplay: () => import('./EkgDisplay.vue'),
     },
     props: {
         resources: Array,
@@ -214,26 +214,26 @@ export default Vue.extend({
          * Recalibrate the data on any active charts.
          */
         recalibrateCharts: function () {
-            if (Array.isArray(this.$refs['waveform-element'])) {
-                this.$refs['waveform-element'].forEach((item: any) => {
+            if (Array.isArray(this.$refs['ekg-element'])) {
+                this.$refs['ekg-element'].forEach((item: any) => {
                     item.recalibrateChart()
                     item.refreshNavigator()
                 })
             } else {
-                ;(this.$refs['waveform-element'] as any).recalibrateChart()
-                ;(this.$refs['waveform-element'] as any).refreshNavigator()
+                ;(this.$refs['ekg-element'] as any).recalibrateChart()
+                ;(this.$refs['ekg-element'] as any).refreshNavigator()
             }
         },
         /**
          * Completely redraw any active charts.
          */
         redrawCharts: function () {
-            if (Array.isArray(this.$refs['waveform-element'])) {
-                this.$refs['waveform-element'].forEach((item: any) => {
+            if (Array.isArray(this.$refs['ekg-element'])) {
+                this.$refs['ekg-element'].forEach((item: any) => {
                     item.redrawPlot()
                 })
             } else {
-                (this.$refs['waveform-element'] as any).redrawPlot()
+                (this.$refs['ekg-element'] as any).redrawPlot()
             }
         },
         updateElements: function () {

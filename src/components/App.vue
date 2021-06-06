@@ -101,7 +101,7 @@
             :sidebarOpen="sidebarOpen"
             v-on:update-item-order="updateDicomImageOrder"
         />
-        <dicom-waveform-interface v-else-if="scope==='ekg'"
+        <ekg-interface v-else-if="scope==='ekg'"
             ref="dicom-waveform-interface"
             :resources="activeVisit ? activeVisit.studies.ekg : []"
             :sidebarOpen="sidebarOpen"
@@ -125,8 +125,8 @@ import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 export default Vue.extend({
     components: {
         DicomImageInterface: () => import(/* webpackChunkName: "radiology" */'./Radiology/Dicom/DicomImageInterface.vue'),
-        DicomWaveformInterface: () => import(/* webpackChunkName: "ekg" */'./EKG/Dicom/DicomWaveformInterface.vue'),
         EegInterface: () => import(/* webpackChunkName: "eeg" */'./EEG/EegInterface.vue'),
+        EkgInterface: () => import(/* webpackChunkName: "ekg" */'./EKG/EkgInterface.vue'),
         ViewerSettings: () => import('./ViewerSettings.vue'),
         ToolbarButton: () => import('./ToolbarButton.vue'),
     },
