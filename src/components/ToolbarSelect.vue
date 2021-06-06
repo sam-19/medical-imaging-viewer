@@ -19,10 +19,10 @@
             </div>
             <div class="medigi-viewer-toolbar-select-active">
                 <div class="medigi-viewer-toolbar-select-label">
-                    {{ label }}
+                    {{ t(label) }}
                 </div>
                 <div class="medigi-viewer-toolbar-select-value">
-                    {{ selectedLabel }}
+                    {{ t(selectedLabel) }}
                 </div>
             </div>
         </div>
@@ -31,10 +31,10 @@
             class="medigi-viewer-toolbar-select-option"
         >
             <div v-if="opt.newGroup" class="medigi-viewer-toolbar-select-group">
-                {{ opt.newGroup }}
+                {{ t(opt.newGroup) }}
             </div>
             <div v-else :tooltip="opt.label" @click="selectOption(opt.value)">
-                {{ opt.label }}
+                {{ t(opt.label) }}
             </div>
         </div>
     </div>
@@ -76,16 +76,13 @@ export default Vue.extend({
                 }
                 options.push(opt)
             }
-            console.log(options)
             return options as ToolbarSelectOption[]
         },
         name () {
             return this.id.indexOf(':') > 0 ? this.id.split(':')[1] : this.id
         },
         selectedLabel () {
-            console.log('lbl', this.options.length, this.selected)
             if (this.options.length > this.selected) {
-                console.log('sel', (this.options as ToolbarSelectOption[])[this.selected].label)
                 return (this.options as ToolbarSelectOption[])[this.selected].label
             }
             return this.tooltip
@@ -94,19 +91,10 @@ export default Vue.extend({
             return this.id.split(':')[0]
         },
     },
-    watch: {
-        selected (val, old) {
-            console.log('sel', val)
-        }
-    },
     methods: {
         /** Shorthand for component-specific translations */
         t: function (str: string, args?: any) {
-            if (args) {
-                return this.$t(`components.Toolbar.${str}`, args)
-            } else {
-                return (this.$t('components.Toolbar') as any)[str]
-            }
+            return this.$t(`components.Toolbar.${str}`, args)
         },
         selectOption: function (value: string) {
             this.$emit('option-selected', value)

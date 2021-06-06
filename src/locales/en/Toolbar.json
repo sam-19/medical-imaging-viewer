@@ -1,0 +1,10 @@
+{
+    "EEG": {
+        "Default montages": "Default montages",
+        "Montage": "Montage",
+        "Double banana": "Double banana",
+        "Raw signals": "Raw signals",
+        "Record montage": "Record montage",
+        "Select montage": "Select montage"
+    }
+}

@@ -11,6 +11,7 @@
                 :allAtEnd="allAtEnd"
                 :allAtStart="allAtStart"
                 :anyItem="resources.length > 0"
+                v-on:option-selected="selectOption"
                 v-on:previous-page="previousPage()"
                 v-on:next-page="nextPage()"
             />
@@ -49,7 +50,8 @@
 <script lang="ts">
 import Vue from 'vue'
 import ResizeObserver from 'resize-observer-polyfill'
-import EdfSignal from '../../assets/edf/EdfEegSignal'
+import EdfRecord from '../../assets/edf/EdfEegRecord'
+import EdfEegRecord from '../../assets/edf/EdfEegRecord'
 
 export default Vue.extend({
     components: {
@@ -86,7 +88,7 @@ export default Vue.extend({
         },
     },
     computed: {
-        activeItems (): EdfSignal[] {
+        activeItems (): EdfRecord[] {
             this.elementsChanged
             if (!this.mediaContainerSize[0] || !this.mediaContainerSize[1]) {
                 // Wait until container DOM is done loading
@@ -95,8 +97,8 @@ export default Vue.extend({
             // Array.filter is a pain to make work in TypeScript
             const items = []
             for (let i=0; i<this.resources.length; i++) {
-                if ((this.resources[i] as EdfSignal).isActive) {
-                    items.push(this.resources[i] as EdfSignal)
+                if ((this.resources[i] as EdfRecord).isActive) {
+                    items.push(this.resources[i] as EdfRecord)
                 }
                 // Make sure we don't exceed predefined grid dimensions
                 if (this.gridLayout && this.gridLayout[0] && this.gridLayout[1]
@@ -205,6 +207,21 @@ export default Vue.extend({
                 })
             } else {
                 (this.$refs['eeg-element'] as any).redrawPlot()
+            }
+        },
+        selectOption: function (id: string, value: string) {
+            if (id === "select:montage") {
+                for (const eeg of this.resources as EdfEegRecord[]) {
+                    eeg.setActiveMontage(value)
+                    console.log(eeg.activeMontage)
+                }
+                if (Array.isArray(this.$refs['eeg-element'])) {
+                    this.$refs['eeg-element'].forEach((item: any) => {
+                        item.redrawPlot(true)
+                    })
+                } else {
+                    (this.$refs['eeg-element'] as any).redrawPlot()
+                }
             }
         },
         traceDestroyed: function (idx: number) {

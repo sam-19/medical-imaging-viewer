@@ -9,14 +9,9 @@
         "{n} channels": "{n} channels",
         "{s} seconds": "{s} seconds"
     },
-    "EegToolbar": {
-        "As recorded": "As recorded",
+    "Toolbar": {
         "Analyse signal": "Analyse signal",
-        "Default montages": "Default montages",
-        "Montage": "Montage",
-        "Double banana": "Double banana",
         "Next page": "Next page",
-        "Previous page": "Previous page",
-        "Select montage": "Select montage"
+        "Previous page": "Previous page"
     }
 }

@@ -9,6 +9,7 @@ const locEEG = require('./en/EEG.json')
 const locEKG = require('./en/EKG.json')
 const locRadiology = require('./en/Radiology.json')
 const locSettings = require('./en/Settings.json')
+const locToolbar = require('./en/Toolbar.json')
 
 const messagesEN = {
     components: {
@@ -17,6 +18,7 @@ const messagesEN = {
         EKG: locEKG,
         Radiology: locRadiology,
         Settings: locSettings,
+        Toolbar: locToolbar,
     },
     datetime: '{y}/{m}/{d} {h}:{min}',
 }

@@ -4,33 +4,36 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { EegSetup, EegSetupChannel } from '../../types/eeg'
+import { EegSetup, EegSetupSignal } from '../../types/eeg'
+const default1020 = require('./default_setups/10-20.json')
 
 class EdfEegSetup implements EegSetup {
     protected _id: string
     protected _name: string
-    protected _channels: EegSetupChannel[] = []
-    protected _missing: EegSetupChannel[] = []
-    protected _unmatched: EegSetupChannel[] = []
+    protected _signals: EegSetupSignal[] = []
+    protected _missing: EegSetupSignal[] = []
+    protected _unmatched: EegSetupSignal[] = []
 
     constructor (id: string, channels?: any[], config?: any) {
         this._id = id
         this._name = id
         if (channels && config) {
             this.loadConfig(channels, config)
+        } else if (channels && id==='default:10-20') {
+            this.loadConfig(channels, default1020)
         }
     }
     // Getters and setters
-    get channels () {
-        return this._channels
+    get signals () {
+        return this._signals
     }
-    set channels (channels: EegSetupChannel[]) {
-        this._channels = channels
+    set signals (channels: EegSetupSignal[]) {
+        this._signals = channels
     }
-    get missingChannels () {
+    get missingSignals () {
         return this._missing
     }
-    set missingChannels (channels: EegSetupChannel[]) {
+    set missingSignals (channels: EegSetupSignal[]) {
         this._missing = channels
     }
     get name () {
@@ -39,10 +42,10 @@ class EdfEegSetup implements EegSetup {
     set name (name: string) {
         this._name = name
     }
-    get unmatchedChannels () {
+    get unmatchedSignals () {
         return this._unmatched
     }
-    set unmatchedChannels (channels: EegSetupChannel[]) {
+    set unmatchedSignals (channels: EegSetupSignal[]) {
         this._unmatched = channels
     }
     // Methods
@@ -53,36 +56,38 @@ class EdfEegSetup implements EegSetup {
      */
     loadConfig (recordChannels: any[], config: any) {
         this._name = config.name ? config.name : this._name
-        if (config.channels) {
+        if (config.signals) {
             config_loop:
-            for (const chan of config.channels) {
+            for (const sig of config.signals) {
                 // First try matching exact names
-                if (chan.label) {
+                if (sig.label) {
                     for (let i=0; i<recordChannels.length; i++) {
-                        if (chan.label.toLowerCase() === recordChannels[i].label.toLowerCase()) {
-                            this._channels.push({
-                                label: chan.label,
-                                name: chan.name,
-                                type: chan.type,
+                        if (sig.label.toLowerCase() === recordChannels[i].label.toLowerCase()) {
+                            this._signals.push({
+                                label: sig.label,
+                                name: sig.name,
+                                type: sig.type,
                                 samplingRate: recordChannels[i].samplingRate,
                                 index: i,
-                                avgRef: chan.averageRef,
+                                avgRef: sig.averageRef,
+                                amplification: sig.amplification || 1,
                             })
                             continue config_loop
                         }
                     }
                 }
                 // No match, try pattern
-                if (chan.pattern) {
+                if (sig.pattern) {
                     for (let i=0; i<recordChannels.length; i++) {
-                        if (recordChannels[i].label.match(new RegExp(chan.pattern)) !== null) {
-                            this._channels.push({
-                                label: chan.label,
-                                name: chan.name,
-                                type: chan.type,
+                        if (recordChannels[i].label.match(new RegExp(sig.pattern, 'i')) !== null) {
+                            this._signals.push({
+                                label: sig.label,
+                                name: sig.name,
+                                type: sig.type,
                                 samplingRate: recordChannels[i].samplingRate,
                                 index: i,
-                                avgRef: chan.averageRef,
+                                avgRef: sig.averageRef,
+                                amplification: sig.amplification || 1,
                             })
                             continue config_loop
                         }
@@ -90,16 +95,16 @@ class EdfEegSetup implements EegSetup {
                 }
                 // Channel is missing from recording
                 this._missing.push({
-                    label: chan.label,
-                    name: chan.name,
-                    type: chan.type,
-                    avgRef: chan.averageRef,
+                    label: sig.label,
+                    name: sig.name,
+                    type: sig.type,
+                    avgRef: sig.averageRef,
                 })
             }
             // Lastly, check if there are any extra channels not present in the config
             record_loop:
             for (let i=0; i<recordChannels.length; i++) {
-                for (const chan of config.channels) {
+                for (const chan of config.signals) {
                     if (chan.index === i) {
                         continue record_loop
                     }

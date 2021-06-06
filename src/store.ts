@@ -57,6 +57,8 @@ type State = {
                 eog: string,
             }
             setups: string[],
+            signalAmplitude: number,
+            signalPolarity: number,
             traceWidth: {
                 eeg: number,
                 ekg: number,
@@ -270,6 +272,8 @@ class MEDigiStore {
                         style: 'solid',
                         width: 1,
                     },
+                    signalAmplitude: 1,
+                    signalPolarity: -1,
                     traceColor: {
                         eeg: '#000000',
                         ekg: '#000000',

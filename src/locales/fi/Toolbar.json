@@ -1,0 +1,10 @@
+{
+    "EEG": {
+        "Default montages": "Oletuskytkennät",
+        "Double banana": "Tuplabanaani",
+        "Montage": "Kytkentä",
+        "Raw signals": "Raakasignaalit",
+        "Record montage": "Rekisteröintikytkentä",
+        "Select montage": "Valitse kytkentä"
+    }
+}

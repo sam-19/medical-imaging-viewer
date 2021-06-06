@@ -70,8 +70,8 @@ export default Vue.extend({
             controlStates: {} as any,
             // This is needed to keep the control row up to date
             controlsUpdated: 0,
-            // Unsubscribe from store actions
-            unsubscribeActions: null as any,
+            // Unsubscribe from store mutations
+            unsubscribeSettings: null as any,
         }
     },
     watch: {
@@ -224,13 +224,16 @@ export default Vue.extend({
             if (typeof control === 'string') {
                 control = this.controls.find((ctrl) => { return ctrl.id === control })
             }
-            if (typeof control !== undefined) {
-                return control.tooltip[
-                    control.tooltip.length === 1 ||
-                    !this.isActive(control.id) ? 0 : 1
-                ].toString()
+            const tooltip = control.tooltip[
+                                control.tooltip.length === 1 ||
+                                !this.isActive(control.id) ? 0 : 1
+                            ]
+            if (control === undefined) {
+                return ''
+            } else if (control.type === 'select') {
+                return tooltip
             }
-            return ''
+            return this.t(tooltip)
         },
         /**
          * Check control active state dynamically if needed, else return false.
@@ -268,6 +271,7 @@ export default Vue.extend({
                     for (let i=0; i<ctrl.options.length; i++) {
                         if (ctrl.options[i].value === option) {
                             ctrl.selected = i
+                            this.$emit('option-selected', ctrl.id, option)
                         }
                     }
                 }
@@ -340,18 +344,19 @@ export default Vue.extend({
                 // Tools that use the same mouse button must all share the same group as well!
                 groups: [],
                 // Label is shown on select when no option is selected
-                label: this.t('Montage'),
+                label: 'EEG.Montage',
                 // Select control options
                 options: [
+                    { group: '', label: 'EEG.Raw signals', value: null },
                     // TODO: Fetch possible options from the record metadata
-                    { group: this.t('Default montages'), label: this.t('As recorded'), value: '' },
-                    { group: this.t('Default montages'), label: this.t('Double banana'), value: 'default:db' },
+                    { group: 'EEG.Default montages', label: 'EEG.Record montage', value: 'default:raw' },
+                    { group: 'EEG.Default montages', label: 'EEG.Double banana', value: 'default:db' },
                 ],
                 selected: 0,
                 // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
                 icon: [ ['fal', 'list'] ],
                 // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                tooltip:[ this.t('Select montage') ],
+                tooltip: [ 'EEG.Select montage' ],
                 type: 'select',
             },
             {
@@ -361,7 +366,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'arrow-alt-left'] ],
-                tooltip:[ this.t('Previous page') ],
+                tooltip: [ 'Previous page' ],
                 type: 'button',
             },
             {
@@ -371,7 +376,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'arrow-alt-right'] ],
-                tooltip: [ this.t('Next page') ],
+                tooltip: [ 'Next page' ],
                 type: 'button',
             },
             {
@@ -381,7 +386,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'ruler-triangle'] ],
-                tooltip: [ this.t('Analyse signal') ],
+                tooltip: [ 'Analyse signal' ],
                 type: 'button',
             },
         ]
@@ -392,15 +397,17 @@ export default Vue.extend({
             'tool:analyse':         { active: false, visible: true, enabled: true } as ControlState,
         }
         // Subscribe to store dispatches
-        this.unsubscribeActions = this.$store.subscribeAction((action) => {
-
+        this.unsubscribeSettings = this.$store.subscribe((mutation) => {
+            if (mutation.type === 'toggle-settings' && mutation.payload === false) {
+                this.controlsUpdated++ // In case locale has changed
+            }
         })
         // Enable default tools
         this.enableDefaults()
     },
     beforeDestroy () {
         this.$store.commit('set-active-tool', null)
-        this.unsubscribeActions()
+        this.unsubscribeSettings()
     },
 })
 </script>

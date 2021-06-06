@@ -5,11 +5,18 @@
  * @license    MIT
  */
 import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
+const defaults = {
+    "10-20": {
+        db: require('./default_montages/10-20/db.json'),
+        raw: require('./default_montages/10-20/raw.json'),
+    },
+}
 
  class EdfEegMontage implements EegMontage {
     protected _label: string
     protected _name: string = 'Unknown'
-    protected _channels: (EegMontageChannel | null)[] = []
+    protected _channels: EegMontageChannel[] = []
+    protected _config: any =  null
 
     constructor (label: string, name?: string) {
         // Generate a pseudo-random identifier for this object
@@ -22,7 +29,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
     get channels () {
         return this._channels
     }
-    set channels (channels: (EegMontageChannel | null)[]) {
+    set channels (channels: EegMontageChannel[]) {
         this._channels = channels
     }
     get label () {
@@ -38,7 +45,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
         this._name = name
     }
     // Methods
-    getAllSignals (signals: number[][], range?: number[], onlyChannels: number[] = []) {
+    getAllSignals (signals: number[][], range?: number[], config?: any, onlyChannels: number[] = []) {
         const derivedSignals = []
         const avgMap = [] as number[] // Only calculate averages once
         // Filter channels, if needed
@@ -47,7 +54,7 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
             channels.push(this._channels[c])
         }
         for (const chan of channels) {
-            if (chan === null) {
+            if (chan.active === null) {
                 derivedSignals.push([])
                 continue
             }
@@ -56,10 +63,15 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
                             ? [range[0]*chan.samplingRate, (range[1] || 0)*chan.samplingRate]
                             : null
             if (!chan.reference.length) {
-                derivedSignals.push(
-                    chanRange === null ? signals[chan.active]
-                    : signals[chan.active].slice(chanRange[0], chanRange[1])
-                )
+                const sigs = chanRange === null ? signals[chan.active]
+                             : signals[chan.active].slice(chanRange[0], chanRange[1])
+                if (chan.amplification !== 1) {
+                    // Need to apply amplification
+                    for (let i=0; i<sigs.length; i++) {
+                        sigs[i] = sigs[i]*chan.amplification
+                    }
+                }
+                derivedSignals.push(sigs)
                 continue
             }
             // Check that given range is valid
@@ -75,10 +87,10 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
             }
             // Need to calculate signal relative to reference(s), one datapoint at a time.
             // Check that active signal and all reference signals have the same length.
-            const refs = [] as any
+            const refs = [] as number[]
             for (const ref of chan.reference) {
                 if (signals[chan.active].length === signals[ref].length) {
-                    refs.push[ref]
+                    refs.push(ref)
                 }
             }
             const derivSig = []
@@ -93,17 +105,19 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
                         }
                         refAvg /= refs.length
                         avgMap[i] = refAvg
+                    } else if (!refs.length) {
+                        refAvg = 0
                     } else {
                         refAvg = signals[refs[0]][i]
                     }
                 }
-                derivSig.push(signals[chan.active][i] - refAvg)
+                derivSig.push((signals[chan.active][i] - refAvg)*chan.amplification)
             }
             derivedSignals.push(derivSig)
         }
         return derivedSignals
     }
-    getChannelSignal (signals: number[][], channel: number | string, range?: number[]) {
+    getChannelSignal (signals: number[][], channel: number | string, range?: number[], config?: any) {
         // This is just an alias for getAllSignals with a channel filter
         if (typeof channel === 'string') {
             for (let i=0; i<this._channels.length; i++) {
@@ -115,70 +129,106 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
                 }
             }
         }
-        return this.getAllSignals(signals, range, [channel as number])[0]
+        return this.getAllSignals(signals, range, config, [channel as number])[0]
     }
     mapChannels (setup: EegSetup, config: any) {
         const channelMap: any = {}
         this._channels = []
         // If config is null, construct an 'as recorded' montage
         if (!config) {
-            for (const chan of setup.channels) {
+            for (const chan of setup.signals) {
                 this._channels.push({
                     label: chan.label,
                     name: chan.name,
                     active: chan.index || 0,
                     samplingRate: chan.samplingRate || 0,
                     reference: [],
+                    amplification: chan.amplification || 1,
                     offset: 0,
                 })
             }
             this.calculateSignalOffsets(config)
             return
+        } else if (config === "default:10-20:db") {
+            this._label = "default:db"
+            config = defaults['10-20'].db
+        } else if (config === "default:10-20:raw") {
+            // TODO: Settings to disable loading some or all defaults
+            this._label = "default:raw"
+            config = defaults['10-20'].raw
         }
         // First map labels to correct channel indices
         label_loop:
-        for (const cLabel of config.channelLabels) {
-            for (const sChan of setup.channels) {
-                if (cLabel === sChan.label) {
-                    channelMap[cLabel] = { idx: sChan.index, sr: sChan.samplingRate }
+        for (const sig of config.signals) {
+            for (const sSig of setup.signals) {
+                if (sig === sSig.label) {
+                    channelMap[sig] = { idx: sSig.index, sr: sSig.samplingRate, amp: sSig.amplification }
                     continue label_loop
                 }
             }
-            channelMap[cLabel] = null // Not found
+            channelMap[sig] = null // Not found
         }
         // Next, map active and reference electrodes to correct signal channels
         for (const chan of config.channels) {
             // Check that active channel or single reference channel can be found
             if (channelMap[chan.active] === null || channelMap[chan.active] === undefined) {
-                this._channels.push(null)
+                this._channels.push({
+                    label: chan.label,
+                    name: chan.name,
+                    active: null,
+                    reference: [],
+                    samplingRate: 0,
+                    amplification: 0,
+                    offset: 0,
+                })
                 continue
             }
             const refs = []
-            for (const ref of chan.reference) {
-                if (
-                    channelMap[ref] !== null && channelMap[ref] !== undefined &&
-                    channelMap[chan.active].sr === channelMap[ref].sr
-                ) {
-                    refs.push(channelMap[ref].idx)
+            if (chan.reference.length) {
+                for (const ref of chan.reference) {
+                    if (
+                        channelMap[ref] !== null && channelMap[ref] !== undefined &&
+                        channelMap[chan.active].sr === channelMap[ref].sr
+                    ) {
+                        refs.push(channelMap[ref].idx)
+                    }
                 }
-            }
-            if (!refs.length) {
-                // Not a single reference channel found
-                this._channels.push(null)
+                if (!refs.length) {
+                    // Not a single reference channel found
+                    this._channels.push({
+                        label: chan.label,
+                        name: chan.name,
+                        active: null,
+                        reference: [],
+                        samplingRate: 0,
+                        amplification: 0,
+                        offset: 0,
+                    })
+                } else {
+                    // Construct the channel
+                    this._channels.push({
+                        label: chan.label,
+                        name: chan.name,
+                        active: channelMap[chan.active].idx,
+                        reference: refs,
+                        samplingRate: channelMap[chan.active].sr,
+                        amplification: channelMap[chan.active].amp || 1,
+                        offset: 0,
+                    })
+                }
             } else {
-                // Construct the channel
                 this._channels.push({
                     label: chan.label,
                     name: chan.name,
                     active: channelMap[chan.active].idx,
-                    reference: refs,
+                    reference: [],
                     samplingRate: channelMap[chan.active].sr,
+                    amplification: channelMap[chan.active].amp || 1,
                     offset: 0,
                 })
             }
         }
-        // Last, calculate signal offsets
-        this.calculateSignalOffsets(config)
+        this._config = config // Save config for later offset calculation etc.
     }
     calculateSignalOffsets (config: any) {
         // Check if this is an 'as recorded' montage
@@ -191,27 +241,29 @@ import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
         }
         // Calculate channel offsets from the provided config
         let nGroups = 0
-        let nItems = 0
-        for (const group of config.layout) {
-            nItems += group // Add the amount of items in this group
+        let nChannels = 0
+        // Grab layout from default config if not provided
+        const layout = config.layout === undefined ? [...this._config.layout] : [...config.layout]
+        for (const group of layout) {
+            nChannels += group // Add the amount of items in this group
             nGroups++ // Add one group
         }
-        if (nItems !== this._channels.length) {
+        if (nChannels !== this._channels.length) {
             console.warn("The number of channels does not match config layout!")
         }
         let layoutH = 2*config.yPadding // Start with top and bottom padding
-        layoutH += (nItems - (nGroups - 1) - 1)*config.itemSpacing // Add item heights
+        layoutH += (nChannels - (nGroups - 1) - 1)*config.channelSpacing // Add channel heights
         layoutH += (nGroups - 1)*config.groupSpacing // Add group heights
         // Go through the signals and add their respective offsets
         let yPos = 1.0 - config.yPadding/layoutH// First trace is y-padding away from the top
         let chanIdx = 0
         ;(this._channels[chanIdx] as any).offset = yPos
-        for (let i=0; i<config.layout.length; i++) {
-            for (let j=0; j<config.layout[i]; j++) {
-                if (!j && i) { // Item is first in its group but not the very first item
+        for (let i=0; i<layout.length; i++) {
+            for (let j=0; j<layout[i]; j++) {
+                if (!j && i) { // Item is first in its group but not the very first channel
                     yPos -= (1/layoutH)*config.groupSpacing
-                } else if (chanIdx) { // Skip the very first item
-                    yPos -= (1/layoutH)*config.itemSpacing
+                } else if (chanIdx) { // Skip the very first channel
+                    yPos -= (1/layoutH)*config.channelSpacing
                 }
                 (this._channels[chanIdx] as any).offset = yPos
                 chanIdx++

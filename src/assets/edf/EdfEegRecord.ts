@@ -7,15 +7,18 @@
 import { BiosignalResource, BiosignalChannel } from '../../types/common'
 import { EegResource, EegMontage, EegSetup } from '../../types/eeg'
 import EdfSignalMontage from './EdfSignalMontage'
+import EdfEegSetup from './EdfSignalSetup'
 
-class EdfEegSignal implements EegResource {
+class EdfEegRecord implements EegResource {
     protected _active: boolean = false
     protected _annotations: any[] = []
     protected _channels: BiosignalChannel[] = []
     protected _montages: EegMontage[] = []
     protected _activeMontage: EegMontage | null = null
+    protected _rawMontage: EegMontage | null = null
     protected _samples: number = 0
-    protected _setup: EegSetup | null = null
+    protected _setups: EegSetup[] = []
+    protected _activeSetup: EegSetup | null = null
     protected _id: string
     protected _name: string
     protected _maxSamplingRate: number = 0 // Maximum resolution in this recording
@@ -29,8 +32,6 @@ class EdfEegSignal implements EegResource {
         this._name = name
         if (data) {
             this.extractSignalsFromEdfData(data, loader || undefined)
-            // Create an 'as recorded' montage
-
         }
     }
     // Getters and setters
@@ -74,10 +75,10 @@ class EdfEegSignal implements EegResource {
         return this._samples
     }
     get setup () {
-        return this._setup
+        return this._activeSetup
     }
     set setup (setup: EegSetup | null) {
-        this._setup = setup
+        this._activeSetup = setup
     }
     get type () {
         return this._type.split(':')[0]
@@ -99,18 +100,28 @@ class EdfEegSignal implements EegResource {
     }
     // Methods
     addMontage (label: string, name: string, config?: any) {
-        if (this._setup) {
+        if (this._activeSetup) {
             const montage = new EdfSignalMontage(label, name)
             if (config) {
                 // Use config to add a montage
-                montage.mapChannels(this._setup, config)
+                montage.mapChannels(this._activeSetup, config)
             } else if (!this._activeMontage) {
                 // Add first montage as an 'as recorded' montage
-                montage.mapChannels(this._setup, null)
+                montage.mapChannels(this._activeSetup, null)
                 this._activeMontage = montage
             }
             this._montages.push(montage)
         }
+    }
+    addSetup (id: string, config?: any) {
+        this._setups.push(new EdfEegSetup(id, this._channels, config))
+        if (this._activeSetup === null) {
+            this._activeSetup = this._setups[0]
+            // Create an 'as recorded' montage
+            this._rawMontage = new EdfSignalMontage('raw-signals', 'As recorded')
+            this._rawMontage.mapChannels(this._activeSetup, null)
+        }
+        console.log(this._activeSetup)
     }
     extractSignalsFromEdfData (data: any, loader?: string) {
         // Select method based on file loader
@@ -172,9 +183,9 @@ class EdfEegSignal implements EegResource {
         }
         this.addMontage('as_recorded', 'As recorded')
     }
-    getAllMontageSignals (range: number[]) {
-        if (this._setup === null || !this._activeMontage) {
-            return this.getAllRawSignals(range)
+    getAllMontageSignals (range: number[], config?: any) {
+        if (this._activeSetup === null || !this._activeMontage || this._activeMontage.label === 'raw-signals') {
+            return this.getAllRawSignals(range, config, true)
         }
         // Calculate signals only for the part that we need
         const signals = this._channels.map((chan) => chan.signal.slice(
@@ -183,12 +194,12 @@ class EdfEegSignal implements EegResource {
                         ))
         return this._activeMontage.getAllSignals(signals)
     }
-    getAllRawSignals(range: number[]) {
+    getAllRawSignals(range: number[], config?: any, asRec=false) {
         const signals = [] as number[][]
         if (range.length !== 2) {
             return signals
         }
-        if (this._setup === null) {
+        if (this._activeSetup === null || asRec) {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
                 signals.push(chan.signal.slice(
@@ -198,7 +209,7 @@ class EdfEegSignal implements EegResource {
             }
         } else {
             // Match setup channels to raw signal data channels
-            for (const chan of this._setup.channels) {
+            for (const chan of this._activeSetup.signals) {
                 const res = this._channels[chan.index as number].samplingRate
                 signals.push(this._channels[chan.index as number].signal.slice(
                     Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
@@ -207,10 +218,12 @@ class EdfEegSignal implements EegResource {
         }
         return signals
     }
-    getMontageSignal(range: number[], channel: number | string) {
-        if (this._setup === null || !this._activeMontage) {
+    getMontageSignal(range: number[], channel: number | string, config?: any) {
+        if (this._activeSetup === null || !this._activeMontage) {
             return this.getRawSignal(range, channel)
         }
+        // Calculate signal offsets if config is provided
+        this._activeMontage.calculateSignalOffsets(config)
         if (typeof channel === 'string') {
             // Match channel label to channel index
             for (let i=0; i<this._activeMontage.channels.length; i++) {
@@ -245,7 +258,7 @@ class EdfEegSignal implements EegResource {
         if (range.length !== 2 || channel < 0 || channel >= this._channels.length) {
             return [] as number[]
         }
-        if (this._setup === null) {
+        if (this._activeSetup === null) {
             const res = this._channels[channel as number].samplingRate
             // If there is no setup loaded, just return the actual signal data
             return this._channels[channel as number].signal.slice(
@@ -253,8 +266,8 @@ class EdfEegSignal implements EegResource {
                         )
         } else {
             // Match setup channels to raw signal data channels
-            const res = this._channels[this._setup.channels[channel as number].index as number].samplingRate
-            return this._channels[this._setup.channels[channel as number].index as number]
+            const res = this._channels[this._activeSetup.signals[channel as number].index as number].samplingRate
+            return this._channels[this._activeSetup.signals[channel as number].index as number]
                         .signal.slice(Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1)
         }
     }
@@ -270,11 +283,14 @@ class EdfEegSignal implements EegResource {
                     return
                 }
             }
+        } else if (montage === null) {
+            this._activeMontage = this._rawMontage
+            return
         }
-        if (montage > 0 && montage < this._montages.length) {
+        if (montage >= 0 && montage < this._montages.length) {
             this._activeMontage = this._montages[montage as number]
         }
     }
 }
-export default EdfEegSignal
+export default EdfEegRecord
 export { EegResource }

@@ -11,7 +11,7 @@ import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import DicomImage from '../dicom/DicomImage'
 import DicomWaveform from '../dicom/DicomWaveform'
 import GenericStudyLoader from './GenericStudyLoader'
-import EdfSignal from '../edf/EdfEegSignal'
+import EdfSignal from '../edf/EdfEegRecord'
 
 class GenericVisitLoader implements VisitLoader {
     /**
@@ -121,6 +121,10 @@ class GenericVisitLoader implements VisitLoader {
                         // Pass the EDF data to EdfSignal class to determine record type
                         const record = new EdfSignal(study.name, study.data, study.meta.loader)
                         if (record.type === 'eeg') {
+                            // Load default setup
+                            record.addSetup('default:10-20')
+                            record.addMontage('10-20:raw', "10-20: As recorded", "default:10-20:raw")
+                            record.addMontage('10-20:db', "10-20: Double banana", "default:10-20:db")
                             // Add EEG record
                             visit.studies.eeg.push(record)
                             hasAnyRecord = true

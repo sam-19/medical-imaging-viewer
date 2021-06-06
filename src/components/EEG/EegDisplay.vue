@@ -182,6 +182,13 @@ export default Vue.extend({
         },
         channelSignals (): any[] {
             const signals: any[] = []
+            // Calculate signal offsets if a montage is selected
+            if (this.resource.activeMontage) {
+                this.resource.activeMontage.calculateSignalOffsets(
+                    this.resource.activeMontage.label === 'raw-signals'
+                    ? null : this.$store.state.SETTINGS.eeg
+                )
+            }
             for (let i=0; i<this.resource.channels.length; i++) {
                 const chanLabel: string = this.resource.channels[i].label
                 const traceColor = this.resource.channels[i].type === 'ekg'
@@ -378,7 +385,8 @@ export default Vue.extend({
         },
         yAxisTicks (): number[] {
             const ticks = []
-            if (!this.resource.setup) {
+            console.log(this.resource)
+            if (!this.resource.setup || !this.resource.activeMontage) {
                 // No setup, so all channels are spaced evenly
                 for (let i=0; i<this.resource.channels.length; i++) {
                     ticks.push(1.0 - ((i + 1)/(this.resource.channels.length + 1)))
@@ -393,7 +401,10 @@ export default Vue.extend({
         },
         yAxisValues (): string[] {
             const values = []
-            for (const chan of this.resource.setup ? this.resource.activeMontage.channels : this.resource.channels) {
+            for (const chan of (this.resource.setup && this.resource.activeMontage)
+                 ? this.resource.activeMontage.channels
+                 : this.resource.channels
+            ) {
                 values.push(chan.name)
             }
             return values
@@ -716,7 +727,7 @@ export default Vue.extend({
                 const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.maxSamplingRate*this.downSampleFactor)
                 const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.maxSamplingRate*this.downSampleFactor)
                 let offset, resFactor
-                if (!this.resource.setup) {
+                if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
                     // If no setup is loaded, display the raw signals
                     offset = 1.0 - ((i + 1)/(channels.length + 1))
                     resFactor = this.resource.maxSamplingRate/this.resource.channels[i].samplingRate
@@ -725,6 +736,8 @@ export default Vue.extend({
                     offset = this.resource.activeMontage.channels[i].offset
                     resFactor = this.resource.maxSamplingRate/this.resource.activeMontage.channels[i].samplingRate
                 }
+                const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
+                const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
                 yValues[i] = [] as (number|null)[]
                 // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
                 if (start%resFactor) {
@@ -732,7 +745,7 @@ export default Vue.extend({
                     const startCeil = channels[i][0]
                     const startFactor = (start%resFactor)/resFactor
                     const startValue = startFloor + (startCeil - startFloor)*(startFactor)
-                    yValues[i][0] = startValue
+                    yValues[i][0] = startValue*ampScale*sigAmp*sigPol
                 }
                 for (let j=start; j<end; j++) {
                     if (j%this.downSampleFactor || !j && yValues[i].length) {
@@ -742,7 +755,7 @@ export default Vue.extend({
                         yValues[i][j] = null
                     } else {
                         const idx = Math.floor(j/resFactor)
-                        yValues[i][j] = ((channels[i][idx] || 0)*ampScale + offset)
+                        yValues[i][j] = ((channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
                     }
                 }
                 // Last, check if there is an additional datapoint left over and intrapolate view end from it
@@ -751,7 +764,7 @@ export default Vue.extend({
                     const endCeil = Math.ceil(end/resFactor)
                     const endFactor = (end%resFactor)/resFactor
                     const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
-                    yValues[i][yValues[i].length - 1] = endValue*ampScale + offset
+                    yValues[i][yValues[i].length - 1] = endValue*ampScale*sigAmp*sigPol + offset
                 }
             }
             // Update chart signal data
