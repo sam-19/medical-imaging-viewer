@@ -578,7 +578,7 @@ export default Vue.extend({
                                       - this.$store.state.SETTINGS.ekg.navigator.margin.left
                                       - this.$store.state.SETTINGS.ekg.navigator.margin.right
                 const naviWidth = naviTrueWidth < this.dataMaxWidth ? naviTrueWidth : this.dataMaxWidth
-                const relDragX = dX/naviWidth
+                const relDragX = dX/naviWidth*(this.dataMaxWidth/naviWidth)
                 trace.scrollLeft = startPos - relDragX*trace.offsetWidth
                 this.refreshNavigatorOverlay()
             }
