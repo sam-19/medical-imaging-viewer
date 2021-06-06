@@ -836,7 +836,7 @@ export default Vue.extend({
     }
 .medigi-viewer-eeg-measurements {
     position: absolute;
-    background-color: var(--medigi-viewer-background-highlight);
+    background-color: var(--medigi-viewer-background-emphasize);
     padding: 6px 10px;
     border: solid 1px var(--medigi-viewer-border);
     pointer-events: none;

@@ -100,7 +100,7 @@ export default Vue.extend({
     }
     .medigi-viewer-toolbar-button.element-active {
         box-shadow: 0 0 0 1px var(--medigi-viewer-border-highlight);
-        background-color: var(--medigi-viewer-background-highlight);
+        background-color: var(--medigi-viewer-background-emphasize);
         color: var(--medigi-viewer-text-highlight);
     }
     .medigi-viewer-toolbar-button.medigi-viewer-disabled {
@@ -133,7 +133,7 @@ export default Vue.extend({
         float: left;
     }
         .medigi-viewer-toolbar-group-button.medigi-viewer-toolbar-group-open:not(.medigi-viewer-toolbar-button) {
-            background-color: var(--medigi-viewer-background-highlight);
+            background-color: var(--medigi-viewer-background-emphasize);
         }
         .medigi-viewer-toolbar-group-button:not(.medigi-viewer-toolbar-button) > svg {
             position: absolute;

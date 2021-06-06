@@ -142,6 +142,6 @@ export default Vue.extend({
     min-height: 140px;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
-        background-color: var(--medigi-viewer-background-highlight);
+        background-color: var(--medigi-viewer-background-emphasize);
     }
 </style>

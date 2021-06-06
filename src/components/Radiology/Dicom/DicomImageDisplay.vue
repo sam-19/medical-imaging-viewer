@@ -1237,7 +1237,7 @@ export default Vue.extend({
             color: var(--medigi-viewer-text-highlight);
         }
         .medigi-viewer-image-wrapper .medigi-viewer-annotation-action:hover {
-            background-color: var(--medigi-viewer-background-highlight);
+            background-color: var(--medigi-viewer-background-emphasize);
         }
         .medigi-viewer-image-wrapper .medigi-viewer-annotation-compare-row {
             width: 200px;
@@ -1280,7 +1280,7 @@ export default Vue.extend({
         .medigi-viewer-image-loading-progress > div {
             width: 0px;
             height: 9px;
-            background-color: var(--medigi-viewer-background-highlight);
+            background-color: var(--medigi-viewer-background-emphasize);
         }
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
         position: absolute;

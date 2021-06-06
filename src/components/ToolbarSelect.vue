@@ -206,11 +206,11 @@ export default Vue.extend({
         overflow: hidden;
     }
         .medigi-viewer-toolbar-select-group {
-            background-color: var(--medigi-viewer-background-highlight);
+            background-color: var(--medigi-viewer-background-emphasize);
             font-weight: bold;
         }
         .medigi-viewer-toolbar-select-option > div:not(.medigi-viewer-toolbar-select-group):hover {
-            background-color: var(--medigi-viewer-background-emphasize);
+            background-color: var(--medigi-viewer-background-highlight);
         }
 
 </style>

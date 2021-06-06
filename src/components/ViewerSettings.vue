@@ -250,7 +250,7 @@ label {
             height: 10px;
             margin: 5px 0 0 194px;
             border: 1px solid var(--medigi-viewer-border-faint);
-            background-color: var(--medigi-viewer-background-emphasize);
+            background-color: var(--medigi-viewer-background-highlight);
         }
 
 </style>

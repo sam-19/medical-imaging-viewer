@@ -404,8 +404,8 @@ export default Vue.extend({
 }
 .medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
     --medigi-viewer-background: #000000;
-    --medigi-viewer-background-emphasize: #181818;
-    --medigi-viewer-background-highlight: #303030;
+    --medigi-viewer-background-highlight: #181818;
+    --medigi-viewer-background-emphasize: #303030;
     --medigi-viewer-background-modal: rgba(0, 0, 0, 0.7);
     --medigi-viewer-border: #C0C0C0;
     --medigi-viewer-border-faint: #606060;
@@ -417,8 +417,8 @@ export default Vue.extend({
 }
 .medigi-viewer-light-mode, .medigi-viewer-light-mode * {
     --medigi-viewer-background: #FFFFFF;
-    --medigi-viewer-background-emphasize: #F8F8F8;
-    --medigi-viewer-background-highlight: #F0F0F0;
+    --medigi-viewer-background-highlight: #F8F8F8;
+    --medigi-viewer-background-emphasize: #F0F0F0;
     --medigi-viewer-background-modal: rgba(255, 255, 255, 0.7);
     --medigi-viewer-border: #808080;
     --medigi-viewer-border-faint: #A0A0A0;
@@ -580,7 +580,7 @@ export default Vue.extend({
             cursor: pointer;
         }
             .medigi-viewer-settings-menu-row:hover {
-                background-color: var(--medigi-viewer-background-highlight);
+                background-color: var(--medigi-viewer-background-emphasize);
             }
             .medigi-viewer-settings-menu-row > svg {
                 margin-right: 5px;

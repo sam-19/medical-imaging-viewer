@@ -271,7 +271,7 @@ export default Vue.extend({
     min-height: 100px;
 }
     .medigi-viewer-dropzone.medigi-viewer-highlight {
-        background-color: var(--medigi-viewer-background-highlight);
+        background-color: var(--medigi-viewer-background-emphasize);
     }
 .medigi-viewer-statusbar {
     height: 50px;
