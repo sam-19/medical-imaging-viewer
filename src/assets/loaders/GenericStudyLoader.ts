@@ -125,7 +125,7 @@ class GenericStudyLoader implements StudyLoader {
                             if (!study.type) {
                                 const typeParts = (imageType || '\\\\').split('\\')
                                 // Part 3 defines a possible localizer (topogram) image
-                                if (typeParts[2].toLowerCase() === 'localizer') {
+                                if (typeParts[2]?.toLowerCase() === 'localizer') {
                                     study.type = 'image:topogram'
                                 } else {
                                     study.type = 'image'
