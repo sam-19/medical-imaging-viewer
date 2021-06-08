@@ -271,7 +271,6 @@ export default Vue.extend({
                 console.error(error)
                 this.$store.state.loadingStudies = false
             })
-            console.log(this.visits)
         },
         selectActiveResource(visit: PatientVisit, scope: string) {
             if (visit !== this.selectedVisit) {
@@ -289,6 +288,7 @@ export default Vue.extend({
             if (this.$refs['dicom-eeg-interface']) {
                 (this.$refs['dicom-eeg-interface'] as any).updateElements()
             }
+            this.toggleMenu(false)
         },
         toggleColorTheme: function (light?: boolean) {
             const appEl = document.getElementById(`${this.$store.state.appName}-medigi-viewer`)
