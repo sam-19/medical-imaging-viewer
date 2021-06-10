@@ -9,6 +9,7 @@ module.exports = {
     externals: {
         /* These libraries will be very big if compiled into the source */
         'vue': 'Vue',
+        'fili': 'Fili',
         'plotly': 'Plotly',
         'hammerjs': 'Hammer',
         'dicom-parser': 'dicomParser',

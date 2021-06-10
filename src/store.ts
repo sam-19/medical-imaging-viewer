@@ -33,6 +33,7 @@ type State = {
             },
             channelSpacing: number,
             groupSpacing: number,
+            filterPadding: number,
             isoelLine: {
                 show: boolean,
                 color: string,
@@ -244,6 +245,7 @@ class MedImgStore {
                     // Display settings
                     channelSpacing: 1,
                     groupSpacing: 1,
+                    filterPadding: 2,
                     border: {
                         bottom: {
                             color: '#C0C0C0',

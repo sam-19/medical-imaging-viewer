@@ -62,7 +62,7 @@ export default Vue.extend({
     },
     data () {
         return {
-            chart: null as any,
+            plotCanvas: null as null | HTMLCanvasElement,
             wglPlot: null as null | WebglPlot,
             chartConfig: {
                 // Props are initialized before data
@@ -155,8 +155,8 @@ export default Vue.extend({
             montages: [],
             activeMontage: 0,
             // Filters
-            hpFilter: 0,
-            lpFilter: 0,
+            hpFilter: 0.5,
+            lpFilter: 70,
             notchFilter: 0,
             // Keep track of some event data for chart interaction
             //lastHoverPoint: { x: -1, y: -1 },
@@ -194,10 +194,8 @@ export default Vue.extend({
             }
             if (this.lpFilter || this.hpFilter || this.notchFilter) {
                 // Start cannot be below zero and end cannot exceed record length
-                ranges.filter[0] = ranges.signal[0] > this.$store.state.SETTINGS.eeg.filterPad
-                                   ? ranges.signal[0] - this.$store.state.SETTINGS.eeg.filterPad : 0
-                ranges.filter[1] = ranges.signal[1] + this.$store.state.SETTINGS.eeg.filterPad < this.resource.duration
-                                 ? ranges.signal[1] + this.$store.state.SETTINGS.eeg.filterPad : this.resource.duration
+                ranges.filter[0] = ranges.signal[0] - this.$store.state.SETTINGS.eeg.filterPadding
+                ranges.filter[1] = ranges.signal[1] + this.$store.state.SETTINGS.eeg.filterPadding
             }
             return ranges
         },
@@ -602,17 +600,8 @@ export default Vue.extend({
                 this.lastViewBounds = [this.resource.viewStart, this.viewEnd]
             }
             // Update chart dimensions and the y-axis (x-axis is updated in refreshTraces method)
-            const chartLayout = {
-                width: this.containerSize[0],
-                height: this.containerSize[1],
-                yaxis: Object.assign({}, this.chartConfig.yaxis, {
-                    range: [0, 1],
-                    tickvals: this.yAxisTicks,
-                    ticktext: this.yAxisValues,
-                }),
-            }
-            Plotly.relayout(this.$refs['container'], chartLayout)
-            this.refreshTraces()
+            this.resizeCanvas()
+            this.redrawPlot()
         },
         redrawNavigator: function () {
             this.navigator = Plotly.newPlot(
@@ -626,6 +615,10 @@ export default Vue.extend({
             })
         },
         redrawPlot: function () {
+            if (!this.plotCanvas) {
+                return
+            }
+            this.wglPlot = new WebglPlot(this.plotCanvas)
             this.wglPlot?.removeAllLines()
             const color = new ColorRGBA(0, 0, 0, 1)
             const signals = this.resource.getAllMontageSignals([0, 0])
@@ -678,37 +671,41 @@ export default Vue.extend({
             // Y-axis values for each channel
             const yValues = []
             const ampScale = this.pxPerMicroVolt/this.yAxisRange // Relative height of one microvolt
-            const range = this.filterRange
-            const channels = this.resource.getAllMontageSignals(range.filter)
+            const range = this.filterRange.signal
+            const config = { highpass: this.hpFilter, lowpass: this.lpFilter, filterPadding: this.$store.state.SETTINGS.eeg.filterPadding }
+            const channels = this.resource.getAllMontageSignals(range, config)
+            console.log(channels)
             let i = 0
-            console.log(this.resource.activeMontage)
             for (const line of this.wglPlot?.linesData || []) {
-                const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.maxSamplingRate*this.downSampleFactor)
-                const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.maxSamplingRate*this.downSampleFactor)
+                const montChan = !this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals'
+                                 ? this.resource.channels[i] : this.resource.activeMontage.channels[i]
+                // Remove extra padding from signal
+                const start = Math.floor((range[0])*this.resource.maxSamplingRate*this.downSampleFactor)
+                const end = Math.floor(range[1]*this.resource.maxSamplingRate*this.downSampleFactor)
                 let offset, resFactor
                 if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
                     // If no setup is loaded, display the raw signals
                     offset = (1.0 - ((i + 1)/(channels.length + 1)))*2 - 1
-                    console.log(offset)
                     resFactor = this.resource.maxSamplingRate/this.resource.channels[i].samplingRate
                 } else {
                     // Display montage signals
                     offset = this.resource.activeMontage.channels[i].offset*2 - 1
-                    console.log(offset)
                     resFactor = this.resource.maxSamplingRate/this.resource.activeMontage.channels[i].samplingRate
                 }
                 const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
                 const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
                 yValues[i] = [] as (number|null)[]
                 // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
+                let k = 0
                 if (start%resFactor) {
                     const startFloor = channels[i].splice(0, 1)
                     const startCeil = channels[i][0]
                     const startFactor = (start%resFactor)/resFactor
                     const startValue = startFloor + (startCeil - startFloor)*(startFactor)
                     ;(line as WebglLine).setY(0, startValue*ampScale*sigAmp*sigPol + offset)
+                    k++
                 }
-                for (let j=start; j<end; j++) {
+                for (let j=0; j<end-start; j++) {
                     if (j%this.downSampleFactor || !j && yValues[i].length) {
                         continue
                     }
@@ -716,20 +713,30 @@ export default Vue.extend({
                         yValues[i][j] = null
                     } else {
                         const idx = Math.floor(j/resFactor)
-                        ;(line as WebglLine).setY(j, (channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
+                        ;(line as WebglLine).setY(k, (channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
                     }
+                    k++
                 }
+                console.log(k)
                 // Last, check if there is an additional datapoint left over and intrapolate view end from it
                 if (channels[i][Math.ceil(end/resFactor)] !== undefined && yValues[i][yValues[i].length - 1] === null) {
                     const endFloor = Math.floor(end/resFactor)
                     const endCeil = Math.ceil(end/resFactor)
                     const endFactor = (end%resFactor)/resFactor
                     const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
-                    ;(line as WebglLine).setY(channels[i].length - 1, endValue*ampScale*sigAmp*sigPol + offset)
+                    ;(line as WebglLine).setY(k, endValue*ampScale*sigAmp*sigPol + offset)
                 }
-                //this.wglPlot?.update()
                 i++
             }
+        },
+        resizeCanvas: function () {
+            if (!this.plotCanvas) {
+                return
+            }
+            ;(this.plotCanvas as any).width = this.containerSize[0]
+            ;(this.plotCanvas as any).height = this.containerSize[1]
+            this.plotCanvas.style.width = `${this.containerSize[0]}px`
+            this.plotCanvas.style.height = `${this.containerSize[1]}px`
         },
         updateViewStart: function () {
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
@@ -738,13 +745,9 @@ export default Vue.extend({
     },
     mounted () {
         // Create canvas for the plot
-        const plotCanvas = document.createElement("canvas")
-        ;(plotCanvas as any).width = this.containerSize[0]
-        ;(plotCanvas as any).height = this.containerSize[1]
-        ;(this.$refs['container'] as HTMLDivElement).appendChild(plotCanvas)
-        // Update chart signal data
-        this.wglPlot = new WebglPlot(plotCanvas)
-        this.wglPlot.removeAllLines()
+        this.plotCanvas = document.createElement("canvas")
+        ;(this.$refs['container'] as HTMLDivElement).appendChild(this.plotCanvas)
+        this.resizeCanvas()
         // Calculate max width for the navigator as a reference
         this.navigatorMaxWidth = this.resource.duration*this.pxPerMinorGridline*5
         // Calculate view bounds

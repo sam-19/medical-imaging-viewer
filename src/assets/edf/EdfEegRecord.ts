@@ -6,6 +6,7 @@
  */
 import { BiosignalResource, BiosignalChannel } from '../../types/common'
 import { EegResource, EegMontage, EegSetup } from '../../types/eeg'
+import Fili from 'fili'
 import EdfSignalMontage from './EdfSignalMontage'
 import EdfEegSetup from './EdfSignalSetup'
 
@@ -25,6 +26,8 @@ class EdfEegRecord implements EegResource {
     protected _type: string = 'unknown'
     protected _url: string = ''
     protected _viewStart: number = 0
+    // Signal filtering
+    private iirCalculator = new Fili.CalcCascades()
 
     constructor (name: string, data?: object, loader?: string) {
         // Generate a pseudo-random identifier for this object
@@ -183,37 +186,95 @@ class EdfEegRecord implements EegResource {
         }
         this.addMontage('as_recorded', 'As recorded')
     }
+    filterSignal (signal: number[], fs: number, hp: number, lp: number) {
+        // Apply filtering if needed
+        const bw = Math.log2(lp/hp)*2
+        const fc = (lp-hp)/2
+        const iirFilterCoeffs = this.iirCalculator.bandpass({
+            order: 3,
+            characteristic: 'butterworth',
+            Fs: fs,
+            Fc: fc,
+            BW: bw,
+        })
+        const iirFilter = new Fili.IirFilter(iirFilterCoeffs)
+        return iirFilter.filtfilt(signal)
+    }
     getAllMontageSignals (range: number[], config?: any) {
+        console.log(config)
         if (this._activeSetup === null || !this._activeMontage || this._activeMontage.label === 'raw-signals') {
             return this.getAllRawSignals(range, config, true)
         }
+        const filtPad = (config?.highpass || config?.lowpass) && config?.filterPadding ? config.filterPadding : 0
+        const filter = [range[0] - filtPad, range[1] + filtPad]
         // Calculate signals only for the part that we need
-        const signals = this._channels.map((chan) => chan.signal.slice(
-                            Math.floor(chan.samplingRate*range[0]),
-                            Math.ceil(chan.samplingRate*range[1]) + 1
-                        ))
-        return this._activeMontage.getAllSignals(signals)
+        const signals = this._channels.map((chan) => {
+            const chanSignal = chan.signal.slice(
+                Math.max(0, Math.floor(chan.samplingRate*filter[0])),
+                Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length) + 1
+            )
+            if (!config?.highpass && !config?.lowpass) {
+                return chanSignal
+            }
+            const startPad = Math.floor((range[0] - filter[0])*chan.samplingRate)
+            const endPad = Math.floor((filter[1] - range[1])*chan.samplingRate)
+            return [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)]
+        })
+        let i = 0
+        const computedSigs = this._activeMontage.getAllSignals(signals).map((sig) => {
+            if (!config?.highpass && !config?.lowpass) {
+                return sig
+            }
+            const fs = this.activeMontage?.channels[i]?.samplingRate || this.maxSamplingRate
+            const startPad = Math.floor((range[0] - filter[0])*fs)
+            return this.filterSignal(sig, fs, config.highpass, config.lowpass)
+                        .slice(startPad, startPad + sig.length + 1)
+        })
+        return computedSigs
     }
     getAllRawSignals(range: number[], config?: any, asRec=false) {
         const signals = [] as number[][]
         if (range.length !== 2) {
             return signals
         }
+        const filtPad = (config?.highpass || config?.lowpass) && config?.filterPadding ? config.filterPadding : 0
+        const filter = [range[0] - filtPad, range[1] + filtPad]
         if (this._activeSetup === null || asRec) {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
-                signals.push(chan.signal.slice(
-                    Math.floor(chan.samplingRate*range[0]),
-                    Math.ceil(chan.samplingRate*range[1]) + 1
-                ))
+                const chanSignal = chan.signal.slice(
+                    Math.max(0, Math.floor(chan.samplingRate*filter[0])),
+                    Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length) + 1
+                )
+                if (!config?.highpass && !config?.lowpass) {
+                    signals.push(chanSignal)
+                    continue
+                }
+                const startPad = Math.floor((range[0] - filter[0])*chan.samplingRate)
+                const endPad = Math.floor((filter[1] - range[1])*chan.samplingRate)
+                console.log(startPad, endPad)
+                signals.push(this.filterSignal(
+                    [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)],
+                    chan.samplingRate, config.highpass, config.lowpass
+                ).slice(startPad, startPad + chanSignal.length + 1))
             }
         } else {
             // Match setup channels to raw signal data channels
             for (const chan of this._activeSetup.signals) {
-                const res = this._channels[chan.index as number].samplingRate
-                signals.push(this._channels[chan.index as number].signal.slice(
-                    Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1
-                ))
+                const fs = this._channels[chan.index as number].samplingRate
+                const chanSignal = this._channels[chan.index as number].signal.slice(
+                    Math.floor(fs*filter[0]), Math.ceil(fs*filter[1]) + 1
+                )
+                if (!config?.highpass && !config?.lowpass) {
+                    signals.push(chanSignal)
+                    continue
+                }
+                const startPad = Math.floor((range[0] - filter[0])*fs)
+                const endPad = Math.floor((filter[1] - range[1])*fs)
+                signals.push(this.filterSignal(
+                    [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)],
+                    fs, config.highpass, config.lowpass
+                ).slice(startPad, startPad + chanSignal.length + 1))
             }
         }
         return signals

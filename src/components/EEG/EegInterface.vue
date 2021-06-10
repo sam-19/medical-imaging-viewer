@@ -221,6 +221,12 @@ export default Vue.extend({
             if (id === "select:montage") {
                 for (const eeg of this.resources as EdfEegRecord[]) {
                     eeg.setActiveMontage(value)
+                    if (value !== null) {
+                        eeg.activeMontage?.calculateSignalOffsets(
+                            eeg.activeMontage.label === 'raw-signals'
+                            ? null : this.$store.state.SETTINGS.eeg
+                        )
+                    }
                     console.log(eeg.activeMontage)
                 }
                 if (Array.isArray(this.$refs['eeg-element'])) {
