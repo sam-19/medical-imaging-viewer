@@ -32,27 +32,5 @@
     },
     "RadiologySidebarItem": {
         "{n} images": "{n} images"
-    },
-    "RadiologyToolbar": {
-        "Adjust window": "Adjust window",
-        "Automatic layout": "Automatic layout",
-        "Crosshairs": "Crosshairs",
-        "Custom layout": "Custom layout",
-        "Flip horizontally": "Flip horizontally",
-        "Flip vertically": "Flip vertically",
-        "Invert image": "Invert image",
-        "Layout tools": "Layout tools",
-        "Link image stacks": "Link image stacks",
-        "Measurement tools": "Measurement tools",
-        "Measure area": "Measure area",
-        "Measure distance": "Measure distance",
-        "Orientation tools": "Orientation tools",
-        "Pan image": "Pan image",
-        "Reset all adjustments": "Reset all adjustments",
-        "Rotate clockwise": "Rotate clockwise",
-        "Rotate counter-clockwise": "Rotate counter-clockwise",
-        "Scroll image stack": "Scroll image stack",
-        "Unlink image stacks": "Unlink image stacks",
-        "Zoom": "Zoom"
     }
 }

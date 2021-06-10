@@ -13,7 +13,7 @@
                 :enabled="button.enabled"
                 :icon="button.icon"
                 :overlay="button.overlay"
-                :tooltip="button.tooltip"
+                :tooltip="`Radiology.${button.tooltip}`"
                 :class="[
                     { 'medigi-viewer-disabled': !button.enabled },
                     { 'element-active': typeof button.active === 'function' ? button.active() : button.active },
@@ -29,7 +29,7 @@
             :enabled="button.enabled"
             :icon="button.icon"
             :overlay="button.overlay"
-            :tooltip="button.tooltip"
+            :tooltip="`Radiology.${button.tooltip}`"
             :class="[
                 { 'medigi-viewer-disabled': !button.enabled },
                 { 'element-active': typeof button.active === 'function' ? button.active() : button.active },
@@ -425,7 +425,7 @@ export default Vue.extend({
                 return button.tooltip[
                     button.tooltip.length === 1 ||
                     !this.isActive(button.id) ? 0 : 1
-                ].toString()
+                ]?.toString()
             }
             return ''
         },
@@ -565,77 +565,77 @@ export default Vue.extend({
                 // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
                 icon: [ ['fal', 'hand-paper'] ],
                 // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
-                tooltip: [ this.t('Pan image') ]
+                tooltip: [ 'Pan image' ]
             },
             {
                 id: 'tool:Zoom',
                 set: 1,
                 groups: ['interact'],
                 icon: [ ['fal', 'search'] ],
-                tooltip: [ this.t('Zoom') ],
+                tooltip: [ 'Zoom' ],
             },
             {
                 id: 'tool:StackScroll',
                 set: 1,
                 groups: ['interact'],
                 icon: [ ['fal', 'layer-group'] ],
-                tooltip:[ this.t('Scroll image stack') ]
+                tooltip:[ 'Scroll image stack' ]
             },
             {
                 id: 'tool:Crosshairs',
                 set: 1,
                 groups: ['interact'],
                 icon: [ ['fal', 'crosshairs'] ],
-                tooltip: [ this.t('Crosshairs') ],
+                tooltip: [ 'Crosshairs' ],
             },
             {
                 id: 'group:orientation',
                 set: 2,
                 groups: ['orientation'],
                 icon: [ ['fal', 'arrows'] ],
-                tooltip: [ this.t('Orientation tools') ],
+                tooltip: [ 'Orientation tools' ],
             },
             {
                 id: 'group:measurement',
                 set: 3,
                 groups: ['measurement'],
                 icon: null,
-                tooltip: [ this.t('Measurement tools') ],
+                tooltip: [ 'Measurement tools' ],
             },
             {
                 id: 'action:invert',
                 set: 4,
                 groups: [],
                 icon: [ ['fad', 'clone'] ],
-                tooltip: [ this.t('Invert image') ],
+                tooltip: [ 'Invert image' ],
             },
             {
                 id: 'tool:Wwwc',
                 set: 4,
                 groups: ['interact'],
                 icon: [ ['fad', 'adjust'] ],
-                tooltip: [ this.t('Adjust window') ],
+                tooltip: [ 'Adjust window' ],
             },
             {
                 id: 'group:layout',
                 set: 5,
                 groups: ['layout'],
                 icon: [ ['fal', 'border-all'] ],
-                tooltip: [ this.t('Layout tools') ],
+                tooltip: [ 'Layout tools' ],
             },
             {
                 id: 'action:link',
                 set: 6,
                 groups: [],
                 icon: [ ['fal', 'link'], ['fal', 'unlink'] ],
-                tooltip: [ this.t('Link image stacks'), this.t('Unlink image stacks') ],
+                tooltip: [ 'Link image stacks', 'Unlink image stacks' ],
             },
             {
                 id: 'action:reset',
                 set: 7,
                 groups: ['undo'],
                 icon: [ ['fal', 'reply-all'] ],
-                tooltip: [ this.t('Reset all adjustments') ],
+                tooltip: [ 'Reset all adjustments' ],
             },
         ]
         this.groups = {
@@ -646,14 +646,14 @@ export default Vue.extend({
                         set: 0,
                         groups: [],
                         icon: [ ['fal', 'border-all'] ],
-                        tooltip: [ this.t('Automatic layout') ],
+                        tooltip: [ 'Automatic layout' ],
                     },
                     {
                         id: 'layout:custom',
                         set: 0,
                         groups: [],
                         icon: [ ['fal', 'border-all'] ],
-                        tooltip: [ this.t('Custom layout') ],
+                        tooltip: [ 'Custom layout' ],
                     },
                 ],
                 // Offset is the distance from the left end of the toolbar row (in pixels).
@@ -666,7 +666,7 @@ export default Vue.extend({
                         set: 0,
                         groups: ['interact'],
                         icon: [ ['fal', 'ruler'] ],
-                        tooltip: [ this.t('Measure distance') ],
+                        tooltip: [ 'Measure distance' ],
                     },
                     //{
                     //    id: 'tool:Angle',
@@ -680,7 +680,7 @@ export default Vue.extend({
                         set: 0,
                         groups: ['interact'],
                         icon: [ ['fal', 'draw-circle'] ],
-                        tooltip: [ this.t('Measure area') ],
+                        tooltip: [ 'Measure area' ],
                     },
                 ],
                 offset: 400,
@@ -692,7 +692,7 @@ export default Vue.extend({
                         set: 0,
                         groups: [],
                         icon: [ ['far', 'undo-alt'] ],
-                        tooltip: [ this.t('Rotate counter-clockwise') ],
+                        tooltip: [ 'Rotate counter-clockwise' ],
                     },
                     {
                         id: 'action:right',
@@ -700,21 +700,21 @@ export default Vue.extend({
                         groups: [],
                         // Could also just flip the above icon, but don't want to create an extra option just for this
                         icon: [ ['far', 'redo-alt'] ],
-                        tooltip: [ this.t('Rotate clockwise') ],
+                        tooltip: [ 'Rotate clockwise' ],
                     },
                     {
                         id: 'action:fliph',
                         set: 0,
                         groups: [],
                         icon: [ ['far', 'arrows-alt-h'] ],
-                        tooltip: [ this.t('Flip horizontally') ],
+                        tooltip: [ 'Flip horizontally' ],
                     },
                     {
                         id: 'action:flipv',
                         set: 0,
                         groups: [],
                         icon: [ ['far', 'arrows-alt-v'] ],
-                        tooltip: [ this.t('Flip vertically') ],
+                        tooltip: [ 'Flip vertically' ],
                     },
                 ],
                 offset: 290,

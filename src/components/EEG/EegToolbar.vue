@@ -366,7 +366,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'arrow-alt-left'] ],
-                tooltip: [ 'Previous page' ],
+                tooltip: [ 'EEG.Previous page' ],
                 type: 'button',
             },
             {
@@ -376,7 +376,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'arrow-alt-right'] ],
-                tooltip: [ 'Next page' ],
+                tooltip: [ 'EEG.Next page' ],
                 type: 'button',
             },
             {
@@ -386,7 +386,7 @@ export default Vue.extend({
                 label: '',
                 options: [],
                 icon: [ ['fal', 'ruler-triangle'] ],
-                tooltip: [ 'Analyse signal' ],
+                tooltip: [ 'EEG.Analyse signal' ],
                 type: 'button',
             },
         ]

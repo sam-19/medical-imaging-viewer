@@ -1,10 +1,36 @@
 {
     "EEG": {
+        "Analyse signal": "Analyse signal",
         "Default montages": "Default montages",
-        "Montage": "Montage",
         "Double banana": "Double banana",
+        "Montage": "Montage",
+        "Next page": "Next page",
+        "Previous page": "Previous page",
         "Raw signals": "Raw signals",
         "Record montage": "Record montage",
         "Select montage": "Select montage"
-    }
+    },
+    "Radiology": {
+        "Adjust window": "Adjust window",
+        "Automatic layout": "Automatic layout",
+        "Crosshairs": "Crosshairs",
+        "Custom layout": "Custom layout",
+        "Flip horizontally": "Flip horizontally",
+        "Flip vertically": "Flip vertically",
+        "Invert image": "Invert image",
+        "Layout tools": "Layout tools",
+        "Link image stacks": "Link image stacks",
+        "Measurement tools": "Measurement tools",
+        "Measure area": "Measure area",
+        "Measure distance": "Measure distance",
+        "Orientation tools": "Orientation tools",
+        "Pan image": "Pan image",
+        "Reset all adjustments": "Reset all adjustments",
+        "Rotate clockwise": "Rotate clockwise",
+        "Rotate counter-clockwise": "Rotate counter-clockwise",
+        "Scroll image stack": "Scroll image stack",
+        "Unlink image stacks": "Unlink image stacks",
+        "Zoom": "Zoom"
+    },
+    "Settings": "Settings"
 }

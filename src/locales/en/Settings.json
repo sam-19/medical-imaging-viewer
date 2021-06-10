@@ -7,10 +7,13 @@
     "General": "General",
     "Interface language": "Interface language",
     "Language settings": "Language settings",
+    "Negative": "Negative",
+    "Positive": "Positive",
     "Radiology": "Radiology",
     "Reset": "Reset",
     "Save settings": "Save settings",
     "Screen PPI": "Screen PPI",
     "Screen PPI:help": "Screen Pixels Per Inch is a physical characteristic of the display. Adjust this value up or down until the bar below measures 5cm.",
-    "Settings": "Settings"
+    "Settings": "Settings",
+    "Signal polarity": "Signal polarity"
 }

@@ -6,6 +6,7 @@
             'medigi-viewer-toolbar-button',
             { 'medigi-viewer-toolbar-group-button': type === 'group' },
         ]"
+        :title="t(tooltip)"
         @click="enabled ? $emit('button-clicked', id) : null"
     >
         <div v-if="type === 'group'"
@@ -24,7 +25,6 @@
         </div>
         <font-awesome-icon
             :icon="icon"
-            :title="tooltip"
             fixed-width
         />
         <div v-if="overlay" class="medigi-viewer-toolbar-button-overlay">
@@ -67,11 +67,7 @@ export default Vue.extend({
     methods: {
         /** Shorthand for component-specific translations */
         t: function (str: string, args?: any) {
-            if (args) {
-                return this.$t(`components.ToolbarButton.${str}`, args)
-            } else {
-                return (this.$t('components.ToolbarButton') as any)[str]
-            }
+            return this.$t(`components.Toolbar.${str}`, args)
         },
     },
 })

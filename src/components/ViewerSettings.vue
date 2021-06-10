@@ -52,6 +52,18 @@
             <div class="medigi-viewer-settings-modal-row">
                 {{ t('EEG') }}
             </div>
+            <div class="medigi-viewer-settings-modal-row">
+                <div class="medigi-viewer-settings-modal-label">
+                    {{ t('Signal polarity') }}
+                </div>
+                <div class="medigi-viewer-settings-modal-value">
+                    <select v-model="eegSignalPolarity">
+                        <option :value="-1">{{ t('Negative') }}</option>
+                        <option :value="1">{{ t('Positive') }}</option>
+                    </select>
+                    &nbsp;
+                </div>
+            </div>
         </div>
         <div v-else-if="tab === 'ekg'" class="medigi-viewer-settings-modal-content">
             <div class="medigi-viewer-settings-modal-row">
@@ -116,6 +128,7 @@ export default Vue.extend({
         return {
             appPPI: this.$store.state.SETTINGS.screenPPI,
             appLocale: this.$store.state.SETTINGS.locale,
+            eegSignalPolarity: this.$store.state.SETTINGS.eeg.signalPolarity,
             originalPPI: this.$store.state.SETTINGS.screenPPI,
             saveSettings: true,
             tab: this.scope || 'general',
@@ -127,6 +140,9 @@ export default Vue.extend({
         },
         appLocale: function (value: string, old: string) {
             this.updateSetting('locale', value)
+        },
+        eegSignalPolarity: function (value: number, old: number) {
+            this.updateSetting('eeg.signalPolarity', value)
         },
         scope: function (value: string, old: string) {
             // Change settings tab to match new scope

@@ -1,10 +1,36 @@
 {
     "EEG": {
+        "Analyse signal": "Analysoi signaalia",
         "Default montages": "Oletuskytkennät",
         "Double banana": "Tuplabanaani",
         "Montage": "Kytkentä",
+        "Next page": "Seuraava sivu",
+        "Previous page": "Edellinen sivu",
         "Raw signals": "Raakasignaalit",
         "Record montage": "Rekisteröintikytkentä",
         "Select montage": "Valitse kytkentä"
-    }
+    },
+    "Radiology": {
+        "Adjust window": "Säädä ikkunointia",
+        "Automatic layout": "Automaattinen asettelu",
+        "Crosshairs": "Crosshairs",
+        "Custom layout": "Manuaalinen asettelu",
+        "Flip horizontally": "Käännä vaakasuunnassa",
+        "Flip vertically": "Käännä pystysuunnassa",
+        "Invert image": "Käänteinen ikkunointi",
+        "Layout tools": "Asettelutyökalut",
+        "Link image stacks": "Kytke kuvapakat",
+        "Measurement tools": "Mittatyökalut",
+        "Measure area": "Mittaa pinta-ala",
+        "Measure distance": "Mittaa etäisyys",
+        "Orientation tools": "Asentotyökalut",
+        "Pan image": "Liikuta kuvaa",
+        "Reset all adjustments": "Palauta kuva alkuperäiseen tilaan",
+        "Rotate clockwise": "Kierrä myötäpäivään",
+        "Rotate counter-clockwise": "Kierrä vastapäivään",
+        "Scroll image stack": "Selaa kuvapakkaa",
+        "Unlink image stacks": "Poista kytkös",
+        "Zoom": "Suurenna"
+    },
+    "Settings": "Asetukset"
 }

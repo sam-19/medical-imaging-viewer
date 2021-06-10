@@ -175,6 +175,10 @@ export default Vue.extend({
         }
     },
     watch: {
+        containerSize (value: Array<number>, old: Array<number>) {
+            this.redrawPlot()
+            this.redrawNavigator()
+        },
     },
     computed: {
         downscaledResolution (): number {
@@ -385,8 +389,7 @@ export default Vue.extend({
         },
         yAxisTicks (): number[] {
             const ticks = []
-            console.log(this.resource)
-            if (!this.resource.setup || !this.resource.activeMontage) {
+            if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
                 // No setup, so all channels are spaced evenly
                 for (let i=0; i<this.resource.channels.length; i++) {
                     ticks.push(1.0 - ((i + 1)/(this.resource.channels.length + 1)))
@@ -401,7 +404,7 @@ export default Vue.extend({
         },
         yAxisValues (): string[] {
             const values = []
-            for (const chan of (this.resource.setup && this.resource.activeMontage)
+            for (const chan of (this.resource.setup && this.resource.activeMontage && this.resource.activeMontage.label !== 'raw-signals')
                  ? this.resource.activeMontage.channels
                  : this.resource.channels
             ) {
@@ -815,6 +818,8 @@ export default Vue.extend({
             ) {
                 this.lastPPI = this.$store.state.SETTINGS.screenPPI
                 this.redrawPlot()
+            } else if (mutation.type === 'set-settings-value' && mutation.payload.field.split('.')[0] == 'eeg') {
+                this.refreshTraces()
             }
         })
         // Emit navigation position
@@ -832,8 +837,9 @@ export default Vue.extend({
 </script>
 
 <style>
-.medi-viewer-waveform-trace {
-    overflow-x: auto;
+.medigi-viewer-eeg-wrapper {
+    position: relative;
+    float: left;
 }
 .medigi-viewer-eeg-mousedrag {
     position: absolute;

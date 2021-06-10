@@ -77,7 +77,7 @@
                 :enabled="true"
                 :icon="['fal', 'cog']"
                 :overlay="null"
-                :tooltip="t('Settings')"
+                tooltip="Settings"
                 @button-clicked="toggleSettingsMenu()"
             />
         </div>
@@ -388,7 +388,7 @@ export default Vue.extend({
         }
         this.$store.commit('set-settings-value', { field: 'eeg.yPadding', value: 1.5 })
         this.$store.commit('set-settings-value', { field: 'eeg.channelSpacing', value: 1 })
-        this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.5 })
+        this.$store.commit('set-settings-value', { field: 'eeg.groupSpacing', value: 1.25 })
     },
 })
 

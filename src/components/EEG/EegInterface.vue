@@ -29,7 +29,7 @@
                     :key="`${$store.state.appName}-medigi-viewer-eeg-element-${resource.id}`"
                     :ref="`eeg-element`"
                     :cmPerSec="cmPerSec"
-                    :containerSize="mediaContainerSize"
+                    :containerSize="singleContainerSize"
                     :electrodeSetup="electrodeSetup"
                     :layoutPosition="getElementLayoutPosition(idx)"
                     :marginBottom="traceMarginBottom"
@@ -111,6 +111,8 @@ export default Vue.extend({
         },
         actualLayout (): number[] {
             const activeNum = this.activeItems.length
+            // No grid layout support (at least not yet)
+            return [1, activeNum]
             const layout = [...this.gridLayout]
             if (!layout[0] && !layout[1]) {
                 // Calculate grid dimensions automatically.
@@ -125,6 +127,12 @@ export default Vue.extend({
                 layout[1] = Math.ceil(activeNum/layout[0])
             }
             return layout
+        },
+        singleContainerSize (): number[] {
+            return [
+                this.mediaContainerSize[0]/this.activeItems.length,
+                this.mediaContainerSize[1]
+            ]
         },
     },
     methods: {

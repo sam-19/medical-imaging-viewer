@@ -8,10 +8,5 @@
         "{m}:{s} minutes": "{m}:{s} minutes",
         "{n} channels": "{n} channels",
         "{s} seconds": "{s} seconds"
-    },
-    "Toolbar": {
-        "Analyse signal": "Analyse signal",
-        "Next page": "Next page",
-        "Previous page": "Previous page"
     }
 }
