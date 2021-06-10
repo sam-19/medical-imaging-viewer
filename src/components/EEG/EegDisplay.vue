@@ -47,6 +47,7 @@
 import Vue from 'vue'
 // @ts-ignore: TSLint doesn't find the type definitions for Plotly.js, for some reason
 import * as  Plotly from 'plotly'
+import { WebglPlot, ColorRGBA, WebglLine } from 'webgl-plot'
 
 let INSTANCE_NUM = 0
 export default Vue.extend({
@@ -62,6 +63,7 @@ export default Vue.extend({
     data () {
         return {
             chart: null as any,
+            wglPlot: null as null | WebglPlot,
             chartConfig: {
                 // Props are initialized before data
                 width: 0,
@@ -184,55 +186,6 @@ export default Vue.extend({
         downscaledResolution (): number {
             return Math.floor(this.resource.maxSamplingRate/this.downSampleFactor)
         },
-        channelSignals (): any[] {
-            const signals: any[] = []
-            // Calculate signal offsets if a montage is selected
-            if (this.resource.activeMontage) {
-                this.resource.activeMontage.calculateSignalOffsets(
-                    this.resource.activeMontage.label === 'raw-signals'
-                    ? null : this.$store.state.SETTINGS.eeg
-                )
-            }
-            for (let i=0; i<this.resource.channels.length; i++) {
-                const chanLabel: string = this.resource.channels[i].label
-                const traceColor = this.resource.channels[i].type === 'ekg'
-                    ? this.$store.state.SETTINGS.eeg.traceColor.ekg
-                    : this.resource.channels[i].type === 'eog'
-                    ? this.$store.state.SETTINGS.eeg.traceColor.eog
-                    : this.$store.state.SETTINGS.eeg.traceColor.eeg // Default to EEG
-                const traceWidth = this.resource.channels[i].type === 'ekg'
-                    ? this.$store.state.SETTINGS.eeg.traceWidth.ekg
-                    : this.resource.channels[i].type === 'eog'
-                    ? this.$store.state.SETTINGS.eeg.traceWidth.eog
-                    : this.$store.state.SETTINGS.eeg.traceWidth.eeg
-                // Wrap it into an object
-                signals[i] = {
-                    name: chanLabel,
-                    type: 'scattergl',
-                    mode: 'lines',
-                    connectgaps: true,
-                    x: this.xAxisRange,
-                    y: [],
-                    line: {
-                        color: traceColor,
-                        width: traceWidth
-                    },
-                    hoverinfo: 'none',
-                }
-            }
-            if (this.$store.state.SETTINGS.eeg.minorGrid.show) {
-                // Add something to x2 to show minor gridlines
-                signals.push({
-                    name: '',
-                    x: this.xAxisRange,
-                    y: [],
-                    xaxis: 'x2',
-                    line: { color: 'rgba(0,0,0,0)', width: 0 },
-                    hoverinfo: 'none',
-                })
-            }
-            return signals
-        },
         filterRange (): { filter: number[], signal: number[] } {
             // Check for possible padding needed for signal filtering
             const ranges = {
@@ -320,10 +273,10 @@ export default Vue.extend({
         /**
          * The range that can accommodate the signal with the highest sampling rate accross the view range.
          */
-        xAxisRange (): number[] {
+        xAxisRange (): number {
             return this.viewEnd > this.resource.viewStart
-                    ? [...Array(Math.floor((this.viewEnd-this.resource.viewStart)*this.resource.maxSamplingRate)).keys()]
-                    : []
+                    ? Math.floor((this.viewEnd-this.resource.viewStart)*this.resource.maxSamplingRate)
+                    : 0
         },
         xAxisTicks (): number[] {
             const range = this.viewEnd - this.resource.viewStart
@@ -673,15 +626,16 @@ export default Vue.extend({
             })
         },
         redrawPlot: function () {
-            this.chart = Plotly.newPlot(
-                this.$refs['container'],
-                this.channelSignals,
-                this.chartConfig,
-                this.chartOptions
-            ).then(() => {
-                // Render Y-axis signal labels and signal data
-                this.recalibrateChart(true)
-            })
+            this.wglPlot?.removeAllLines()
+            const color = new ColorRGBA(0, 0, 0, 1)
+            const signals = this.resource.getAllMontageSignals([0, 0])
+            const xRange = this.xAxisRange
+            for (const sig in signals) {
+                const line = new WebglLine(color, xRange)
+                line.lineSpaceX(-1, 2 / xRange)
+                this.wglPlot?.addLine(line)
+            }
+            this.refreshTraces()
         },
         refreshNavigator: function () {
             const availableWidth = document.fullscreenElement === null
@@ -726,17 +680,21 @@ export default Vue.extend({
             const ampScale = this.pxPerMicroVolt/this.yAxisRange // Relative height of one microvolt
             const range = this.filterRange
             const channels = this.resource.getAllMontageSignals(range.filter)
-            for (let i=0; i<channels.length; i++) {
+            let i = 0
+            console.log(this.resource.activeMontage)
+            for (const line of this.wglPlot?.linesData || []) {
                 const start = Math.floor((range.signal[0] - range.filter[0])*this.resource.maxSamplingRate*this.downSampleFactor)
                 const end = Math.floor((range.signal[1] - range.signal[0])*this.resource.maxSamplingRate*this.downSampleFactor)
                 let offset, resFactor
                 if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
                     // If no setup is loaded, display the raw signals
-                    offset = 1.0 - ((i + 1)/(channels.length + 1))
+                    offset = (1.0 - ((i + 1)/(channels.length + 1)))*2 - 1
+                    console.log(offset)
                     resFactor = this.resource.maxSamplingRate/this.resource.channels[i].samplingRate
                 } else {
                     // Display montage signals
-                    offset = this.resource.activeMontage.channels[i].offset
+                    offset = this.resource.activeMontage.channels[i].offset*2 - 1
+                    console.log(offset)
                     resFactor = this.resource.maxSamplingRate/this.resource.activeMontage.channels[i].samplingRate
                 }
                 const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
@@ -748,7 +706,7 @@ export default Vue.extend({
                     const startCeil = channels[i][0]
                     const startFactor = (start%resFactor)/resFactor
                     const startValue = startFloor + (startCeil - startFloor)*(startFactor)
-                    yValues[i][0] = startValue*ampScale*sigAmp*sigPol
+                    ;(line as WebglLine).setY(0, startValue*ampScale*sigAmp*sigPol + offset)
                 }
                 for (let j=start; j<end; j++) {
                     if (j%this.downSampleFactor || !j && yValues[i].length) {
@@ -758,7 +716,7 @@ export default Vue.extend({
                         yValues[i][j] = null
                     } else {
                         const idx = Math.floor(j/resFactor)
-                        yValues[i][j] = ((channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
+                        ;(line as WebglLine).setY(j, (channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
                     }
                 }
                 // Last, check if there is an additional datapoint left over and intrapolate view end from it
@@ -767,27 +725,11 @@ export default Vue.extend({
                     const endCeil = Math.ceil(end/resFactor)
                     const endFactor = (end%resFactor)/resFactor
                     const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
-                    yValues[i][yValues[i].length - 1] = endValue*ampScale*sigAmp*sigPol + offset
+                    ;(line as WebglLine).setY(channels[i].length - 1, endValue*ampScale*sigAmp*sigPol + offset)
                 }
+                //this.wglPlot?.update()
+                i++
             }
-            // Update chart signal data
-            Plotly.restyle(this.$refs['container'], 'x', this.xAxisRange)
-            Plotly.restyle(this.$refs['container'], 'y', yValues)
-            // Update x-axis styles
-            const x2TickVals = this.xAxis2Ticks
-            const chartLayout = {
-                xaxis: Object.assign({}, this.chartConfig.xaxis, {
-                    tickvals: this.xAxisTicks,
-                    ticktext: this.xAxisValues,
-                }),
-                xaxis2: Object.assign({}, this.chartConfig.xaxis2, {
-                    tickvals: x2TickVals,
-                    ticktext: Array(x2TickVals.length).fill(''),
-                }),
-            }
-            // Bind event listeners
-            //;(this.$refs['container'] as any).on('plotly_hover', this.handleMouseHover)
-            Plotly.relayout(this.$refs['container'], chartLayout)
         },
         updateViewStart: function () {
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
@@ -795,6 +737,14 @@ export default Vue.extend({
         },
     },
     mounted () {
+        // Create canvas for the plot
+        const plotCanvas = document.createElement("canvas")
+        ;(plotCanvas as any).width = this.containerSize[0]
+        ;(plotCanvas as any).height = this.containerSize[1]
+        ;(this.$refs['container'] as HTMLDivElement).appendChild(plotCanvas)
+        // Update chart signal data
+        this.wglPlot = new WebglPlot(plotCanvas)
+        this.wglPlot.removeAllLines()
         // Calculate max width for the navigator as a reference
         this.navigatorMaxWidth = this.resource.duration*this.pxPerMinorGridline*5
         // Calculate view bounds
@@ -822,6 +772,12 @@ export default Vue.extend({
                 this.refreshTraces()
             }
         })
+        // Start animation frame request loop
+        const newFrame = () => {
+            this.wglPlot?.update()
+            requestAnimationFrame(newFrame)
+        }
+        requestAnimationFrame(newFrame)
         // Emit navigation position
         this.$emit('at-start', this.resource.viewStart === 0)
         this.$emit('at-end', this.isAtEnd)
