@@ -34,6 +34,8 @@ type State = {
             channelSpacing: number,
             groupSpacing: number,
             filterPadding: number,
+            continuousBrowseDelay: number,
+            continuousBrowseInterval: number,
             isoelLine: {
                 show: boolean,
                 color: string,
@@ -246,6 +248,8 @@ class MedImgStore {
                     channelSpacing: 1,
                     groupSpacing: 1,
                     filterPadding: 2,
+                    continuousBrowseDelay: 500,
+                    continuousBrowseInterval: 100,
                     border: {
                         bottom: {
                             color: '#C0C0C0',

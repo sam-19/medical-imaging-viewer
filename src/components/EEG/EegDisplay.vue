@@ -159,10 +159,13 @@ export default Vue.extend({
             lpFilter: 70,
             notchFilter: 0,
             // Keep track of some event data for chart interaction
-            //lastHoverPoint: { x: -1, y: -1 },
             traceLeftPos: 0,
+            keydownInterval: 0,
+            keydownTimeout: 0,
             mouseDownPoint: { x: -1, y: -1 },
             mouseDownTrace: 0,
+            // Don't start calculating next set of signals before last update has finished
+            updatingPlot: false,
             // Display an indicator when mouse is dragged on the trace
             mouseDragIndicator: false,
             measurements: null as null | object,
@@ -386,13 +389,55 @@ export default Vue.extend({
             const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
             return this.resource.viewStart + newWidth
         },
-        handleKeypress: function (event: KeyboardEvent) {
+        handleKeydown: function (event: KeyboardEvent) {
             if (event.key === 'PageUp') {
-                this.previousPage()
                 event.preventDefault()
+                if (this.keydownTimeout || this.keydownInterval) {
+                    return
+                }
+                this.keydownTimeout = window.setTimeout(() => {
+                    this.keydownTimeout = 0
+                    this.previousPage()
+                    this.keydownInterval = window.setInterval(() => {
+                        this.previousPage()
+                    }, this.$store.state.SETTINGS.eeg.continuousBrowseInterval)
+                }, this.$store.state.SETTINGS.eeg.continuousBrowseDelay)
             } else if (event.key === 'PageDown') {
-                this.nextPage()
                 event.preventDefault()
+                if (this.keydownTimeout || this.keydownInterval) {
+                    return
+                }
+                this.keydownTimeout = window.setTimeout(() => {
+                    this.keydownTimeout = 0
+                    this.nextPage()
+                    this.keydownInterval = window.setInterval(() => {
+                        this.nextPage()
+                    }, this.$store.state.SETTINGS.eeg.continuousBrowseInterval)
+                }, this.$store.state.SETTINGS.eeg.continuousBrowseDelay)
+            }
+            console.log(this.$store.state.SETTINGS.eeg.continuousBrowseDelay, this.$store.state.SETTINGS.eeg.continuousBrowseInterval)
+        },
+        handleKeyup: function (event: KeyboardEvent) {
+            if (event.key === 'PageUp') {
+                event.preventDefault()
+                if (this.keydownTimeout) {
+                    window.clearTimeout(this.keydownTimeout)
+                    this.keydownTimeout = 0
+                    this.previousPage()
+                } else if (this.keydownInterval) {
+                    window.clearInterval(this.keydownInterval)
+                    this.keydownInterval = 0
+                }
+            } else if (event.key === 'PageDown') {
+                event.preventDefault()
+                if (this.keydownTimeout) {
+                    window.clearTimeout(this.keydownTimeout)
+                    this.keydownTimeout = 0
+                    this.nextPage()
+                } else if (this.keydownInterval) {
+                    window.clearInterval(this.keydownInterval)
+                    this.keydownInterval = 0
+                }
             }
         },
         handleMouseDown: function (e: any) {
@@ -554,7 +599,7 @@ export default Vue.extend({
             let stepLength = 10 // Ten seconds per step
             // Browse right
             // Do not exceed the end of the recording
-            if (this.isAtEnd) {
+            if (this.isAtEnd || this.updatingPlot) {
                 return
             }
             this.resource.viewStart += stepLength
@@ -571,7 +616,7 @@ export default Vue.extend({
             let stepLength = 10
             // Browse left
             // Do not backtrack beyound the start of the recording
-            if (!this.resource.viewStart) {
+            if (!this.resource.viewStart || this.updatingPlot) {
                 return
             }
             if (this.resource.viewStart - stepLength < 0) {
@@ -618,6 +663,7 @@ export default Vue.extend({
             if (!this.plotCanvas) {
                 return
             }
+            this.updatingPlot = true
             this.wglPlot = new WebglPlot(this.plotCanvas)
             this.wglPlot?.removeAllLines()
             const color = new ColorRGBA(0, 0, 0, 1)
@@ -672,6 +718,9 @@ export default Vue.extend({
             ;(this.$refs['navigator-overlay-right'] as HTMLDivElement).style.width = `${rightWidth}px`
         },
         refreshTraces: function () {
+            if (!this.updatingPlot) {
+                this.updatingPlot = true
+            }
             // Y-axis values for each channel
             const ampScale = this.pxPerMicroVolt/this.yAxisRange // Relative height of one microvolt
             const range = this.filterRange.signal
@@ -724,6 +773,9 @@ export default Vue.extend({
                 */
                 i++
             }
+            this.$nextTick(() => {
+                this.updatingPlot = false
+            })
         },
         resizeCanvas: function () {
             if (!this.plotCanvas) {
@@ -757,7 +809,8 @@ export default Vue.extend({
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mousedown', this.handleMouseDown)
         ;(this.$refs['container'] as HTMLDivElement).addEventListener('mouseup', this.handleMouseUp)
         ;(this.$refs['wrapper'] as HTMLDivElement).addEventListener('mouseout', this.handleMouseOut)
-        window.addEventListener('keydown', this.handleKeypress, false)
+        window.addEventListener('keydown', this.handleKeydown, false)
+        window.addEventListener('keyup', this.handleKeyup, false)
         // Load navigator
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.marginLeft}px`
         this.redrawNavigator()
@@ -786,7 +839,12 @@ export default Vue.extend({
         this.$emit('at-end', this.isAtEnd)
     },
     beforeDestroy () {
-        window.removeEventListener('keydown', this.handleKeypress, false)
+        window.removeEventListener('keydown', this.handleKeydown, false)
+        window.removeEventListener('keyup', this.handleKeyup, false)
+        if (this.keydownInterval) {
+            window.clearInterval(this.keydownInterval)
+            this.keydownInterval = 0
+        }
         if (this.unsubscribeSettings !== null) {
             this.unsubscribeSettings()
         }
