@@ -69,8 +69,8 @@ export default Vue.extend({
             cmPerSec: 3,
             gridLayout: [0, 0],
             mediaContainerSize: [0, 0],
-            traceMarginBottom: 30,
-            traceMarginLeft: 80,
+            traceMarginBottom: 0,
+            traceMarginLeft: 0,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
             uVperCm: 100,
             // Trace navigation positions

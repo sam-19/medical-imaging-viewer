@@ -181,6 +181,7 @@ export default Vue.extend({
     },
     watch: {
         containerSize (value: Array<number>, old: Array<number>) {
+            this.resizeCanvas()
             this.redrawPlot()
             this.redrawNavigator()
         },
