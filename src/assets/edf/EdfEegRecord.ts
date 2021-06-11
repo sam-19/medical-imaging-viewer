@@ -193,14 +193,16 @@ class EdfEegRecord implements EegResource {
         this.addMontage('as_recorded', 'As recorded')
     }
     filterSignal (signal: number[], fs: number, so: number, eo: number, hp: number, lp: number) {
-        // Apply filtering if needed
+        // Apply padding if needed
         if (so < 0) {
             signal = Array(-1*so).fill(0).concat(...signal)
         }
         if (eo > 0) {
             signal = signal.concat(...Array(eo).fill(0))
         }
-        if (!hp && !lp) {
+        // Return here if highpass threshold is not set
+        // TODO: simple lowpass and highpass filters in addition to bandpass
+        if (!hp) {
             return signal
         }
         const bw = Math.log2(lp/hp)*2
@@ -242,8 +244,8 @@ class EdfEegRecord implements EegResource {
         const computedSigs = this._activeMontage.getAllSignals(signals).map((sig) => {
             const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
             const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
-            const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
-            const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+            const startOffset = Math.min(Math.floor(filter[0]*this.maxSamplingRate), 0)
+            const endOffset = Math.max(Math.floor(filter[1]*this.maxSamplingRate - this._samples), 0)
             sig = this.filterSignal(sig, this.maxSamplingRate, startOffset, endOffset,
                     this._activeMontage?.channels[i]?.highpassFilter || 0, // Always filter to match padding
                     this._activeMontage?.channels[i]?.lowpassFilter || 0
@@ -279,8 +281,8 @@ class EdfEegRecord implements EegResource {
                 }
                 const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
                 const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
-                const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
-                const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+                const startOffset = Math.min(Math.floor(filter[0]*this.maxSamplingRate), 0)
+                const endOffset = Math.max(Math.floor(filter[1]*this.maxSamplingRate - this._samples), 0)
                 chanSignal = this.filterSignal(
                     chanSignal,
                     this.maxSamplingRate,
@@ -310,8 +312,8 @@ class EdfEegRecord implements EegResource {
                         this.maxSamplingRate
                     )
                 }
-                const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
-                const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+                const startOffset = Math.min(Math.floor(filter[0]*this.maxSamplingRate), 0)
+                const endOffset = Math.max(Math.floor(filter[1]*this.maxSamplingRate - this._samples), 0)
                 chanSignal = this.filterSignal(
                     chanSignal,
                     this.maxSamplingRate,
