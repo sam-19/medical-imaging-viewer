@@ -415,7 +415,6 @@ export default Vue.extend({
                     }, this.$store.state.SETTINGS.eeg.continuousBrowseInterval)
                 }, this.$store.state.SETTINGS.eeg.continuousBrowseDelay)
             }
-            console.log(this.$store.state.SETTINGS.eeg.continuousBrowseDelay, this.$store.state.SETTINGS.eeg.continuousBrowseInterval)
         },
         handleKeyup: function (event: KeyboardEvent) {
             if (event.key === 'PageUp') {

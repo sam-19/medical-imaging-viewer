@@ -241,11 +241,11 @@ class EdfEegRecord implements EegResource {
             return chanSignal
         })
         let i = 0
+        const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
+        const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
+        const startOffset = Math.min(Math.floor(filter[0]*this.maxSamplingRate), 0)
+        const endOffset = Math.max(Math.floor(filter[1]*this.maxSamplingRate - this._samples), 0)
         const computedSigs = this._activeMontage.getAllSignals(signals).map((sig) => {
-            const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
-            const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
-            const startOffset = Math.min(Math.floor(filter[0]*this.maxSamplingRate), 0)
-            const endOffset = Math.max(Math.floor(filter[1]*this.maxSamplingRate - this._samples), 0)
             sig = this.filterSignal(sig, this.maxSamplingRate, startOffset, endOffset,
                     this._activeMontage?.channels[i]?.highpassFilter || 0, // Always filter to match padding
                     this._activeMontage?.channels[i]?.lowpassFilter || 0
@@ -393,7 +393,7 @@ class EdfEegRecord implements EegResource {
         const srFactor = sigSR/targetSR
         for (let i=0; i<targetLen; i++) {
             const pos = start + i*srFactor
-            if (Math.floor(pos) !== floor && signal.length < Math.floor(pos)) {
+            if (Math.floor(pos) !== floor && signal.length > Math.floor(pos)) {
                 floor = Math.floor(pos)
                 interpolate = d3.interpolateNumber(signal[floor], signal[floor + 1])
                 interpolatedSig.push(signal[floor])

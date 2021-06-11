@@ -240,7 +240,7 @@ const defaults = {
     }
     calculateSignalOffsets (config: any) {
         // Check if this is an 'as recorded' montage
-        if (!config) {
+        if (!config?.channelSpacing && !config?.groupSpacing) {
             const layoutH = this._channels.length + 1
             for (let i=0; i<this._channels.length; i++) {
                 (this._channels[i] as any).offset = 1.0 - ((i + 1)/layoutH)
@@ -250,13 +250,29 @@ const defaults = {
         // Calculate channel offsets from the provided config
         let nGroups = 0
         let nChannels = 0
+        let nChanTotal = 0
         // Grab layout from default config if not provided
-        const layout = config.layout === undefined ? [...this._config.layout] : [...config.layout]
-        for (const group of layout) {
-            nChannels += group // Add the amount of items in this group
-            nGroups++ // Add one group
+        const configLayout = config.layout === undefined ? [...this._config.layout] : [...config.layout]
+        const layout = []
+        for (const group of configLayout) {
+            let nGroup = 0
+            if (config.hideMissing) {
+                for (let i=nChanTotal; i<nChanTotal+group; i++) {
+                    if (this._channels[i]?.active !== null) {
+                        nGroup++
+                    }
+                }
+                nChanTotal += group
+            }
+            nChannels += nGroup // Add the amount of items in this group
+            if (nGroup) {
+                nGroups++ // Add one group
+                layout.push(nGroup) // Add to layout
+            }
         }
-        if (nChannels !== this._channels.length) {
+        if (!config.hideMissing && nChannels !== this._channels.length
+            || config.hideMissing && nChanTotal !== this._channels.length
+        ) {
             console.warn("The number of channels does not match config layout!")
         }
         let layoutH = 2*config.yPadding // Start with top and bottom padding
@@ -266,14 +282,21 @@ const defaults = {
         let yPos = 1.0 - config.yPadding/layoutH// First trace is y-padding away from the top
         let chanIdx = 0
         ;(this._channels[chanIdx] as any).offset = yPos
-        for (let i=0; i<layout.length; i++) {
-            for (let j=0; j<layout[i]; j++) {
-                if (!j && i) { // Item is first in its group but not the very first channel
-                    yPos -= (1/layoutH)*config.groupSpacing
-                } else if (chanIdx) { // Skip the very first channel
-                    yPos -= (1/layoutH)*config.channelSpacing
+        let groupSpacing = true // Actually yPadding, but less variables this wsay
+        for (let i=0; i<configLayout.length; i++) {
+            if (i) { // New group but not the very first channel
+                yPos -= (1/layoutH)*config.groupSpacing
+                groupSpacing = true
+            }
+            for (let j=0; j<configLayout[i]; j++) {
+                if (this._channels[chanIdx]?.active !== null) {
+                    if (!groupSpacing) { // Skip the first channel (group spacing has already been applied)
+                        yPos -= (1/layoutH)*config.channelSpacing
+                    } else {
+                        groupSpacing = false
+                    }
+                    (this._channels[chanIdx] as any).offset = yPos
                 }
-                (this._channels[chanIdx] as any).offset = yPos
                 chanIdx++
             }
         }
