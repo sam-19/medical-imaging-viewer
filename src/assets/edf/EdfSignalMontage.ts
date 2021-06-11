@@ -140,6 +140,8 @@ const defaults = {
                 this._channels.push({
                     label: chan.label,
                     name: chan.name,
+                    type: chan.type,
+                    signal: [], // Dynamically calculated
                     active: chan.index || 0,
                     samplingRate: chan.samplingRate || 0,
                     reference: [],
@@ -175,6 +177,7 @@ const defaults = {
                 this._channels.push({
                     label: chan.label,
                     name: chan.name,
+                    signal: [], // Dynamically calculated
                     active: null,
                     reference: [],
                     samplingRate: 0,
@@ -198,6 +201,7 @@ const defaults = {
                     this._channels.push({
                         label: chan.label,
                         name: chan.name,
+                        signal: [], // Dynamically calculated
                         active: null,
                         reference: [],
                         samplingRate: 0,
@@ -209,6 +213,8 @@ const defaults = {
                     this._channels.push({
                         label: chan.label,
                         name: chan.name,
+                        type: chan.type || channelMap[chan.active].type,
+                        signal: [], // Dynamically calculated
                         active: channelMap[chan.active].idx,
                         reference: refs,
                         samplingRate: channelMap[chan.active].sr,
@@ -220,6 +226,8 @@ const defaults = {
                 this._channels.push({
                     label: chan.label,
                     name: chan.name,
+                    type: chan.type || channelMap[chan.active].type,
+                    signal: [], // Dynamically calculated
                     active: channelMap[chan.active].idx,
                     reference: [],
                     samplingRate: channelMap[chan.active].sr,
@@ -272,6 +280,39 @@ const defaults = {
     }
     resetChannels () {
         this._channels = []
+    }
+    setHighpassFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.highpassFilter = value
+                }
+            }
+        } else {
+            this._channels[target].highpassFilter = value
+        }
+    }
+    setLowpassFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.lowpassFilter = value
+                }
+            }
+        } else {
+            this._channels[target].lowpassFilter = value
+        }
+    }
+    setNotchFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.notchFilter = value
+                }
+            }
+        } else {
+            this._channels[target].notchFilter = value
+        }
     }
  }
  export default EdfEegMontage

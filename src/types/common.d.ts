@@ -107,13 +107,18 @@ interface BiosignalAnnotation {
 }
 interface BiosignalChannel {
     label: string
+    type?: BiosignalType
     samplingRate: number
-    sensitivity: number
+    sensitivity?: number
     signal: number[]
+    highpassFilter?: number
+    lowpassFilter?: number
+    notchFilter?: number
 }
+type BiosignalType = 'eeg' | 'eog' | 'ekg'
 
 export {
-    BiosignalResource, BiosignalAnnotation, BiosignalChannel,
+    BiosignalResource, BiosignalAnnotation, BiosignalChannel, BiosignalType,
     FileSystemItem, FileLoader,
     MediaResource,
     StudyLoader, StudyObject,

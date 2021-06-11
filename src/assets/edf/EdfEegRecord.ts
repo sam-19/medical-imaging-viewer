@@ -4,9 +4,10 @@
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
-import { BiosignalResource, BiosignalChannel } from '../../types/common'
+import { BiosignalResource, BiosignalChannel, BiosignalType } from '../../types/common'
 import { EegResource, EegMontage, EegSetup } from '../../types/eeg'
 import Fili from 'fili'
+import * as d3 from 'd3-interpolate'
 import EdfSignalMontage from './EdfSignalMontage'
 import EdfEegSetup from './EdfSignalSetup'
 
@@ -140,9 +141,14 @@ class EdfEegRecord implements EegResource {
                 const unitLow = data.getSignalPhysicalUnit(i).toLowerCase()
                 const sensitivity = unitLow === 'uv' || unitLow === 'µv' ? 1_000_000
                                     : unitLow === 'mv' ? 1000 : unitLow === 'v' ?  1 : 0
+                const label = data.getSignalLabel(i) || ''
+                const sigType = label.toLowerCase().indexOf('eeg') > -1 ? 'eeg' as BiosignalType :
+                                label.toLowerCase().indexOf('ekg') > -1 ? 'ekg' as BiosignalType :
+                                label.toLowerCase().indexOf('eog') > -1 ? 'eog' as BiosignalType : undefined
                 const chanData = {
-                    label: data.getSignalLabel(i) || '',
-                    name: data.getSignalLabel(i) || '',
+                    label: label,
+                    name: label,
+                    type: sigType,
                     samplingRate: data.getSignalSamplingFrequency(i) || 0,
                     sensitivity: sensitivity,
                     signal: [...data.getPhysicalSignalConcatRecords(i, 0, totalRecords)],
@@ -186,8 +192,17 @@ class EdfEegRecord implements EegResource {
         }
         this.addMontage('as_recorded', 'As recorded')
     }
-    filterSignal (signal: number[], fs: number, hp: number, lp: number) {
+    filterSignal (signal: number[], fs: number, so: number, eo: number, hp: number, lp: number) {
         // Apply filtering if needed
+        if (so < 0) {
+            signal = Array(-1*so).fill(0).concat(...signal)
+        }
+        if (eo > 0) {
+            signal = signal.concat(...Array(eo).fill(0))
+        }
+        if (!hp && !lp) {
+            return signal
+        }
         const bw = Math.log2(lp/hp)*2
         const fc = (lp-hp)/2
         const iirFilterCoeffs = this.iirCalculator.bandpass({
@@ -201,85 +216,118 @@ class EdfEegRecord implements EegResource {
         return iirFilter.filtfilt(signal)
     }
     getAllMontageSignals (range: number[], config?: any) {
-        console.log(config)
         if (this._activeSetup === null || !this._activeMontage || this._activeMontage.label === 'raw-signals') {
             return this.getAllRawSignals(range, config, true)
         }
-        const filtPad = (config?.highpass || config?.lowpass) && config?.filterPadding ? config.filterPadding : 0
-        const filter = [range[0] - filtPad, range[1] + filtPad]
         // Calculate signals only for the part that we need
+        const filtPad = config?.filterPadding || 0
+        const filter = [range[0] - filtPad, range[1] + filtPad]
         const signals = this._channels.map((chan) => {
-            const chanSignal = chan.signal.slice(
+            let chanSignal = chan.signal.slice(
                 Math.max(0, Math.floor(chan.samplingRate*filter[0])),
-                Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length) + 1
+                Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length)
             )
-            if (!config?.highpass && !config?.lowpass) {
-                return chanSignal
+            if (chan.samplingRate !== this.maxSamplingRate) {
+                chanSignal = this.interpolateSignalValues(
+                    chanSignal,
+                    Math.floor((filter[1] - filter[0])*this.maxSamplingRate),
+                    (filter[0]*chan.samplingRate)%1,
+                    chan.samplingRate,
+                    this.maxSamplingRate
+                )
             }
-            const startPad = Math.floor((range[0] - filter[0])*chan.samplingRate)
-            const endPad = Math.floor((filter[1] - range[1])*chan.samplingRate)
-            return [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)]
+            return chanSignal
         })
         let i = 0
         const computedSigs = this._activeMontage.getAllSignals(signals).map((sig) => {
-            if (!config?.highpass && !config?.lowpass) {
-                return sig
-            }
-            const fs = this.activeMontage?.channels[i]?.samplingRate || this.maxSamplingRate
-            const startPad = Math.floor((range[0] - filter[0])*fs)
-            return this.filterSignal(sig, fs, config.highpass, config.lowpass)
-                        .slice(startPad, startPad + sig.length + 1)
+            const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
+            const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
+            const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
+            const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+            sig = this.filterSignal(sig, this.maxSamplingRate, startOffset, endOffset,
+                    this._activeMontage?.channels[i]?.highpassFilter || 0, // Always filter to match padding
+                    this._activeMontage?.channels[i]?.lowpassFilter || 0
+                )
+            i++
+            return sig.slice(startPad, sig.length - endPad)
         })
         return computedSigs
     }
-    getAllRawSignals(range: number[], config?: any, asRec=false) {
+    getAllRawSignals (range: number[], config?: any, asRec=false) {
         const signals = [] as number[][]
         if (range.length !== 2) {
             return signals
         }
-        const filtPad = (config?.highpass || config?.lowpass) && config?.filterPadding ? config.filterPadding : 0
-        const filter = [range[0] - filtPad, range[1] + filtPad]
         if (this._activeSetup === null || asRec) {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
-                const chanSignal = chan.signal.slice(
+                const filtPad = (chan.highpassFilter || chan.lowpassFilter) && config?.filterPadding
+                                ? config.filterPadding : 0
+                const filter = [range[0] - filtPad, range[1] + filtPad]
+                let chanSignal = chan.signal.slice(
                     Math.max(0, Math.floor(chan.samplingRate*filter[0])),
-                    Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length) + 1
+                    Math.min(Math.ceil(chan.samplingRate*filter[1]), chan.signal.length)
                 )
-                if (!config?.highpass && !config?.lowpass) {
-                    signals.push(chanSignal)
-                    continue
+                if (chan.samplingRate !== this.maxSamplingRate) {
+                    chanSignal = this.interpolateSignalValues(
+                        chanSignal,
+                        Math.floor((filter[1] - filter[0])*this.maxSamplingRate),
+                        (filter[0]*chan.samplingRate)%1,
+                        chan.samplingRate,
+                        this.maxSamplingRate
+                    )
                 }
-                const startPad = Math.floor((range[0] - filter[0])*chan.samplingRate)
-                const endPad = Math.floor((filter[1] - range[1])*chan.samplingRate)
-                console.log(startPad, endPad)
-                signals.push(this.filterSignal(
-                    [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)],
-                    chan.samplingRate, config.highpass, config.lowpass
-                ).slice(startPad, startPad + chanSignal.length + 1))
+                const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
+                const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
+                const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
+                const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+                chanSignal = this.filterSignal(
+                    chanSignal,
+                    this.maxSamplingRate,
+                    startOffset,
+                    endOffset,
+                    chan.highpassFilter || 0,
+                    chan.lowpassFilter || 0
+                )
+                signals.push(chanSignal.slice(startPad, chanSignal.length - endPad))
             }
         } else {
             // Match setup channels to raw signal data channels
             for (const chan of this._activeSetup.signals) {
+                const filtPad = (this._channels[chan.index as number].highpassFilter ||this._channels[chan.index as number].lowpassFilter)
+                                && config?.filterPadding ? config.filterPadding : 0
+                const filter = [range[0] - filtPad, range[1] + filtPad]
                 const fs = this._channels[chan.index as number].samplingRate
-                const chanSignal = this._channels[chan.index as number].signal.slice(
-                    Math.floor(fs*filter[0]), Math.ceil(fs*filter[1]) + 1
+                let chanSignal = this._channels[chan.index as number].signal.slice(
+                    Math.floor(fs*filter[0]), Math.ceil(fs*filter[1])
                 )
-                if (!config?.highpass && !config?.lowpass) {
-                    signals.push(chanSignal)
-                    continue
+                if (chan.samplingRate !== this.maxSamplingRate) {
+                    chanSignal = this.interpolateSignalValues(
+                        chanSignal,
+                        Math.floor((filter[1] - filter[0])*this.maxSamplingRate),
+                        (filter[0]*fs)%1,
+                        fs,
+                        this.maxSamplingRate
+                    )
                 }
-                const startPad = Math.floor((range[0] - filter[0])*fs)
-                const endPad = Math.floor((filter[1] - range[1])*fs)
-                signals.push(this.filterSignal(
-                    [...Array(startPad).fill(0), ...chanSignal, ...Array(endPad).fill(0)],
-                    fs, config.highpass, config.lowpass
-                ).slice(startPad, startPad + chanSignal.length + 1))
+                const startOffset = Math.min(filter[0]*this.maxSamplingRate, 0)
+                const endOffset = Math.max(filter[1]*this.maxSamplingRate - this._samples, 0)
+                chanSignal = this.filterSignal(
+                    chanSignal,
+                    this.maxSamplingRate,
+                    startOffset,
+                    endOffset,
+                    this._channels[chan.index as number].highpassFilter || 0,
+                    this._channels[chan.index as number].lowpassFilter || 0
+                )
+                const startPad = Math.floor((range[0] - filter[0])*this.maxSamplingRate)
+                const endPad = Math.floor((filter[1] - range[1])*this.maxSamplingRate)
+                signals.push(chanSignal.slice(startPad, chanSignal.length - endPad))
             }
         }
         return signals
     }
-    getMontageSignal(range: number[], channel: number | string, config?: any) {
+    getMontageSignal (range: number[], channel: number | string, config?: any) {
         if (this._activeSetup === null || !this._activeMontage) {
             return this.getRawSignal(range, channel)
         }
@@ -303,7 +351,7 @@ class EdfEegRecord implements EegResource {
                         ))
         return this._activeMontage.getChannelSignal(signals, channel as number)
     }
-    getRawSignal(range: number[], channel: number | string) {
+    getRawSignal (range: number[], channel: number | string) {
         if (typeof channel === 'string') {
             // Match channel label to channel index
             for (let i=0; i<this._channels.length; i++) {
@@ -332,7 +380,32 @@ class EdfEegRecord implements EegResource {
                         .signal.slice(Math.floor(res*range[0]), Math.ceil(res*range[1]) + 1)
         }
     }
-    setActiveMontage (montage: number | string, ) {
+    interpolateSignalValues (signal: number[], targetLen: number, start: number, sigSR: number, targetSR: number) {
+        if (signal.length < 2) {
+            // Cannot interpolate from fewer than 2 datapoints
+            return signal
+        }
+        const interpolatedSig = [] as number[]
+        let floor = Math.floor(start)
+        let interpolate = d3.interpolateNumber(signal[floor], signal[floor + 1])
+        const srFactor = sigSR/targetSR
+        for (let i=0; i<targetLen; i++) {
+            const pos = start + i*srFactor
+            if (Math.floor(pos) !== floor && signal.length < Math.floor(pos)) {
+                floor = Math.floor(pos)
+                interpolate = d3.interpolateNumber(signal[floor], signal[floor + 1])
+                interpolatedSig.push(signal[floor])
+                continue
+            }
+            if (signal[floor] === signal[floor + 1] || signal.length <= floor + 1) {
+                interpolatedSig.push(signal[floor])
+            } else {
+                interpolatedSig.push(interpolate(pos%1))
+            }
+        }
+        return interpolatedSig
+    }
+    setActiveMontage (montage: number | string) {
         if (typeof montage === 'string') {
             // Match montage label to montage index
             for (let i=0; i<this._montages.length; i++) {
@@ -350,6 +423,60 @@ class EdfEegRecord implements EegResource {
         }
         if (montage >= 0 && montage < this._montages.length) {
             this._activeMontage = this._montages[montage as number]
+        }
+    }
+    setHighpassFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.highpassFilter = value
+                }
+            }
+            for (const mont of this._montages) {
+                mont.setHighpassFilter(target, value)
+            }
+        } else {
+            if (this._activeMontage) {
+                this._activeMontage.setHighpassFilter(target, value)
+            } else {
+                this._channels[target].highpassFilter = value
+            }
+        }
+    }
+    setLowpassFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.lowpassFilter = value
+                }
+            }
+            for (const mont of this._montages) {
+                mont.setLowpassFilter(target, value)
+            }
+        } else {
+            if (this._activeMontage) {
+                this._activeMontage.setLowpassFilter(target, value)
+            } else {
+                this._channels[target].lowpassFilter = value
+            }
+        }
+    }
+    setNotchFilter (target: string | number, value: number) {
+        if (typeof target === 'string') {
+            for (const chan of this._channels) {
+                if (chan.type === target) {
+                    chan.notchFilter = value
+                }
+            }
+            for (const mont of this._montages) {
+                mont.setNotchFilter(target, value)
+            }
+        } else {
+            if (this._activeMontage) {
+                this._activeMontage.setNotchFilter(target, value)
+            } else {
+                this._channels[target].notchFilter = value
+            }
         }
     }
 }

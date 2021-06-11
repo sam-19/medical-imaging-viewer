@@ -4,7 +4,7 @@
  * @license    MIT
  */
 
-import { BiosignalResource } from './common'
+import { BiosignalChannel, BiosignalResource } from './common'
 
 interface EegResource extends BiosignalResource {
     activeMontage: EegMontage | null
@@ -49,12 +49,10 @@ interface EegSetup {
  * @param active active channel index
  * @param reference reference channel indices; multiple reference channels will be averaged
  */
-interface EegMontageChannel {
-    label: string
+interface EegMontageChannel extends BiosignalChannel {
     name: string
     active: number | null
     reference: number[]
-    samplingRate: number
     offset: number
     amplification: number
 }
@@ -77,6 +75,9 @@ interface EegMontage {
     getChannelSignal(signals: number[][], index: number, range?: number[]): number[]
     mapChannels(setup: EegSetup, config: any): void
     resetChannels(): void
+    setHighpassFilter(target: string | number, value: number): void
+    setLowpassFilter(target: string | number, value: number): void
+    setNotchFilter(target: string | number, value: number): void
 }
 
 export { EegMontage, EegMontageChannel, EegResource, EegSetup, EegSetupSignal }

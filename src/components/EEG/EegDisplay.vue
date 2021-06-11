@@ -202,6 +202,9 @@ export default Vue.extend({
         isAtEnd (): boolean {
             return (this.viewEnd >= this.resource.duration)
         },
+        isRawSignals (): boolean {
+            return (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals')
+        },
         mouseDragThreshold (): number {
             // Require at least two mm of mouse movement to register a drag event
             return this.$store.state.SETTINGS.screenPPI/17.7
@@ -340,7 +343,7 @@ export default Vue.extend({
         },
         yAxisTicks (): number[] {
             const ticks = []
-            if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
+            if (this.isRawSignals) {
                 // No setup, so all channels are spaced evenly
                 for (let i=0; i<this.resource.channels.length; i++) {
                     ticks.push(1.0 - ((i + 1)/(this.resource.channels.length + 1)))
@@ -355,10 +358,7 @@ export default Vue.extend({
         },
         yAxisValues (): string[] {
             const values = []
-            for (const chan of (this.resource.setup && this.resource.activeMontage && this.resource.activeMontage.label !== 'raw-signals')
-                 ? this.resource.activeMontage.channels
-                 : this.resource.channels
-            ) {
+            for (const chan of !this.isRawSignals ? this.resource.activeMontage.channels : this.resource.channels) {
                 values.push(chan.name)
             }
             return values
@@ -621,11 +621,15 @@ export default Vue.extend({
             this.wglPlot = new WebglPlot(this.plotCanvas)
             this.wglPlot?.removeAllLines()
             const color = new ColorRGBA(0, 0, 0, 1)
-            const signals = this.resource.getAllMontageSignals([0, 0])
-            const xRange = this.xAxisRange
-            for (const sig in signals) {
-                const line = new WebglLine(color, xRange)
-                line.lineSpaceX(-1, 2 / xRange)
+            const channels = this.isRawSignals ? this.resource.channels : this.resource.activeMontage.channels
+            for (const chan of channels) {
+                if (chan.active === null) {
+                    // Don't add empty channels
+                    continue
+                }
+                const range = this.xAxisRange/this.downSampleFactor
+                const line = new WebglLine(color, Math.floor(range))
+                line.lineSpaceX(-1, 2 / Math.floor(range))
                 this.wglPlot?.addLine(line)
             }
             this.refreshTraces()
@@ -669,33 +673,27 @@ export default Vue.extend({
         },
         refreshTraces: function () {
             // Y-axis values for each channel
-            const yValues = []
             const ampScale = this.pxPerMicroVolt/this.yAxisRange // Relative height of one microvolt
             const range = this.filterRange.signal
-            const config = { highpass: this.hpFilter, lowpass: this.lpFilter, filterPadding: this.$store.state.SETTINGS.eeg.filterPadding }
-            const channels = this.resource.getAllMontageSignals(range, config)
-            console.log(channels)
+            const config = { filterPadding: this.$store.state.SETTINGS.eeg.filterPadding }
+            const signals = this.resource.getAllMontageSignals(range, config)
+            const montChans = this.isRawSignals ? this.resource.channels : this.resource.activeMontage.channels
             let i = 0
+            datalineloop:
             for (const line of this.wglPlot?.linesData || []) {
-                const montChan = !this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals'
-                                 ? this.resource.channels[i] : this.resource.activeMontage.channels[i]
-                // Remove extra padding from signal
-                const start = Math.floor((range[0])*this.resource.maxSamplingRate*this.downSampleFactor)
-                const end = Math.floor(range[1]*this.resource.maxSamplingRate*this.downSampleFactor)
-                let offset, resFactor
-                if (!this.resource.setup || !this.resource.activeMontage || this.resource.activeMontage.label === 'raw-signals') {
-                    // If no setup is loaded, display the raw signals
-                    offset = (1.0 - ((i + 1)/(channels.length + 1)))*2 - 1
-                    resFactor = this.resource.maxSamplingRate/this.resource.channels[i].samplingRate
-                } else {
-                    // Display montage signals
-                    offset = this.resource.activeMontage.channels[i].offset*2 - 1
-                    resFactor = this.resource.maxSamplingRate/this.resource.activeMontage.channels[i].samplingRate
+                while (montChans[i].active === null) {
+                    // WebGL-Plot doesn't handle empty signals well, so skip those
+                    i++
+                    if (i === signals.length) {
+                        break datalineloop
+                    }
                 }
+                const offset = this.isRawSignals ? (1.0 - ((i + 1)/(signals.length + 1)))*2 - 1
+                               : this.resource.activeMontage.channels[i].offset*2 - 1
                 const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
                 const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
-                yValues[i] = [] as (number|null)[]
                 // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
+                /*
                 let k = 0
                 if (start%resFactor) {
                     const startFloor = channels[i].splice(0, 1)
@@ -705,20 +703,17 @@ export default Vue.extend({
                     ;(line as WebglLine).setY(0, startValue*ampScale*sigAmp*sigPol + offset)
                     k++
                 }
-                for (let j=0; j<end-start; j++) {
-                    if (j%this.downSampleFactor || !j && yValues[i].length) {
+                */
+                let k = 0
+                for (let j=0; j<signals[i].length; j++) {
+                    if (j%this.downSampleFactor) {
                         continue
                     }
-                    if (j%resFactor) {
-                        yValues[i][j] = null
-                    } else {
-                        const idx = Math.floor(j/resFactor)
-                        ;(line as WebglLine).setY(k, (channels[i][idx] || 0)*ampScale*sigAmp*sigPol + offset)
-                    }
+                    ;(line as WebglLine).setY(k, (signals[i][j] || 0)*ampScale*sigAmp*sigPol + offset)
                     k++
                 }
-                console.log(k)
                 // Last, check if there is an additional datapoint left over and intrapolate view end from it
+                /*
                 if (channels[i][Math.ceil(end/resFactor)] !== undefined && yValues[i][yValues[i].length - 1] === null) {
                     const endFloor = Math.floor(end/resFactor)
                     const endCeil = Math.ceil(end/resFactor)
@@ -726,6 +721,7 @@ export default Vue.extend({
                     const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
                     ;(line as WebglLine).setY(k, endValue*ampScale*sigAmp*sigPol + offset)
                 }
+                */
                 i++
             }
         },
@@ -750,6 +746,10 @@ export default Vue.extend({
         this.resizeCanvas()
         // Calculate max width for the navigator as a reference
         this.navigatorMaxWidth = this.resource.duration*this.pxPerMinorGridline*5
+        // Apply initial settings to montages
+        this.resource.setHighpassFilter('eeg', this.hpFilter)
+        this.resource.setLowpassFilter('eeg', this.lpFilter)
+        this.resource.setNotchFilter('eeg', this.notchFilter)
         // Calculate view bounds
         this.viewEnd = this.getViewEnd()
         this.redrawPlot()

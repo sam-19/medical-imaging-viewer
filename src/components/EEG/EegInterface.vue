@@ -227,7 +227,6 @@ export default Vue.extend({
                             ? null : this.$store.state.SETTINGS.eeg
                         )
                     }
-                    console.log(eeg.activeMontage)
                 }
                 if (Array.isArray(this.$refs['eeg-element'])) {
                     this.$refs['eeg-element'].forEach((item: any) => {
