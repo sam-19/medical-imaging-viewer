@@ -1,6 +1,7 @@
 {
     "EEG": {
         "Analyse signal": "Analyse signal",
+        "Average reference": "Average reference",
         "Default montages": "Default montages",
         "Double banana": "Double banana",
         "Montage": "Montage",

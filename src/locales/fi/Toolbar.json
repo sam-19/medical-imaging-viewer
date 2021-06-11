@@ -1,6 +1,7 @@
 {
     "EEG": {
         "Analyse signal": "Analysoi signaalia",
+        "Average reference": "Keskiarvoreferenssi",
         "Default montages": "Oletuskytkennät",
         "Double banana": "Tuplabanaani",
         "Montage": "Kytkentä",

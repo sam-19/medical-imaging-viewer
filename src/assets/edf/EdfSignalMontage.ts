@@ -7,6 +7,7 @@
 import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
 const defaults = {
     "10-20": {
+        ar: require('./default_montages/10-20/ar.json'),
         db: require('./default_montages/10-20/db.json'),
         raw: require('./default_montages/10-20/raw.json'),
     },
@@ -151,6 +152,9 @@ const defaults = {
             }
             this.calculateSignalOffsets(config)
             return
+        } else if (config === "default:10-20:ar") {
+            this._label = "default:ar"
+            config = defaults['10-20'].ar
         } else if (config === "default:10-20:db") {
             this._label = "default:db"
             config = defaults['10-20'].db

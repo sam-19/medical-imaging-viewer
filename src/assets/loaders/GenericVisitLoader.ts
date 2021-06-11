@@ -124,6 +124,7 @@ class GenericVisitLoader implements VisitLoader {
                             // Load default setup
                             record.addSetup('default:10-20')
                             record.addMontage('10-20:raw', "10-20: As recorded", "default:10-20:raw")
+                            record.addMontage('10-20:db', "10-20: Double banana", "default:10-20:ar")
                             record.addMontage('10-20:db', "10-20: Double banana", "default:10-20:db")
                             // Add EEG record
                             visit.studies.eeg.push(record)

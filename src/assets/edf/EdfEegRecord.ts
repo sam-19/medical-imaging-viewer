@@ -411,6 +411,7 @@ class EdfEegRecord implements EegResource {
         if (typeof montage === 'string') {
             // Match montage label to montage index
             for (let i=0; i<this._montages.length; i++) {
+                console.log(this._montages[i].label, montage)
                 if (this._montages[i].label === montage) {
                     montage = i
                     break
