@@ -55,9 +55,11 @@ type State = {
                 width: number,
             },
             traceColor: {
-                eeg: string,
-                ekg: string,
-                eog: string,
+                eeg: [number, number, number, number],
+                ekg: [number, number, number, number],
+                emg: [number, number, number, number],
+                eog: [number, number, number, number],
+                default: [number, number, number, number],
             }
             setups: string[],
             signalAmplitude: number,
@@ -247,7 +249,7 @@ class MedImgStore {
                     // Display settings
                     channelSpacing: 1,
                     groupSpacing: 1,
-                    filterPadding: 2,
+                    filterPadding: 5,
                     continuousBrowseDelay: 500,
                     continuousBrowseInterval: 100,
                     border: {
@@ -281,9 +283,11 @@ class MedImgStore {
                     signalAmplitude: 1,
                     signalPolarity: -1,
                     traceColor: {
-                        eeg: '#000000',
-                        ekg: '#000000',
-                        eog: '#000000',
+                        eeg: [0, 0, 0, 1],
+                        ekg: [0.5, 0, 0, 1],
+                        emg: [0, 0, 0.5, 1],
+                        eog: [0, 0.3, 0, 1],
+                        default: [0.2, 0.2, 0.2, 1],
                     },
                     traceWidth: {
                         eeg: 1,

@@ -666,13 +666,16 @@ export default Vue.extend({
             this.updatingPlot = true
             this.wglPlot = new WebglPlot(this.plotCanvas)
             this.wglPlot?.removeAllLines()
-            const color = new ColorRGBA(0, 0, 0, 1)
             const channels = this.isRawSignals ? this.resource.channels : this.resource.activeMontage.channels
             for (const chan of channels) {
                 if (chan.active === null) {
                     // Don't add empty channels
                     continue
                 }
+                const typeC = this.$store.state.SETTINGS.eeg.traceColor[chan.type]
+                const defC = this.$store.state.SETTINGS.eeg.traceColor.default
+                const color = typeC ? new ColorRGBA(typeC[0], typeC[1], typeC[2], typeC[3])
+                                    : new ColorRGBA(defC[0], defC[1], defC[2], defC[3])
                 const range = this.xAxisRange/this.downSampleFactor
                 const line = new WebglLine(color, Math.floor(range))
                 line.lineSpaceX(-1, 2 / Math.floor(range))
