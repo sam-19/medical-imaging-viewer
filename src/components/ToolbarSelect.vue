@@ -17,7 +17,10 @@
             <div v-if="overlay" class="medimg-viewer-toolbar-select-overlay">
                 {{ overlay }}
             </div>
-            <div class="medimg-viewer-toolbar-select-active">
+            <div :class="[
+                'medimg-viewer-toolbar-select-active',
+                { 'medimg-viewer-toolbar-select-noicon': !icon || !icon.length }
+            ]">
                 <div class="medimg-viewer-toolbar-select-label">
                     {{ t(label) }}
                 </div>
@@ -26,6 +29,7 @@
                 </div>
             </div>
         </div>
+        <hr v-if="dropdownOpen" />
         <div v-for="(opt, idx) in availableOptions"
             :key="`${$store.state.appName}-toolbar-select-${id}-${idx}`"
             class="medimg-viewer-toolbar-select-option"
@@ -131,6 +135,9 @@ export default Vue.extend({
     .medimg-viewer-toolbar-select-open {
         height: auto;
     }
+    .medimg-viewer-toolbar-select > hr {
+        margin: 2px;
+    }
     .medimg-viewer-toolbar-select:hover, .medimg-viewer-toolbar-select.element-active {
         border-color: var(--medimg-viewer-border-highlight);
         opacity: 1.0;
@@ -153,6 +160,9 @@ export default Vue.extend({
         .medimg-viewer-toolbar-select-active {
             flex-basis: 120px;
             flex: 1; /* Take whole space if there is no icon */
+        }
+        .medimg-viewer-toolbar-select-noicon {
+            padding-left: 10px;
         }
             .medimg-viewer-toolbar-select-label,
             .medimg-viewer-toolbar-select-value {
@@ -196,6 +206,7 @@ export default Vue.extend({
         .medimg-viewer-toolbar-select-group {
             background-color: var(--medimg-viewer-background-emphasize);
             font-weight: bold;
+            cursor: default;
         }
         .medimg-viewer-toolbar-select-option > div:not(.medimg-viewer-toolbar-select-group):hover {
             background-color: var(--medimg-viewer-background-highlight);

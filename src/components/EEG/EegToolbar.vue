@@ -354,7 +354,7 @@ export default Vue.extend({
                 ],
                 selected: 0,
                 // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).
-                icon: [ ['fal', 'list'] ],
+                icon: [],
                 // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
                 tooltip: [ 'EEG.Select montage' ],
                 type: 'select',

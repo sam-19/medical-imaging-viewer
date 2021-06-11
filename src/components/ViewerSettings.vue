@@ -86,8 +86,8 @@
                 <div class="medimg-viewer-settings-modal-value">
                     <!-- TODO: Create config and fetch values from there -->
                     <select v-model="appLocale">
-                        <option value="en">{{ t('English') }}</option>
-                        <option value="fi">{{ t('Finnish') }}</option>
+                        <option :value="'en'">{{ t('English') }}</option>
+                        <option :value="'fi'">{{ t('Finnish') }}</option>
                     </select>
                     &nbsp;
                 </div>
