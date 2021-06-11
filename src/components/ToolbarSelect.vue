@@ -5,7 +5,7 @@
             'medimg-viewer-toolbar-select',
             { 'medimg-viewer-toolbar-select-open': dropdownOpen },
         ]"
-        :title="tooltip"
+        :title="t(tooltip)"
     >
         <div class="medimg-viewer-toolbar-select-title"
             @click="enabled ? toggleDropdown() : null"
@@ -136,7 +136,7 @@ export default Vue.extend({
         height: auto;
     }
     .medimg-viewer-toolbar-select > hr {
-        margin: 2px;
+        margin: 0 5px;
     }
     .medimg-viewer-toolbar-select:hover, .medimg-viewer-toolbar-select.element-active {
         border-color: var(--medimg-viewer-border-highlight);
@@ -200,7 +200,7 @@ export default Vue.extend({
         font-size: 14px;
     }
     .medimg-viewer-toolbar-select-option > div {
-        padding: 0 5px;
+        padding: 0 10px;
         overflow: hidden;
     }
         .medimg-viewer-toolbar-select-group {
