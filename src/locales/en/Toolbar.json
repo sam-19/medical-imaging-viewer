@@ -2,6 +2,7 @@
     "EEG": {
         "Analyse signal": "Analyse signal",
         "Average reference": "Average reference",
+        "Custom": "Custom",
         "Default montages": "Default montages",
         "Double banana": "Double banana",
         "Montage": "Montage",
@@ -9,7 +10,8 @@
         "Previous page": "Previous page",
         "Raw signals": "Raw signals",
         "Record montage": "Record montage",
-        "Select montage": "Select montage"
+        "Select montage": "Select montage",
+        "Sensitivity": "Sensitivity"
     },
     "Radiology": {
         "Adjust window": "Adjust window",

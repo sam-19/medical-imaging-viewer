@@ -1,6 +1,7 @@
 <template>
 
     <div :id="`${$store.state.appName}-toolbar-select-${id}`"
+        ref="select"
         :class="[
             'medimg-viewer-toolbar-select',
             { 'medimg-viewer-toolbar-select-open': dropdownOpen },
@@ -62,6 +63,7 @@ export default Vue.extend({
         overlay: String,
         selected: Number,
         tooltip: String,
+        type: String,
     },
     data () {
         return {
@@ -74,6 +76,9 @@ export default Vue.extend({
             const options = []
             let lastGroup = ''
             for (const opt of this.options as ToolbarSelectOption[]) {
+                if (opt.value === null) {
+                    continue
+                }
                 if (opt.group !== lastGroup) {
                     options.push({ newGroup: opt.group })
                     lastGroup = opt.group
@@ -91,14 +96,11 @@ export default Vue.extend({
             }
             return this.tooltip
         },
-        type () {
-            return this.id.split(':')[0]
-        },
     },
     methods: {
         /** Shorthand for component-specific translations */
         t: function (str: string, args?: any) {
-            return this.$t(`components.Toolbar.${str}`, args)
+            return str?.indexOf('.') === -1 ? str : this.$t(`components.Toolbar.${str}`, args)
         },
         selectOption: function (value: string) {
             this.$emit('option-selected', value)
@@ -112,6 +114,11 @@ export default Vue.extend({
             }
         }
     },
+    mounted () {
+        // Set width
+        const width = parseInt(this.type.split(':')[1] || '1')
+        ;(this.$refs['select'] as HTMLDivElement).style.width = `${width*60}px`
+    },
 })
 
 </script>
@@ -121,7 +128,6 @@ export default Vue.extend({
 .medimg-viewer-toolbar-select {
     position: relative;
     height: 60px;
-    width: 180px;
     border: solid 2px var(--medimg-viewer-border);
     background-color: var(--medimg-viewer-background);
     border-radius: 5px;

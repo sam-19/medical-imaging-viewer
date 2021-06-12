@@ -36,6 +36,7 @@
                     :marginLeft="traceMarginLeft"
                     :montage="montage"
                     :resource="resource"
+                    :sensitivity="sensitivity"
                     :yPad="yPad"
                     :uVperCm="uVperCm"
                     v-on:at-end="traceEndUpdated(idx, $event)"
@@ -69,6 +70,7 @@ export default Vue.extend({
             cmPerSec: 3,
             gridLayout: [0, 0],
             mediaContainerSize: [0, 0],
+            sensitivity: 100,
             traceMarginBottom: 0,
             traceMarginLeft: 90,
             yPad: 4, // Add pad amount of squares (0.5cm) above and below the top and bottom traces
@@ -113,20 +115,6 @@ export default Vue.extend({
             const activeNum = this.activeItems.length
             // No grid layout support (at least not yet)
             return [1, activeNum]
-            const layout = [...this.gridLayout]
-            if (!layout[0] && !layout[1]) {
-                // Calculate grid dimensions automatically.
-                // Number of colums >= number of rows, i.e. expand columns before rows.
-                layout[0] = Math.ceil(Math.sqrt(activeNum))
-            } else if (!layout[0]) {
-                // Only cols are undefined
-                layout[0] = Math.ceil(activeNum/layout[1])
-            }
-            if (!layout[1]) {
-                // Calculate grid rows
-                layout[1] = Math.ceil(activeNum/layout[0])
-            }
-            return layout
         },
         singleContainerSize (): number[] {
             return [
@@ -217,7 +205,7 @@ export default Vue.extend({
                 (this.$refs['eeg-element'] as any).redrawPlot()
             }
         },
-        selectOption: function (id: string, value: string) {
+        selectOption: function (id: string, value: string | number) {
             if (id === "select:montage") {
                 for (const eeg of this.resources as EdfEegRecord[]) {
                     eeg.setActiveMontage(value)
@@ -236,6 +224,17 @@ export default Vue.extend({
                 } else {
                     (this.$refs['eeg-element'] as any).redrawPlot()
                 }
+            } else if (id === "select:sensitivity") {
+                this.sensitivity = value as number
+                this.$nextTick(() => {
+                    if (Array.isArray(this.$refs['eeg-element'])) {
+                        this.$refs['eeg-element'].forEach((item: any) => {
+                            item.refreshTraces()
+                        })
+                    } else {
+                        (this.$refs['eeg-element'] as any).refreshTraces()
+                    }
+                })
             }
         },
         traceDestroyed: function (idx: number) {

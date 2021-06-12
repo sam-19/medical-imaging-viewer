@@ -2,7 +2,7 @@
 
     <div :id="`${$store.state.appName}-medimg-viewer-eeg-toolbar`">
         <component v-for="(control, idx) in controlRow" :key="`toolbar-control-${idx}`"
-            :is="control.type === 'select' ? 'toolbar-select' : 'toolbar-button'"
+            :is="control.type.startsWith('select') ? 'toolbar-select' : 'toolbar-button'"
             :id="control.id"
             :emit="control.emit"
             :enabled="control.enabled"
@@ -12,6 +12,7 @@
             :overlay="control.overlay"
             :selected="control.selected"
             :tooltip="control.tooltip"
+            :type="control.type"
             :class="{
                 'medimg-viewer-disabled': !control.enabled,
                 'element-active': typeof control.active === 'boolean' ? control.active : control.active(),
@@ -38,6 +39,7 @@ interface ControlRow {
     'action:next': ControlState,
     'action:previous': ControlState,
     'select:montage': ControlState,
+    'select:sensitivity': ControlState,
     'tool:analyse': ControlState,
 }
 
@@ -90,7 +92,7 @@ export default Vue.extend({
             this.controlsUpdated // Trigger refresh when this value changes
             const controls = [] as ToolbarControlElement[]
             let controlSet = null as number | null
-            this.controls.forEach((control) => {
+            for (const control of this.controls) {
                 // Add visible controls
                 if (this.controlStates[control.id as keyof ControlRow].visible) {
                     let newSet = false
@@ -115,7 +117,7 @@ export default Vue.extend({
                         type: control.type
                     })
                 }
-            })
+            }
             return controls
         },
         hasNextPage (): boolean {
@@ -358,11 +360,36 @@ export default Vue.extend({
                 icon: [],
                 // The first element in the tooltip array is used when the button is inactive (required), the second when it's active (optional).
                 tooltip: [ 'EEG.Select montage' ],
-                type: 'select',
+                type: 'select:3',
+            },
+            {
+                id: 'select:sensitivity',
+                set: 1,
+                groups: [],
+                label: 'EEG.Sensitivity',
+                options: [
+                    { group: '', label: '70µv', value: 70 },
+                    { group: '', label: '100µv', value: 100 },
+                    { group: '', label: '125µv', value: 125 },
+                    { group: '', label: '150µv', value: 150 },
+                    { group: '', label: '175µv', value: 175 },
+                    { group: '', label: '200µv', value: 200 },
+                    { group: '', label: '250µv', value: 250 },
+                    { group: '', label: '300µv', value: 300 },
+                    { group: '', label: '400µv', value: 400 },
+                    { group: '', label: '500µv', value: 500 },
+                    { group: '', label: '750µv', value: 750 },
+                    { group: '', label: '1000µv', value: 1000 },
+                    { group: '', label: 'EEG.Custom', value: null },
+                ],
+                selected: 1,
+                icon: [],
+                tooltip: [ 'EEG.Select EEG sensitivity' ],
+                type: 'select:2',
             },
             {
                 id: 'action:previous',
-                set: 1,
+                set: 2,
                 groups: [],
                 label: '',
                 options: [],
@@ -372,7 +399,7 @@ export default Vue.extend({
             },
             {
                 id: 'action:next',
-                set: 1,
+                set: 2,
                 groups: [],
                 label: '',
                 options: [],
@@ -382,7 +409,7 @@ export default Vue.extend({
             },
             {
                 id: 'tool:analyse',
-                set: 2,
+                set: 3,
                 groups: ['interact'],
                 label: '',
                 options: [],
@@ -395,6 +422,7 @@ export default Vue.extend({
             'action:next':          { active: false, visible: true, enabled: true } as ControlState,
             'action:previous':      { active: false, visible: true, enabled: true } as ControlState,
             'select:montage':       { active: false, visible: true, enabled: true } as ControlState,
+            'select:sensitivity':   { active: false, visible: true, enabled: true } as ControlState,
             'tool:analyse':         { active: false, visible: true, enabled: true } as ControlState,
         }
         // Subscribe to store dispatches

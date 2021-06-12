@@ -136,10 +136,10 @@ class EdfEegRecord implements EegResource {
             // We should not have loaded large files with decoder, so cache the whole signal data
             const totalRecords = data.getNumberOfRecords()
             for (let i=0; i<data.getNumberOfSignals(); i++) {
-                // Try to determine sensitivity from unit
+                // Try to determine amplification from unit
                 const unitLow = data.getSignalPhysicalUnit(i).toLowerCase()
-                const sensitivity = unitLow === 'uv' || unitLow === 'µv' ? 1_000_000
-                                    : unitLow === 'mv' ? 1000 : unitLow === 'v' ?  1 : 0
+                const amplification = unitLow === 'uv' || unitLow === 'µv' ? 1
+                                      : unitLow === 'mv' ? 1_000 : unitLow === 'v' ?  1_000_000 : 1
                 const label = data.getSignalLabel(i) || ''
                 const sigType = label.toLowerCase().indexOf('eeg') > -1 ? 'eeg' as BiosignalType :
                                 label.toLowerCase().indexOf('ekg') > -1 ? 'ekg' as BiosignalType :
@@ -149,7 +149,8 @@ class EdfEegRecord implements EegResource {
                     name: label,
                     type: sigType,
                     samplingRate: data.getSignalSamplingFrequency(i) || 0,
-                    sensitivity: sensitivity,
+                    amplification: amplification,
+                    sensitivity: 0,
                     signal: [...data.getPhysicalSignalConcatRecords(i, 0, totalRecords)],
                     unit: data.getSignalPhysicalUnit(i) || '',
                     samplesPerRecord: data.getSignalNumberOfSamplesPerRecord(i) || 0,

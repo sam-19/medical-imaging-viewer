@@ -59,6 +59,7 @@ export default Vue.extend({
         marginBottom: Number,
         marginLeft: Number,
         resource: Object, // SignalResource
+        sensitivity: Number,
         yPad: Number,
         uVperCm: Number,
     },
@@ -97,7 +98,6 @@ export default Vue.extend({
                 displayModeBar: false,
                 responsive: false,
             },
-            sensitivityAdjust: 1,
             viewEnd: 0,
             lastViewBounds: [0, 0],
             downSampleFactor: 1,
@@ -738,14 +738,16 @@ export default Vue.extend({
                 }
                 const offset = this.isRawSignals ? (1.0 - ((i + 1)/(signals.length + 1)))*2 - 1
                                : montChans[i].offset*2 - 1
-                const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
+                // Use channel sensitivity if set, otherwise apply global sensitivity adjustment only to EEG traces
+                const sigSens =  montChans[i].sensitivity ? 100/montChans[i].sensitivity
+                                 : montChans[i].type === 'eeg' ? 100/this.sensitivity : 1
                 const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
                 let k = 0
                 for (let j=0; j<signals[i].length; j++) {
                     if (j%this.downSampleFactor) {
                         continue
                     }
-                    ;(line as WebglLine).setY(k, (signals[i][j] || 0)*ampScale*sigAmp*sigPol + offset)
+                    ;(line as WebglLine).setY(k, (signals[i][j] || 0)*ampScale*sigSens*sigPol + offset)
                     k++
                 }
                 i++

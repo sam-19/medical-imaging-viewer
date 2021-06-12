@@ -64,7 +64,6 @@ type State = {
                 default: [number, number, number, number],
             }
             setups: string[],
-            signalAmplitude: number,
             signalPolarity: number,
             traceWidth: {
                 eeg: number,
@@ -284,7 +283,6 @@ class MedImgStore {
                         style: 'solid',
                         width: 1,
                     },
-                    signalAmplitude: 1,
                     signalPolarity: -1,
                     traceColor: {
                         eeg: [0, 0, 0, 1],

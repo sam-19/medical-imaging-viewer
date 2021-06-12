@@ -67,7 +67,7 @@ const defaults = {
                 const sigs = chanRange === null ? signals[chan.active]
                              : signals[chan.active].slice(chanRange[0], chanRange[1])
                 if (chan.amplification !== 1) {
-                    // Need to apply amplification
+                    // Need to correct amplification
                     for (let i=0; i<sigs.length; i++) {
                         sigs[i] = sigs[i]*chan.amplification
                     }
@@ -147,6 +147,7 @@ const defaults = {
                     samplingRate: chan.samplingRate || 0,
                     reference: [],
                     amplification: chan.amplification || 1,
+                    sensitivity: chan.sensitivity || 0,
                     offset: 0,
                 })
             }
@@ -186,6 +187,7 @@ const defaults = {
                     reference: [],
                     samplingRate: 0,
                     amplification: 0,
+                    sensitivity: 0,
                     offset: 0,
                 })
                 continue
@@ -210,6 +212,7 @@ const defaults = {
                         reference: [],
                         samplingRate: 0,
                         amplification: 0,
+                        sensitivity: 0,
                         offset: 0,
                     })
                 } else {
@@ -223,6 +226,7 @@ const defaults = {
                         reference: refs,
                         samplingRate: channelMap[chan.active].sr,
                         amplification: channelMap[chan.active].amp || 1,
+                        sensitivity: channelMap[chan.active].sensitivity || 0,
                         offset: 0,
                     })
                 }
@@ -236,6 +240,7 @@ const defaults = {
                     reference: [],
                     samplingRate: channelMap[chan.active].sr,
                     amplification: channelMap[chan.active].amp || 1,
+                    sensitivity: channelMap[chan.active].sensitivity || 0,
                     offset: 0,
                 })
             }

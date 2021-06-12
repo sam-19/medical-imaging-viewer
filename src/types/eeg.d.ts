@@ -28,6 +28,7 @@ interface EegResource extends BiosignalResource {
     index?: number
     avgRef?: boolean
     amplification?: number
+    sensitivity?: number
 }
 /**
  * Setup for interpreting a particular signal resource.

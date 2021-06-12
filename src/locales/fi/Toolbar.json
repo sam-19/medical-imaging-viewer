@@ -2,6 +2,7 @@
     "EEG": {
         "Analyse signal": "Analysoi signaalia",
         "Average reference": "Keskiarvoreferenssi",
+        "Custom": "Muokattu",
         "Default montages": "Oletuskytkennät",
         "Double banana": "Tuplabanaani",
         "Montage": "Kytkentä",
@@ -9,7 +10,8 @@
         "Previous page": "Edellinen sivu",
         "Raw signals": "Raakasignaalit",
         "Record montage": "Rekisteröintikytkentä",
-        "Select montage": "Valitse kytkentä"
+        "Select montage": "Valitse kytkentä",
+        "Sensitivity": "Vahvistus"
     },
     "Radiology": {
         "Adjust window": "Säädä ikkunointia",
