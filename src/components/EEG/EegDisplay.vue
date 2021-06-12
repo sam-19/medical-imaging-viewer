@@ -2,6 +2,7 @@
 
     <div ref="wrapper" class="medimg-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
         <div ref="trace" class="medi-viewer-eeg-trace">
+            <div ref="overlay" class="medigi-viewer-eeg-overlay"></div>
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
                 'medimg-viewer-eeg-mousedrag',
@@ -387,6 +388,7 @@ export default Vue.extend({
         getViewEnd: function (clip=false): number  {
             // Calculate the chart's left and right margins
             const viewWidth: number = this.containerSize[0] as number - this.marginLeft
+                                      - this.$store.state.SETTINGS.eeg.border.left.width
             const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
             return this.resource.viewStart + newWidth
         },
@@ -667,6 +669,7 @@ export default Vue.extend({
             this.wglPlot = new WebglPlot(this.plotCanvas)
             this.wglPlot?.removeAllLines()
             const channels = this.isRawSignals ? this.resource.channels : this.resource.activeMontage.channels
+            // Add montage channels
             for (const chan of channels) {
                 if (chan.active === null) {
                     // Don't add empty channels
@@ -681,6 +684,28 @@ export default Vue.extend({
                 line.lineSpaceX(-1, 2 / Math.floor(range))
                 this.wglPlot?.addLine(line)
             }
+            // Update the overlay
+            const majColor = this.$store.state.SETTINGS.eeg.majorGrid.color
+            const minColor = this.$store.state.SETTINGS.eeg.minorGrid.color
+            const majWidth = this.$store.state.SETTINGS.eeg.majorGrid.width
+            const majSpace = this.pxPerMinorGridline*5 - majWidth
+            const bgStyle = `repeating-linear-gradient(90deg,
+                transparent 0 ${majSpace}px,
+                ${majColor} ${majSpace}px ${majSpace + majWidth}px)
+            `
+            const borderLStyle = this.$store.state.SETTINGS.eeg.border.left.style
+            const borderLWidth = this.$store.state.SETTINGS.eeg.border.left.width
+            const borderLColor = this.$store.state.SETTINGS.eeg.border.left.color
+            const borderBStyle = this.$store.state.SETTINGS.eeg.border.bottom.style
+            const borderBWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
+            const borderBColor = this.$store.state.SETTINGS.eeg.border.bottom.color
+            const totalOffsetL = this.marginLeft + borderLWidth
+            const totalOffsetB = this.navigatorConfig.height + this.marginBottom + borderBWidth
+            ;(this.$refs['overlay'] as HTMLDivElement).style.left = `${totalOffsetL}px`
+            ;(this.$refs['overlay'] as HTMLDivElement).style.bottom = `${totalOffsetB}px`
+            ;(this.$refs['overlay'] as HTMLDivElement).style.borderLeft = `${borderLStyle} ${borderLWidth}px ${borderLColor}`
+            ;(this.$refs['overlay'] as HTMLDivElement).style.borderBottom = `${borderBStyle} ${borderBWidth}px ${borderBColor}`
+            ;(this.$refs['overlay'] as HTMLDivElement).style.backgroundImage = bgStyle
             this.refreshTraces()
         },
         refreshNavigator: function () {
@@ -784,10 +809,15 @@ export default Vue.extend({
             if (!this.plotCanvas) {
                 return
             }
-            ;(this.plotCanvas as any).width = this.containerSize[0]
-            ;(this.plotCanvas as any).height = this.containerSize[1]
-            this.plotCanvas.style.width = `${this.containerSize[0]}px`
-            this.plotCanvas.style.height = `${this.containerSize[1]}px`
+            const bbWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
+            const lbWidth = this.$store.state.SETTINGS.eeg.border.left.width
+            const width = this.containerSize[0] as number - this.marginLeft - lbWidth
+            const height = this.containerSize[1] as number - this.navigatorConfig.height - bbWidth
+            ;(this.plotCanvas as any).width = width
+            ;(this.plotCanvas as any).height = height
+            this.plotCanvas.style.width = `${width}px`
+            this.plotCanvas.style.height = `${height}px`
+            this.plotCanvas.style.marginLeft = `${this.marginLeft + lbWidth}px`
         },
         updateViewStart: function () {
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
@@ -860,6 +890,12 @@ export default Vue.extend({
 .medimg-viewer-eeg-wrapper {
     position: relative;
     float: left;
+}
+.medimg-viewer-eeg-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
 }
 .medimg-viewer-eeg-mousedrag {
     position: absolute;

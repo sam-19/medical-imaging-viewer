@@ -24,10 +24,12 @@ type State = {
             border: {
                 bottom: {
                     color: string,
+                    style: string,
                     width: number,
                 },
                 left: {
                     color: string,
+                    style: string,
                     width: number,
                 },
             },
@@ -255,11 +257,13 @@ class MedImgStore {
                     border: {
                         bottom: {
                             color: '#C0C0C0',
-                            width: 1,
+                            style: 'solid',
+                            width: 2,
                         },
                         left: {
                             color: '#C0C0C0',
-                            width: 1,
+                            style: 'solid',
+                            width: 2,
                         },
                     },
                     isoelLine: {
@@ -270,13 +274,13 @@ class MedImgStore {
                     },
                     majorGrid: {
                         show: true,
-                        color: '#C0C0C0',
+                        color: 'rgba(0, 0, 0, 0.25)',
                         style: 'solid',
                         width: 1,
                     },
                     minorGrid: {
                         show: true,
-                        color: '#F0F0F0',
+                        color: 'rgba(0, 0, 0, 0.15)',
                         style: 'solid',
                         width: 1,
                     },
