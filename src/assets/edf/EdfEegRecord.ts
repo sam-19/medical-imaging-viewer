@@ -125,7 +125,6 @@ class EdfEegRecord implements EegResource {
             this._rawMontage = new EdfSignalMontage('raw-signals', 'As recorded')
             this._rawMontage.mapChannels(this._activeSetup, null)
         }
-        console.log(this._activeSetup)
     }
     extractSignalsFromEdfData (data: any, loader?: string) {
         // Select method based on file loader
@@ -411,7 +410,6 @@ class EdfEegRecord implements EegResource {
         if (typeof montage === 'string') {
             // Match montage label to montage index
             for (let i=0; i<this._montages.length; i++) {
-                console.log(this._montages[i].label, montage)
                 if (this._montages[i].label === montage) {
                     montage = i
                     break

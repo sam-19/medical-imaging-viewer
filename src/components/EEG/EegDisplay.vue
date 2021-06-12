@@ -2,6 +2,7 @@
 
     <div ref="wrapper" class="medimg-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
         <div ref="trace" class="medi-viewer-eeg-trace">
+            <div ref="ylabels" class="medigi-viewer-eeg-ylabels"></div>
             <div ref="overlay" class="medigi-viewer-eeg-overlay"></div>
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
@@ -634,6 +635,34 @@ export default Vue.extend({
                 line.lineSpaceX(-1, 2 / Math.floor(range))
                 this.wglPlot?.addLine(line)
             }
+            // Update channel labels
+            const borderLStyle = this.$store.state.SETTINGS.eeg.border.left.style
+            const borderLWidth = this.$store.state.SETTINGS.eeg.border.left.width
+            const borderLColor = this.$store.state.SETTINGS.eeg.border.left.color
+            const borderBStyle = this.$store.state.SETTINGS.eeg.border.bottom.style
+            const borderBWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
+            const borderBColor = this.$store.state.SETTINGS.eeg.border.bottom.color
+            const totalOffsetB = this.navigatorConfig.height + this.marginBottom + borderBWidth
+            ;(this.$refs['ylabels'] as HTMLDivElement).style.bottom = `${totalOffsetB}px`
+            ;(this.$refs['ylabels'] as HTMLDivElement).style.width = `${this.marginLeft}px`
+            // Assign new trace labels
+            while ((this.$refs['ylabels'] as HTMLDivElement).firstChild) {
+                (this.$refs['ylabels'] as HTMLDivElement).removeChild((this.$refs['ylabels'] as HTMLDivElement).lastChild as Node)
+            }
+            const montChannels = this.isRawSignals ? this.resource.channels : this.resource.activeMontage.channels
+            let i = 0
+            for (const chan of montChannels) {
+                if (chan.active === null) {
+                    continue
+                }
+                const offset = this.isRawSignals ? (1.0 - ((i + 1)/(montChannels.length + 1))) : chan.offset
+                const label = document.createElement('div')
+                label.style.top = `calc(${(1 - offset)*100}% - 10px)`
+                label.innerText = chan.name
+                label.title = chan.name
+                ;(this.$refs['ylabels'] as HTMLDivElement).appendChild(label)
+                i++
+            }
             // Update the overlay
             const majColor = this.$store.state.SETTINGS.eeg.majorGrid.color
             const minColor = this.$store.state.SETTINGS.eeg.minorGrid.color
@@ -643,15 +672,7 @@ export default Vue.extend({
                 transparent 0 ${majSpace}px,
                 ${majColor} ${majSpace}px ${majSpace + majWidth}px)
             `
-            const borderLStyle = this.$store.state.SETTINGS.eeg.border.left.style
-            const borderLWidth = this.$store.state.SETTINGS.eeg.border.left.width
-            const borderLColor = this.$store.state.SETTINGS.eeg.border.left.color
-            const borderBStyle = this.$store.state.SETTINGS.eeg.border.bottom.style
-            const borderBWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
-            const borderBColor = this.$store.state.SETTINGS.eeg.border.bottom.color
-            const totalOffsetL = this.marginLeft + borderLWidth
-            const totalOffsetB = this.navigatorConfig.height + this.marginBottom + borderBWidth
-            ;(this.$refs['overlay'] as HTMLDivElement).style.left = `${totalOffsetL}px`
+            ;(this.$refs['overlay'] as HTMLDivElement).style.left = `${this.marginLeft}px`
             ;(this.$refs['overlay'] as HTMLDivElement).style.bottom = `${totalOffsetB}px`
             ;(this.$refs['overlay'] as HTMLDivElement).style.borderLeft = `${borderLStyle} ${borderLWidth}px ${borderLColor}`
             ;(this.$refs['overlay'] as HTMLDivElement).style.borderBottom = `${borderBStyle} ${borderBWidth}px ${borderBColor}`
@@ -716,7 +737,7 @@ export default Vue.extend({
                     }
                 }
                 const offset = this.isRawSignals ? (1.0 - ((i + 1)/(signals.length + 1)))*2 - 1
-                               : this.resource.activeMontage.channels[i].offset*2 - 1
+                               : montChans[i].offset*2 - 1
                 const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
                 const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
                 let k = 0
@@ -819,6 +840,23 @@ export default Vue.extend({
     position: relative;
     float: left;
 }
+.medimg-viewer-eeg-ylabels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+    .medimg-viewer-eeg-ylabels > div {
+        position: absolute;
+        right: 0;
+        width: 100%;
+        height: 24px;
+        line-height: 24px;
+        padding-right: 10px;
+        text-align: right;
+        overflow: hidden;
+        white-space: nowrap;
+    }
 .medimg-viewer-eeg-overlay {
     position: absolute;
     top: 0;
