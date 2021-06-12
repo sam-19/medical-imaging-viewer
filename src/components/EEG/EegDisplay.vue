@@ -65,56 +65,6 @@ export default Vue.extend({
         return {
             plotCanvas: null as null | HTMLCanvasElement,
             wglPlot: null as null | WebglPlot,
-            chartConfig: {
-                // Props are initialized before data
-                width: 0,
-                margin: { t: 0, r: 0, b: this.marginBottom, l: this.marginLeft },
-                showlegend: false,
-                dragmode: false,
-                xaxis: {
-                    tickmode: 'array',
-                    ticklen: 5, // This serves as padding between axis and label
-                    tickcolor: 'rgba(0,0,0,0)',
-                    rangemode: 'tozero',
-                    gridcolor: this.$store.state.SETTINGS.eeg.majorGrid.show
-                               ? this.$store.state.SETTINGS.eeg.majorGrid.color : 'rgba(0,0,0,0)',
-                    gridwidth: this.$store.state.SETTINGS.eeg.majorGrid.show
-                               ? this.$store.state.SETTINGS.eeg.majorGridLineWidth : 0,
-                    zerolinecolor: this.$store.state.SETTINGS.eeg.border.left.color || 'rgba(0,0,0,0)',
-                    zerolinewidth: this.$store.state.SETTINGS.eeg.border.left.width || 0,
-                    overlaying: 'x2',
-                    fixedrange: true,
-                },
-                xaxis2: {
-                    tickmode: 'array',
-                    rangemode: 'tozero',
-                    gridcolor: this.$store.state.SETTINGS.eeg.minorGrid.show
-                               ? this.$store.state.SETTINGS.eeg.minorGrid.color : 'rgba(0,0,0,0)',
-                    gridwidth: this.$store.state.SETTINGS.eeg.minorGrid.show
-                               ? this.$store.state.SETTINGS.eeg.minorGrid.width : 0,
-                    matches: 'x',
-                    zeroline: false,
-                    fixedrange: true,
-                },
-                yaxis: {
-                    autorange: false,
-                    tickmode: 'array',
-                    ticklen: 10, // This serves as padding between axis and label
-                    tickcolor: 'rgba(0,0,0,0)',
-                    rangemode: 'tozero',
-                    gridcolor: this.$store.state.SETTINGS.eeg.isoelLine.show
-                               ? this.$store.state.SETTINGS.eeg.isoelLine.color : 'rgba(0,0,0,0)',
-                    gridwidth: this.$store.state.SETTINGS.eeg.isoelLine.show
-                               ? this.$store.state.SETTINGS.eeg.isoelLine.width : 0,
-                    zerolinecolor: this.$store.state.SETTINGS.eeg.border.bottom.color || 'rgba(0,0,0,0)',
-                    zerolinewidth: this.$store.state.SETTINGS.eeg.border.bottom.width || 0,
-                    fixedrange: true,
-                },
-            },
-            chartOptions: {
-                displayModeBar: false,
-                responsive: false,
-            },
             navigator: null as any,
             navigatorConfig: {
                 width: 0,
@@ -761,7 +711,7 @@ export default Vue.extend({
                 while (montChans[i].active === null) {
                     // WebGL-Plot doesn't handle empty signals well, so skip those
                     i++
-                    if (i === signals.length) {
+                    if (i === montChans.length || i === signals.length) {
                         break datalineloop
                     }
                 }
@@ -769,18 +719,6 @@ export default Vue.extend({
                                : this.resource.activeMontage.channels[i].offset*2 - 1
                 const sigAmp = this.$store.state.SETTINGS.eeg.signalAmplitude
                 const sigPol = this.$store.state.SETTINGS.eeg.signalPolarity
-                // Start by checking if there is a preceding (out of sight) value and intrapolate the first visible value from it
-                /*
-                let k = 0
-                if (start%resFactor) {
-                    const startFloor = channels[i].splice(0, 1)
-                    const startCeil = channels[i][0]
-                    const startFactor = (start%resFactor)/resFactor
-                    const startValue = startFloor + (startCeil - startFloor)*(startFactor)
-                    ;(line as WebglLine).setY(0, startValue*ampScale*sigAmp*sigPol + offset)
-                    k++
-                }
-                */
                 let k = 0
                 for (let j=0; j<signals[i].length; j++) {
                     if (j%this.downSampleFactor) {
@@ -789,16 +727,6 @@ export default Vue.extend({
                     ;(line as WebglLine).setY(k, (signals[i][j] || 0)*ampScale*sigAmp*sigPol + offset)
                     k++
                 }
-                // Last, check if there is an additional datapoint left over and intrapolate view end from it
-                /*
-                if (channels[i][Math.ceil(end/resFactor)] !== undefined && yValues[i][yValues[i].length - 1] === null) {
-                    const endFloor = Math.floor(end/resFactor)
-                    const endCeil = Math.ceil(end/resFactor)
-                    const endFactor = (end%resFactor)/resFactor
-                    const endValue = channels[i][endFloor] + (channels[i][endCeil] - channels[i][endFloor])*(endFactor)
-                    ;(line as WebglLine).setY(k, endValue*ampScale*sigAmp*sigPol + offset)
-                }
-                */
                 i++
             }
             this.$nextTick(() => {
