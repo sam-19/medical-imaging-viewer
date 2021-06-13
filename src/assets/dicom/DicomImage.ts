@@ -502,7 +502,7 @@ class DicomImage implements DicomImageResource {
         this._rows = image.data.string('x00280010') || undefined
         this._columns = image.data.string('x00280011') || undefined
         // Display properties
-        const imgOrient = image.data.string('x00200037').split('\\') || undefined
+        const imgOrient = image.data.string('x00200037')?.split('\\') || undefined
         if (imgOrient?.length === 6) {
             const rowVec = convertToVector3([parseFloat(imgOrient[0]), parseFloat(imgOrient[1]), parseFloat(imgOrient[2])])
             const rowRef = convertToVector3([1, 0, 0])
