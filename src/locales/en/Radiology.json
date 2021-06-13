@@ -13,6 +13,7 @@
             "orientation_posterior": "P",
             "orientation_right": "R",
             "Select as reference #{n}": "Select as reference #{n}",
+            "Slice": "Slice",
             "Unselect reference #{n}": "Unselect reference #{n}"
         },
         "DicomImageInterface": {

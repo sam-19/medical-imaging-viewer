@@ -9,6 +9,7 @@ import cornerstoneTools from 'cornerstone-tools'
 import { DicomImageResource } from '../../types/radiology'
 
 const TOPOGRAM_PADDING = 0.2
+const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
 
 class DicomImage implements DicomImageResource {
     private _active: boolean = false
@@ -40,6 +41,14 @@ class DicomImage implements DicomImageResource {
     private _topogramIntersections: any = {}
     private _type: string
     private _url: string
+    // Optional parameters depending on modality
+    private _imageOrientation: number[] | undefined
+    private _sliceThickness: number | undefined
+    private _sliceLocation: number | undefined
+    private _KVP: number | undefined
+    private _exposureTime: number | undefined
+    private _tubeCurrent: number | undefined
+    private _exposure: number | undefined
 
     constructor (modality: string, name: string, size: number, type: string, url: string) {
         // Generate a pseudo-random identifier for this object
@@ -85,8 +94,17 @@ class DicomImage implements DicomImageResource {
     get dimensions () {
         return this._dimensions
     }
+    get exposure () {
+        return this._exposure
+    }
+    get exposureTime () {
+        return this._exposureTime
+    }
     get id () {
         return this._id
+    }
+    get imageOrientation () {
+        return this._imageOrientation
     }
     get images () {
         return this._images
@@ -117,6 +135,9 @@ class DicomImage implements DicomImageResource {
     }
     get isStack () {
         return this._type.endsWith(':series')
+    }
+    get KVP () {
+        return this._KVP
     }
     get linkedPosition () {
         return this._linkedPosition
@@ -165,6 +186,12 @@ class DicomImage implements DicomImageResource {
     get size () {
         // Alias for length
         return this.length
+    }
+    get sliceLocation () {
+        return this._sliceLocation
+    }
+    get sliceThickness () {
+        return this._sliceThickness
     }
     get sopClassUID () {
         return this._sopClassUID
@@ -222,6 +249,9 @@ class DicomImage implements DicomImageResource {
                          ? topoPadY1 : this._topogram.dimensions[1]
         return { x: [actualX0, actualX1], y: [actualY0, actualY1] }
     }
+    get tubeCurrent () {
+        return this._tubeCurrent
+    }
     get type () {
         return this._type.split(':')[0]
     }
@@ -271,7 +301,6 @@ class DicomImage implements DicomImageResource {
             return false
         }
         // Convert cosines to vectors
-        const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
         firstImagePlane.columnCosines = convertToVector3(firstImagePlane.columnCosines)
         topoImagePlane.columnCosines = convertToVector3(topoImagePlane.columnCosines)
         firstImagePlane.rowCosines = convertToVector3(firstImagePlane.rowCosines)
@@ -464,14 +493,33 @@ class DicomImage implements DicomImageResource {
         // Store image metadata
         this._dimensions = [image.width, image.height]
         this._studyID = image.data.string('x00200010') || undefined
-        this._studyNumber = parseInt(image.data.string('x00200011'), 10) || undefined
-        this._instanceLength = parseInt(image.data.string('x00201208'), 10) || undefined
-        this._instanceNumber = parseInt(image.data.string('x00200013'), 10) || undefined
+        this._studyNumber = parseInt(image.data.string('x00200011') || '0', 10) || undefined
+        this._instanceLength = parseInt(image.data.string('x00201208') || '0', 10) || undefined
+        this._instanceNumber = parseInt(image.data.string('x00200013') || '0', 10) || undefined
         this._numberOfFrames = image.data.string('x00280008') || undefined
         this._sopClassUID = image.data.string('x00080016') || undefined
         this._sopInstanceUID = image.data.string('x00080018') || undefined
         this._rows = image.data.string('x00280010') || undefined
         this._columns = image.data.string('x00280011') || undefined
+        // Display properties
+        const imgOrient = image.data.string('x00200037').split('\\') || undefined
+        if (imgOrient?.length === 6) {
+            const rowVec = convertToVector3([parseFloat(imgOrient[0]), parseFloat(imgOrient[1]), parseFloat(imgOrient[2])])
+            const rowRef = convertToVector3([1, 0, 0])
+            const colVec = convertToVector3([parseFloat(imgOrient[3]), parseFloat(imgOrient[4]), parseFloat(imgOrient[5])])
+            const colRef = convertToVector3([0, 1, 0])
+            const radToDeg = 180/Math.PI
+            this._imageOrientation = [
+                Math.round(rowVec.angleTo(rowRef)*radToDeg),
+                Math.round(colVec.angleTo(colRef)*radToDeg)
+            ]
+        }
+        this._sliceThickness = parseFloat(image.data.string('x00180050') || '0') || undefined
+        this._sliceLocation = parseFloat(image.data.string('x00201041') || '0') || undefined
+        this._KVP = parseFloat(image.data.string('x00180060') || '0') || undefined
+        this._exposureTime = parseInt(image.data.string('x00181150') || '0', 10) || undefined
+        this._tubeCurrent = parseInt(image.data.string('x00181151') || '0', 10) || undefined
+        this._exposure = parseInt(image.data.string('x00181152') || '0', 10) || undefined
         return true
     }
     public removeFromCache = () => {

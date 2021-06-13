@@ -87,23 +87,47 @@
             fixed-width
         />
         <!-- Metadata -->
-        <span v-if="isFirstLoaded"
-            class="medigi-viewer-image-name"
-        >{{ this.resource.name }}</span>
-        <span v-if="isFirstLoaded"
-            class="medigi-viewer-image-resolution"
-        >{{ this.resource.dimensions[0] }} x {{ this.resource.dimensions[1] }}</span>
-        <span v-if="resource.isStack && isFirstLoaded"
-            class="medigi-viewer-stack-position"
-        >{{ this.resource.currentPosition + 1 }}/{{ this.resource.images.length }}</span>
-        <!-- Topogram -->
-        <div v-if="resource.topogram" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
-            :class="[
-                'medigi-viewer-topogram',
-                { 'medigi-viewer-hidden': !topoImageLoaded }
-            ]"
-            @contextmenu.prevent
-        >
+        <div v-if="isFirstLoaded" class="medigi-viewer-meta-topleft">
+            <div>{{ resource.name }}</div>
+        </div>
+        <div v-if="isFirstLoaded" class="medigi-viewer-meta-topright">
+            <div>{{ resource.dimensions[0] }} x {{ resource.dimensions[1] }}</div>
+        </div>
+        <div v-if="isFirstLoaded" class="medigi-viewer-meta-bottomleft">
+            <div v-if="resource.currentImage.tubeCurrent && resource.currentImage.exposureTime && resource.currentImage.exposure">
+                Exp: {{ resource.currentImage.tubeCurrent }} mA,
+                     {{ resource.currentImage.exposureTime }} msec,
+                     {{ resource.currentImage.exposure }} mAs
+            </div>
+            <div v-if="resource.isStack">
+                {{ t('Slice') }}: {{ resource.currentPosition + 1 }}/{{ resource.images.length }}
+            </div>
+            <div v-if="resource.isStack && resource.currentImage.sliceLocation">
+                Loc: {{ resource.currentImage.sliceLocation }} mm
+            </div>
+            <div v-if="resource.isStack && resource.currentImage.sliceThickness">
+                Thk: {{ resource.currentImage.sliceThickness.toFixed(1) }} mm
+            </div>
+            <div v-if="resource.isStack && resource.currentImage.KVP">
+                KVP: {{ resource.currentImage.KVP }} kV
+            </div>
+        </div>
+        <div class="medigi-viewer-meta-bottomright">
+            <!-- Topogram -->
+            <div v-if="resource.topogram" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
+                :class="[
+                    'medigi-viewer-topogram',
+                    { 'medigi-viewer-hidden': !topoImageLoaded }
+                ]"
+                @contextmenu.prevent
+            >
+            </div>
+            <div v-if="isFirstLoaded && resource.imageOrientation &&
+                       (!isNaN(resource.imageOrientation[0]) || !isNaN(resource.imageOrientation[1]))
+            ">
+                Orient: {{ !isNaN(resource.imageOrientation[0]) ? resource.imageOrientation[0] : '-- ' }}°
+                        / {{ !isNaN(resource.imageOrientation[1]) ? resource.imageOrientation[1] : '-- ' }}°
+            </div>
         </div>
         <!-- Loading indicator -->
         <div :class="[
@@ -1293,32 +1317,49 @@ export default Vue.extend({
     .medigi-viewer-image-wrapper > .medigi-viewer-link-icon-active {
         color: var(--medigi-viewer-text-main);
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-image-name {
+    .medigi-viewer-image-wrapper > .medigi-viewer-meta-topleft {
         position: absolute;
         left: 10px;
         top: 10px;
-        height: 20px;
+        display: flex;
+        flex-direction: column;
         line-height: 20px;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-image-resolution {
+    .medigi-viewer-image-wrapper > .medigi-viewer-meta-topright {
         position: absolute;
         right: 10px;
         top: 10px;
-        height: 20px;
+        display: flex;
+        flex-direction: column;
         line-height: 20px;
+        text-align: right;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-stack-position {
+    .medigi-viewer-image-wrapper > .medigi-viewer-meta-bottomleft {
         position: absolute;
         left: 10px;
         bottom: 10px;
+        display: flex;
+        flex-direction: column-reverse;
+        line-height: 20px;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-topogram {
+    .medigi-viewer-image-wrapper > .medigi-viewer-meta-bottomright {
         position: absolute;
-        right: -1px; /* cover the default image border */
-        bottom: -1px;
+        right: 10px;
+        bottom: 10px;
+        display: flex;
+        flex-direction: column-reverse;
+        text-align: right;
+        height: calc(100% - 10px);
+        line-height: 20px;
+        pointer-events: none;
+    }
+    .medigi-viewer-meta-bottomright > .medigi-viewer-topogram {
+        position: relative;
+        right: -11px; /* cover the default image border */
+        bottom: -11px;
         height: 20%;
         pointer-events: none;
         border: solid 1px var(--medigi-viewer-border-faint);
