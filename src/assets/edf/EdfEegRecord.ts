@@ -205,8 +205,10 @@ class EdfEegRecord implements EegResource {
         if (!hp) {
             return signal
         }
-        const bw = Math.log2(lp/hp)*2
-        const fc = (lp-hp)/2
+        lp *= 2 // We want the lowpass frequency to still be visible, so multiply by Nyquist's number
+        const bw = Math.log2(lp/hp)
+        const fc = Math.sqrt(hp*lp)
+        //const fc = (lp-hp)/2 + hp
         const iirFilterCoeffs = this.iirCalculator.bandpass({
             order: 3,
             characteristic: 'butterworth',
