@@ -409,6 +409,10 @@ class EdfEegRecord implements EegResource {
     }
     setActiveMontage (montage: number | string) {
         if (typeof montage === 'string') {
+            if (montage === '') {
+                this._activeMontage = this._rawMontage
+                return
+            }
             // Match montage label to montage index
             for (let i=0; i<this._montages.length; i++) {
                 if (this._montages[i].label === montage) {
@@ -419,9 +423,6 @@ class EdfEegRecord implements EegResource {
                     return
                 }
             }
-        } else if (montage === null) {
-            this._activeMontage = this._rawMontage
-            return
         }
         if (montage >= 0 && montage < this._montages.length) {
             this._activeMontage = this._montages[montage as number]

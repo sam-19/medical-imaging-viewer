@@ -209,7 +209,7 @@ export default Vue.extend({
             if (id === "select:montage") {
                 for (const eeg of this.resources as EdfEegRecord[]) {
                     eeg.setActiveMontage(value)
-                    if (value !== null) {
+                    if (value) {
                         let config = { hideMissing: true }
                         if (eeg.activeMontage?.label !== 'raw-signals') {
                             config = Object.assign(config, this.$store.state.SETTINGS.eeg)

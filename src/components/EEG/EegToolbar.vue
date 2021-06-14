@@ -349,7 +349,7 @@ export default Vue.extend({
                 label: 'EEG.Montage',
                 // Select control options
                 options: [
-                    { group: '', label: 'EEG.Raw signals', value: null },
+                    { group: '', label: 'EEG.Raw signals', value: '' },
                     // TODO: Fetch possible options from the record metadata
                     { group: 'EEG.Default montages', label: 'EEG.Record montage', value: 'default:raw' },
                     { group: 'EEG.Default montages', label: 'EEG.Average reference', value: 'default:avg' },
