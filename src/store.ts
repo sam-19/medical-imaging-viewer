@@ -287,8 +287,8 @@ class MedImgStore {
                     traceColor: {
                         eeg: [0, 0, 0, 1],
                         ekg: [0.5, 0, 0, 1],
-                        emg: [0, 0, 0.5, 1],
-                        eog: [0, 0.3, 0, 1],
+                        emg: [0, 0.3, 0, 1],
+                        eog: [0, 0, 0.5, 1],
                         default: [0.2, 0.2, 0.2, 1],
                     },
                     traceWidth: {
