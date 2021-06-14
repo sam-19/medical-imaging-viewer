@@ -206,7 +206,15 @@ export default Vue.extend({
             }
         },
         selectOption: function (id: string, value: string | number) {
-            if (id === "select:montage") {
+            if (id === "select:highpass") {
+                for (const eeg of this.resources as EdfEegRecord[]) {
+                    eeg.setHighpassFilter('eeg', value as number)
+                }
+            } else if (id === "select:lowpass") {
+                for (const eeg of this.resources as EdfEegRecord[]) {
+                    eeg.setLowpassFilter('eeg', value as number)
+                }
+            } else if (id === "select:montage") {
                 for (const eeg of this.resources as EdfEegRecord[]) {
                     eeg.setActiveMontage(value)
                     if (value) {
@@ -217,6 +225,7 @@ export default Vue.extend({
                         eeg.activeMontage?.calculateSignalOffsets(config)
                     }
                 }
+                // Requires a full plot redraw
                 if (Array.isArray(this.$refs['eeg-element'])) {
                     this.$refs['eeg-element'].forEach((item: any) => {
                         item.redrawPlot(true)
@@ -224,18 +233,22 @@ export default Vue.extend({
                 } else {
                     (this.$refs['eeg-element'] as any).redrawPlot()
                 }
+                return
             } else if (id === "select:sensitivity") {
                 this.sensitivity = value as number
-                this.$nextTick(() => {
-                    if (Array.isArray(this.$refs['eeg-element'])) {
-                        this.$refs['eeg-element'].forEach((item: any) => {
-                            item.refreshTraces()
-                        })
-                    } else {
-                        (this.$refs['eeg-element'] as any).refreshTraces()
-                    }
-                })
+            } else {
+                return // Nothing changed, don't refresh traces
             }
+            // Refresh traces, first giving time for reactive properties to propagate
+            this.$nextTick(() => {
+                if (Array.isArray(this.$refs['eeg-element'])) {
+                    this.$refs['eeg-element'].forEach((item: any) => {
+                        item.refreshTraces()
+                    })
+                } else {
+                    (this.$refs['eeg-element'] as any).refreshTraces()
+                }
+            })
         },
         traceDestroyed: function (idx: number) {
             this.traceAtEnd.splice(idx, 1)
