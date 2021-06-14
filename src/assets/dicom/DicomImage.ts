@@ -505,8 +505,9 @@ class DicomImage implements DicomImageResource {
         const imgOrient = image.data.string('x00200037')?.split('\\') || undefined
         if (imgOrient?.length === 6) {
             const rowVec = convertToVector3([parseFloat(imgOrient[0]), parseFloat(imgOrient[1]), parseFloat(imgOrient[2])])
-            const rowRef = convertToVector3([1, 0, 0])
             const colVec = convertToVector3([parseFloat(imgOrient[3]), parseFloat(imgOrient[4]), parseFloat(imgOrient[5])])
+            // TODO: Are these sensible reference vectors?
+            const rowRef = convertToVector3([1, 0, 0])
             const colRef = convertToVector3([0, 1, 0])
             const radToDeg = 180/Math.PI
             this._imageOrientation = [
