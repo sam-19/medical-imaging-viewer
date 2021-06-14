@@ -352,8 +352,10 @@ export default Vue.extend({
                     { group: '', label: 'EEG.Raw signals', value: null },
                     // TODO: Fetch possible options from the record metadata
                     { group: 'EEG.Default montages', label: 'EEG.Record montage', value: 'default:raw' },
-                    { group: 'EEG.Default montages', label: 'EEG.Average reference', value: 'default:ar' },
-                    { group: 'EEG.Default montages', label: 'EEG.Double banana', value: 'default:db' },
+                    { group: 'EEG.Default montages', label: 'EEG.Average reference', value: 'default:avg' },
+                    { group: 'EEG.Default montages', label: 'EEG.Double banana', value: 'default:dbn' },
+                    { group: 'EEG.Default montages', label: 'EEG.Laplacian', value: 'default:lpl' },
+                    { group: 'EEG.Default montages', label: 'EEG.Transverse', value: 'default:trv' },
                 ],
                 selected: 0,
                 // The first element in the icon array is used when the button is inactive (required), the second when it's active (optional).

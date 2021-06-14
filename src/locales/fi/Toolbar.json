@@ -5,13 +5,15 @@
         "Custom": "Muokattu",
         "Default montages": "Oletuskytkennät",
         "Double banana": "Tuplabanaani",
+        "Laplacian": "Laplacian",
         "Montage": "Kytkentä",
         "Next page": "Seuraava sivu",
         "Previous page": "Edellinen sivu",
         "Raw signals": "Raakasignaalit",
         "Record montage": "Rekisteröintikytkentä",
         "Select montage": "Valitse kytkentä",
-        "Sensitivity": "Vahvistus"
+        "Sensitivity": "Vahvistus",
+        "Transverse": "Poikittainen"
     },
     "Radiology": {
         "Adjust window": "Säädä ikkunointia",

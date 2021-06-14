@@ -1,0 +1,35 @@
+{
+    "name": "Double banana",
+    "description": ["Longitudinal sequential montage for the 10-20 setup"],
+    "signals": [
+        "fp1", "f3", "c3", "p3", "f7", "t3", "t5", "o1",
+        "fp2", "f4", "c4", "p4", "f8", "t4", "t6", "o2",
+        "fz", "cz", "pz",
+        "eog", "ekg", "emg", "res"
+    ],
+    "channels":  [
+        { "label": "fp2-f4", "name": "Fp2-F4", "active": "fp2", "reference": ["f4"], "type": "eeg", "laterality": "d" },
+        { "label": "f4-c4", "name": "F4-C4", "active": "f4", "reference": ["c4"], "type": "eeg", "laterality": "d" },
+        { "label": "c4-p4", "name": "C4-P4", "active": "c4", "reference": ["p4"], "type": "eeg", "laterality": "d" },
+        { "label": "p4-o2", "name": "P4-O2", "active": "p4", "reference": ["o2"], "type": "eeg", "laterality": "d" },
+        { "label": "fp1-f3", "name": "Fp1-F3", "active": "fp1", "reference": ["f3"], "type": "eeg", "laterality": "s" },
+        { "label": "f3-c3", "name": "F3-C3", "active": "f3", "reference": ["c3"], "type": "eeg", "laterality": "s" },
+        { "label": "c3-p3", "name": "C3-P3", "active": "c3", "reference": ["p3"], "type": "eeg", "laterality": "s" },
+        { "label": "p3-o1", "name": "P3-O1", "active": "p3", "reference": ["o1"], "type": "eeg", "laterality": "s" },
+        { "label": "fp2-f8", "name": "Fp2-F8", "active": "fp2", "reference": ["f8"], "type": "eeg", "laterality": "d" },
+        { "label": "f8-t4", "name": "F8-T4", "active": "f8", "reference": ["t4"], "type": "eeg", "laterality": "d" },
+        { "label": "t4-t6", "name": "T4-T6", "active": "t4", "reference": ["t6"], "type": "eeg", "laterality": "d" },
+        { "label": "t6-o2", "name": "T6-O2", "active": "t6", "reference": ["o2"], "type": "eeg", "laterality": "d" },
+        { "label": "fp1-f7", "name": "Fp1-F3", "active": "fp1", "reference": ["f3"], "type": "eeg", "laterality": "s" },
+        { "label": "f7-t3", "name": "F7-T3", "active": "f7", "reference": ["t3"], "type": "eeg", "laterality": "s" },
+        { "label": "t3-t5", "name": "T3-T5", "active": "t3", "reference": ["t5"], "type": "eeg", "laterality": "s" },
+        { "label": "t5-o1", "name": "T5-O1", "active": "t5", "reference": ["o1"], "type": "eeg", "laterality": "s" },
+        { "label": "fz-cz", "name": "Fz-Cz", "active": "fz", "reference": ["cz"], "type": "eeg", "laterality": "z" },
+        { "label": "cz-pz", "name": "Cz-Pz", "active": "cz", "reference": ["pz"], "type": "eeg", "laterality": "z" },
+        { "label": "eog", "name": "EOG", "active": "eog", "reference": [], "type": "eog" },
+        { "label": "ekg", "name": "EKG", "active": "ekg", "reference": [], "type": "ekg" },
+        { "label": "emg", "name": "EMG", "active": "emg", "reference": [], "type": "emg" },
+        { "label": "res", "name": "RESP", "active": "res", "reference": [], "type": "res" }
+    ],
+    "layout": [ 4, 4, 4, 4, 2, 4 ]
+}

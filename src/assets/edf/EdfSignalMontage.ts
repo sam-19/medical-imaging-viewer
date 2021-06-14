@@ -7,9 +7,11 @@
 import { EegMontage, EegMontageChannel, EegSetup } from '../../types/eeg'
 const defaults = {
     "10-20": {
-        ar: require('./default_montages/10-20/ar.json'),
-        db: require('./default_montages/10-20/db.json'),
+        avg: require('./default_montages/10-20/avg.json'),
+        dbn: require('./default_montages/10-20/dbn.json'),
+        lpl: require('./default_montages/10-20/lpl.json'),
         raw: require('./default_montages/10-20/raw.json'),
+        trv: require('./default_montages/10-20/trv.json'),
     },
 }
 
@@ -153,12 +155,18 @@ const defaults = {
             }
             this.calculateSignalOffsets(config)
             return
-        } else if (config === "default:10-20:ar") {
-            this._label = "default:ar"
-            config = defaults['10-20'].ar
-        } else if (config === "default:10-20:db") {
-            this._label = "default:db"
-            config = defaults['10-20'].db
+        } else if (config === "default:10-20:avg") {
+            this._label = "default:avg"
+            config = defaults['10-20'].avg
+        } else if (config === "default:10-20:dbn") {
+            this._label = "default:dbn"
+            config = defaults['10-20'].dbn
+        } else if (config === "default:10-20:lpl") {
+            this._label = "default:lpl"
+            config = defaults['10-20'].lpl
+        } else if (config === "default:10-20:trv") {
+            this._label = "default:trv"
+            config = defaults['10-20'].trv
         } else if (config === "default:10-20:raw") {
             // TODO: Settings to disable loading some or all defaults
             this._label = "default:raw"
