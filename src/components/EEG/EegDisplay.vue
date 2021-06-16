@@ -2,8 +2,8 @@
 
     <div ref="wrapper" class="medimg-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
         <div ref="trace" class="medi-viewer-eeg-trace">
-            <div ref="ylabels" class="medigi-viewer-eeg-ylabels"></div>
-            <div ref="overlay" class="medigi-viewer-eeg-overlay"></div>
+            <div ref="ylabels" class="medimg-viewer-eeg-ylabels"></div>
+            <div ref="overlay" class="medimg-viewer-eeg-overlay"></div>
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
                 'medimg-viewer-eeg-mousedrag',
