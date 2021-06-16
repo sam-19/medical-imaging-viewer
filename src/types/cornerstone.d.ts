@@ -1,5 +1,5 @@
 /** CORNERSTONE.JS TYPES BY https://github.com/iamssen
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

@@ -1,13 +1,13 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-image-placeholder">
+    <div ref="wrapper" class="medimg-viewer-image-placeholder">
         <div ref="content">
             <vue-draggable v-model="items"
-                :id="`${$store.state.appName}-medigi-viewer-image-drop-${listIndex}`"
-                class="medigi-viewer-image-dropzone"
+                :id="`${$store.state.appName}-medimg-viewer-image-drop-${listIndex}`"
+                class="medimg-viewer-image-dropzone"
             />
         </div>
-        <div ref="info-text" class="medigi-viewer-image-placeholder-info">
+        <div ref="info-text" class="medimg-viewer-image-placeholder-info">
             <span v-if="resource === false">{{ t('Opening failed, please activate the resource manually') }}</span>
             <span v-else-if="resource === null">{{ t('Drop to display an image resource') }}</span>
         </div>
@@ -72,9 +72,9 @@ export default Vue.extend({
             ;(this.$refs['content'] as HTMLElement).style.width = `${dimensions[0]/colPos[1] - hPad}px`
             ;(this.$refs['content'] as HTMLElement).style.height = `${dimensions[1]/rowPos[1] - vPad}px`
             ;(this.$refs['wrapper'] as HTMLElement).style.borderLeft
-                = isRowFirst ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+                = isRowFirst ? 'none' : '1px solid var(--medimg-viewer-border-faint)'
             ;(this.$refs['wrapper'] as HTMLElement).style.borderBottom
-                = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+                = isColLast ? 'none' : '1px solid var(--medimg-viewer-border-faint)'
             // Update possible info text
             const loadingText = this.$refs['info-text'] as HTMLDivElement
             loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
@@ -90,23 +90,23 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-image-placeholder {
+.medimg-viewer-image-placeholder {
     position: relative;
     float: left;
     padding: 10px;
 }
-.medigi-viewer-image-dropzone {
+.medimg-viewer-image-dropzone {
     width: 100%;
     height: 100%;
 }
-.medigi-viewer-image-placeholder-info {
+.medimg-viewer-image-placeholder-info {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     text-align: center;
-    color: var(--medigi-viewer-text-faint);
+    color: var(--medimg-viewer-text-faint);
     pointer-events: none;
 }
 </style>

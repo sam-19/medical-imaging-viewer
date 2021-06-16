@@ -1,12 +1,12 @@
-/** MEDIGI VIEWER ENTRY SCRIPT
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER ENTRY SCRIPT
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
 import Vue from 'vue'
-import { MEDigiI18n, ValidLocale } from './i18n'
-import { MEDigiStore, MutationTypes } from './store'
+import { MedImgI18n, ValidLocale } from './i18n'
+import { MedImgStore, MutationTypes } from './store'
 import { FileSystemItem, MediaResource } from './types/common'
 
 // FontAwesome icons
@@ -99,13 +99,13 @@ library.add(faUndoAlt)
 library.add(faUnlink)
 
 /**
- * This will mount a Vue-based imaging file viewer to an element with the ID 'medigi-viewer'.
+ * This will mount a Vue-based imaging file viewer to an element with the ID 'medimg-viewer'.
  * You may provide an optional suffix for the container ID, e.g. 'xray' will mount the viewer
- * to the element with the ID 'medigi-viewer-xray' (a separating hyphen is added automatically).
+ * to the element with the ID 'medimg-viewer-xray' (a separating hyphen is added automatically).
  */
-class MEDigiViewer {
+class MedImgViewer {
 
-    containerId: string = '#medigi-viewer'
+    containerId: string = '#medimg-viewer'
     appName: string
     i18n: any
     locale: ValidLocale | null
@@ -113,9 +113,9 @@ class MEDigiViewer {
     viewer: Vue | undefined = undefined
 
     /**
-     * MEDigi imaging viewer
-     * @param appName unique identifier used within the app in case several instances of MEDigiViewer are run on the same page
-     * @param idSuffix string following div element ID 'medigi-viewer-<idSuffix>'
+     * Medical imaging viewer
+     * @param appName unique identifier used within the app in case several instances of MedImgViewer are run on the same page
+     * @param idSuffix string following div element ID 'medimg-viewer-<idSuffix>'
      * @param locale app locale
      * @param wpPublicPath: WebPack publick path for script chunk loading
      */
@@ -198,7 +198,7 @@ class MEDigiViewer {
             import(/* webpackChunkName: "viewer" */'./components/App.vue'),
         ]).then((imports) => {
             const Viewer = imports[0].default
-            this.store = new MEDigiStore().setup(Vue)
+            this.store = new MedImgStore().setup(Vue)
             this.store.commit(MutationTypes.SET_APP_NAME, this.appName)
             Vue.component('font-awesome-icon', FontAwesomeIcon)
             this.store.subscribe((mutation: any, state: any) => {
@@ -209,7 +209,7 @@ class MEDigiViewer {
             })
             // Load locale from store if it wasn't specified
             this.locale = this.locale || this.store.state.SETTINGS.locale as ValidLocale
-            this.i18n = new MEDigiI18n().setup(Vue, this.locale)
+            this.i18n = new MedImgI18n().setup(Vue, this.locale)
             // i18n and store need to be passed to Vue as constants
             const i18n = this.i18n
             const store = this.store
@@ -228,6 +228,6 @@ class MEDigiViewer {
 
 }
 // Exports
-export { MEDigiViewer }
+export { MedImgViewer }
 // Set as a property of window
-;(window as any).MEDigiViewer = MEDigiViewer
+;(window as any).MedImgViewer = MedImgViewer

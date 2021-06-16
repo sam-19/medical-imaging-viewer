@@ -1,17 +1,17 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
+    <div ref="wrapper" class="medimg-viewer-eeg-wrapper" @mouseleave="hideAnnotationMenu">
         <div ref="trace" class="medi-viewer-eeg-trace">
             <div ref="container" @contextmenu.prevent></div>
             <div ref="mousedrag" :class="[
-                'medigi-viewer-eeg-mousedrag',
-                { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
-                { 'medigi-viewer-hidden': !mouseDragIndicator },
+                'medimg-viewer-eeg-mousedrag',
+                { 'medimg-viewer-drag-active': mouseDragIndicator && !measurements },
+                { 'medimg-viewer-hidden': !mouseDragIndicator },
             ]"></div>
             <div ref="measurements"
                 :class="[
-                    'medigi-viewer-eeg-measurements',
-                    { 'medigi-viewer-hidden': !measurements }
+                    'medimg-viewer-eeg-measurements',
+                    { 'medimg-viewer-hidden': !measurements }
                 ]"
                 @contextmenu.prevent
             >
@@ -28,16 +28,16 @@
         <!-- Video -->
         <div ref="video"
             :class="[
-                'medigi-viewer-eeg-video',
-                { 'medigi-viewer-hidden': !resource.video || !showVideo }
+                'medimg-viewer-eeg-video',
+                { 'medimg-viewer-hidden': !resource.video || !showVideo }
             ]"
         ></div>
         <!-- Navigator -->
-        <div class="medigi-viewer-eeg-navigator">
+        <div class="medimg-viewer-eeg-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
-            <div class="medigi-viewer-eeg-navigator-overlay-left" ref="navigator-overlay-left"></div>
-            <div class="medigi-viewer-eeg-navigator-overlay-active" ref="navigator-overlay-active"></div>
-            <div class="medigi-viewer-eeg-navigator-overlay-right" ref="navigator-overlay-right"></div>
+            <div class="medimg-viewer-eeg-navigator-overlay-left" ref="navigator-overlay-left"></div>
+            <div class="medimg-viewer-eeg-navigator-overlay-active" ref="navigator-overlay-active"></div>
+            <div class="medimg-viewer-eeg-navigator-overlay-right" ref="navigator-overlay-right"></div>
         </div>
     </div>
 
@@ -837,41 +837,41 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-eeg-wrapper {
+.medimg-viewer-eeg-wrapper {
     position: relative;
     float: left;
 }
-.medigi-viewer-eeg-mousedrag {
+.medimg-viewer-eeg-mousedrag {
     position: absolute;
     background-color: rgba(255, 0, 0, 0.2);
     pointer-events: none;
     opacity: 0.5;
 }
-    .medigi-viewer-eeg-mousedrag:not(.medigi-viewer-ekg-ruler).medigi-viewer-drag-active {
+    .medimg-viewer-eeg-mousedrag:not(.medimg-viewer-ekg-ruler).medimg-viewer-drag-active {
         background-color: rgba(255, 0, 0, 0.1);
-        border-left: solid 1px var(--medigi-viewer-border);
-        border-right: solid 1px var(--medigi-viewer-border);
+        border-left: solid 1px var(--medimg-viewer-border);
+        border-right: solid 1px var(--medimg-viewer-border);
         opacity: 1;
     }
-.medigi-viewer-eeg-measurements {
+.medimg-viewer-eeg-measurements {
     position: absolute;
-    background-color: var(--medigi-viewer-background-emphasize);
+    background-color: var(--medimg-viewer-background-emphasize);
     padding: 6px 10px;
-    border: solid 1px var(--medigi-viewer-border);
+    border: solid 1px var(--medimg-viewer-border);
     pointer-events: none;
 }
-    .medigi-viewer-eeg-measurements > div > span {
+    .medimg-viewer-eeg-measurements > div > span {
         display: inline-block;
         height: 24px;
         line-height: 24px;
     }
-    .medigi-viewer-eeg-measurements > div > span:nth-child(1) {
+    .medimg-viewer-eeg-measurements > div > span:nth-child(1) {
         width: 80px;
     }
-.medigi-viewer-eeg-navigator {
+.medimg-viewer-eeg-navigator {
     position: relative;
 }
-    .medigi-viewer-eeg-navigator-overlay-left {
+    .medimg-viewer-eeg-navigator-overlay-left {
         position: absolute;
         top: 20px;
         height: 50px;
@@ -880,7 +880,7 @@ export default Vue.extend({
         pointer-events: none;
         cursor: default;
     }
-    .medigi-viewer-eeg-navigator-overlay-active {
+    .medimg-viewer-eeg-navigator-overlay-active {
         position: absolute;
         top: 20px;
         height: 50px;
@@ -888,7 +888,7 @@ export default Vue.extend({
         opacity: 0.025;
         cursor: pointer;
     }
-    .medigi-viewer-eeg-navigator-overlay-right {
+    .medimg-viewer-eeg-navigator-overlay-right {
         position: absolute;
         top: 20px;
         right: 20px;
@@ -899,8 +899,8 @@ export default Vue.extend({
         cursor: default;
     }
 /* Do not allow adjusting the range */
-.medigi-viewer-eeg-wrapper .rangeslider-grabber-min,
-.medigi-viewer-eeg-wrapper .rangeslider-grabber-max {
+.medimg-viewer-eeg-wrapper .rangeslider-grabber-min,
+.medimg-viewer-eeg-wrapper .rangeslider-grabber-max {
     pointer-events: none !important;
 }
 </style>

@@ -2,35 +2,35 @@
 
     <div :id="`${$store.state.appName}-toolbar-select-${id}`"
         :class="[
-            'medigi-viewer-toolbar-select',
-            { 'medigi-viewer-toolbar-select-open': dropdownOpen },
+            'medimg-viewer-toolbar-select',
+            { 'medimg-viewer-toolbar-select-open': dropdownOpen },
         ]"
         :title="tooltip"
     >
-        <div class="medigi-viewer-toolbar-select-title"
+        <div class="medimg-viewer-toolbar-select-title"
             @click="enabled ? toggleDropdown() : null"
         >
             <font-awesome-icon v-if="icon"
                 :icon="icon"
                 fixed-width
             />
-            <div v-if="overlay" class="medigi-viewer-toolbar-select-overlay">
+            <div v-if="overlay" class="medimg-viewer-toolbar-select-overlay">
                 {{ overlay }}
             </div>
-            <div class="medigi-viewer-toolbar-select-active">
-                <div class="medigi-viewer-toolbar-select-label">
+            <div class="medimg-viewer-toolbar-select-active">
+                <div class="medimg-viewer-toolbar-select-label">
                     {{ t(label) }}
                 </div>
-                <div class="medigi-viewer-toolbar-select-value">
+                <div class="medimg-viewer-toolbar-select-value">
                     {{ t(selectedLabel) }}
                 </div>
             </div>
         </div>
         <div v-for="(opt, idx) in availableOptions"
             :key="`${$store.state.appName}-toolbar-select-${id}-${idx}`"
-            class="medigi-viewer-toolbar-select-option"
+            class="medimg-viewer-toolbar-select-option"
         >
-            <div v-if="opt.newGroup" class="medigi-viewer-toolbar-select-group">
+            <div v-if="opt.newGroup" class="medimg-viewer-toolbar-select-group">
                 {{ t(opt.newGroup) }}
             </div>
             <div v-else :tooltip="opt.label" @click="selectOption(opt.value)">
@@ -114,12 +114,12 @@ export default Vue.extend({
 
 <style scoped>
 
-.medigi-viewer-toolbar-select {
+.medimg-viewer-toolbar-select {
     position: relative;
     height: 60px;
     width: 180px;
-    border: solid 2px var(--medigi-viewer-border);
-    background-color: var(--medigi-viewer-background);
+    border: solid 2px var(--medimg-viewer-border);
+    background-color: var(--medimg-viewer-background);
     border-radius: 5px;
     font-size: 36px;
     cursor: pointer;
@@ -128,47 +128,47 @@ export default Vue.extend({
     z-index: 500;
     overflow: hidden;
 }
-    .medigi-viewer-toolbar-select-open {
+    .medimg-viewer-toolbar-select-open {
         height: auto;
     }
-    .medigi-viewer-toolbar-select:hover, .medigi-viewer-toolbar-select.element-active {
-        border-color: var(--medigi-viewer-border-highlight);
+    .medimg-viewer-toolbar-select:hover, .medimg-viewer-toolbar-select.element-active {
+        border-color: var(--medimg-viewer-border-highlight);
         opacity: 1.0;
     }
-    .medigi-viewer-toolbar-select.medigi-viewer-disabled {
+    .medimg-viewer-toolbar-select.medimg-viewer-disabled {
         opacity: 0.4 !important;
         cursor: initial !important;
         pointer-events: none;
     }
-    .medigi-viewer-toolbar-select.medigi-viewer-toolbar-setfirst {
+    .medimg-viewer-toolbar-select.medimg-viewer-toolbar-setfirst {
         margin-left: 10px !important;
     }
-    .medigi-viewer-toolbar-select-title {
+    .medimg-viewer-toolbar-select-title {
         display: flex;
     }
-        .medigi-viewer-toolbar-select-title > svg {
+        .medimg-viewer-toolbar-select-title > svg {
             flex: 0 0 45px;
             margin: 10px 5.5px;
         }
-        .medigi-viewer-toolbar-select-active {
+        .medimg-viewer-toolbar-select-active {
             flex-basis: 120px;
             flex: 1; /* Take whole space if there is no icon */
         }
-            .medigi-viewer-toolbar-select-label,
-            .medigi-viewer-toolbar-select-value {
+            .medimg-viewer-toolbar-select-label,
+            .medimg-viewer-toolbar-select-value {
                 width: 100%;
                 height: 28px;
                 line-height: 20px;
                 font-size: 14px;
             }
-            .medigi-viewer-toolbar-select-label {
+            .medimg-viewer-toolbar-select-label {
                 padding-top: 8px;
                 font-weight: bold;
             }
-            .medigi-viewer-toolbar-select-value {
+            .medimg-viewer-toolbar-select-value {
                 padding-bottom: 8px;
             }
-        .medigi-viewer-toolbar-select-overlay {
+        .medimg-viewer-toolbar-select-overlay {
             display: inline-block;
             position: absolute;
             right: 128px;
@@ -178,27 +178,27 @@ export default Vue.extend({
             border-radius: 5px;
             font-size: 40%;
         }
-    .medigi-viewer-toolbar-select-break {
+    .medimg-viewer-toolbar-select-break {
         flex: 0 0 100%;
         width: 0;
         height: 0 !important;
     }
-    .medigi-viewer-toolbar-select-option {
+    .medimg-viewer-toolbar-select-option {
         width: 100%;
         height: 28px;
         line-height: 28px;
         font-size: 14px;
     }
-    .medigi-viewer-toolbar-select-option > div {
+    .medimg-viewer-toolbar-select-option > div {
         padding: 0 5px;
         overflow: hidden;
     }
-        .medigi-viewer-toolbar-select-group {
-            background-color: var(--medigi-viewer-background-emphasize);
+        .medimg-viewer-toolbar-select-group {
+            background-color: var(--medimg-viewer-background-emphasize);
             font-weight: bold;
         }
-        .medigi-viewer-toolbar-select-option > div:not(.medigi-viewer-toolbar-select-group):hover {
-            background-color: var(--medigi-viewer-background-highlight);
+        .medimg-viewer-toolbar-select-option > div:not(.medimg-viewer-toolbar-select-group):hover {
+            background-color: var(--medimg-viewer-background-highlight);
         }
 
 </style>

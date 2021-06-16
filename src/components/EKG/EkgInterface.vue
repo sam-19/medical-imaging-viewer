@@ -1,11 +1,11 @@
 <template>
-    <div :id="`${$store.state.appName}-medigi-viewer-ekg-interface`"
+    <div :id="`${$store.state.appName}-medimg-viewer-ekg-interface`"
         :class="[
-            'medigi-viewer-dicom-waveform-interface',
-            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+            'medimg-viewer-dicom-waveform-interface',
+            { 'medimg-viewer-sidebar-closed': !sidebarOpen },
         ]"
     >
-        <div class="medigi-viewer-toolbar">
+        <div class="medimg-viewer-toolbar">
             <ekg-toolbar
                 :activeItems="activeItems"
                 :anyItem="resources.length > 0"
@@ -13,17 +13,17 @@
                 :firstTraceIndex.sync="firstTraceIndex"
             />
         </div>
-        <div class="medigi-viewer-sidebar">
+        <div class="medimg-viewer-sidebar">
             <ekg-sidebar
                 :items="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />
         </div>
-        <div ref="media" class="medigi-viewer-media">
-            <div class="medigi-viewer-ekg-traces">
+        <div ref="media" class="medimg-viewer-media">
+            <div class="medimg-viewer-ekg-traces">
                 <ekg-display v-for="(resource, idx) in activeItems"
-                    :key="`${$store.state.appName}-medigi-viewer-element-${resource.id}`"
+                    :key="`${$store.state.appName}-medimg-viewer-element-${resource.id}`"
                     :ref="`ekg-element`"
                     :cmPermV="cmPermV"
                     :cmPerSec="cmPerSec"
@@ -275,7 +275,7 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-dicom-waveform-interface {
+.medimg-viewer-dicom-waveform-interface {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -288,27 +288,27 @@ export default Vue.extend({
     overflow: auto;
     transition: left 0.5s;
 }
-    .medigi-viewer-dicom-waveform-interface.medigi-viewer-sidebar-closed {
+    .medimg-viewer-dicom-waveform-interface.medimg-viewer-sidebar-closed {
         left: -240px;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-sidebar {
+    .medimg-viewer-dicom-waveform-interface > .medimg-viewer-sidebar {
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;
         grid-row-end: bottom-edge;
         overflow: auto;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-toolbar {
+    .medimg-viewer-dicom-waveform-interface > .medimg-viewer-toolbar {
         grid-column-start: divider;
         grid-row-start: top-edge;
         grid-row-end: divider;
     }
-    .medigi-viewer-dicom-waveform-interface > .medigi-viewer-media {
+    .medimg-viewer-dicom-waveform-interface > .medimg-viewer-media {
         position: relative;
         grid-column-start: divider;
         grid-row-start: divider;
         margin: 0 10px 10px 0;
-        border: 1px solid var(--medigi-viewer-border-faint);
+        border: 1px solid var(--medimg-viewer-border-faint);
         overflow: hidden; /* Without this DICOM elements do not scale down */
     }
 </style>

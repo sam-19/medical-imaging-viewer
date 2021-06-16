@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER ENGLISH LOCALE
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER ENGLISH LOCALE
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

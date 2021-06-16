@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER DICOM MEDIA
+/** MEDICAL IMAGING VIEWER DICOM MEDIA
  * Parent class for all DICOM media.
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

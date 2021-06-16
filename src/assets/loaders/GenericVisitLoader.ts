@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER VISIT LOADER
+/** MEDICAL IMAGING VIEWER VISIT LOADER
  * Loads multiple visits from the given resource.
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

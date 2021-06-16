@@ -1,7 +1,7 @@
 <template>
-    <div class="medigi-viewer-media-icon">
-        <div class="medigi-viewer-default-icon">
-            <div class="medigi-viewer-icon-biosignal">
+    <div class="medimg-viewer-media-icon">
+        <div class="medimg-viewer-default-icon">
+            <div class="medimg-viewer-icon-biosignal">
                 <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
         </div>
@@ -56,17 +56,17 @@ export default Vue.extend({
 
 <style scoped>
 
-.medigi-viewer-cover-image {
+.medimg-viewer-cover-image {
     /* Initial dimensions */
     height: 75px;
     width: 75px;
 }
-.medigi-viewer-default-icon {
+.medimg-viewer-default-icon {
     width: 75px; /* Initial width */
     height: 75px;
     padding: 10% 20% 20% 10%; /* Apply margins to all the default icons */
 }
-    .medigi-viewer-media-icon span {
+    .medimg-viewer-media-icon span {
         position: absolute;
         bottom: -20%;
         right: -10%;

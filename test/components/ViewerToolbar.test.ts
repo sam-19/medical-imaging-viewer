@@ -1,13 +1,13 @@
-/** MEDIGI VIEWER TOOLBAR COMPONENT TESTS
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER TOOLBAR COMPONENT TESTS
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
 import { createLocalVue, shallowMount } from '@vue/test-utils'
-import { MEDigiI18n } from '../../src/i18n'
+import { MedImgI18n } from '../../src/i18n'
 const localVue = createLocalVue()
-const i18n = new MEDigiI18n().setup(localVue)
+const i18n = new MedImgI18n().setup(localVue)
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 localVue.component('font-awesome-icon', FontAwesomeIcon)
 // @ts-ignore: this name mapping is defined in jest config

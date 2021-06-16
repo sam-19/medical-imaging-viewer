@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER STUDY LOADER
+/** MEDICAL IMAGING VIEWER STUDY LOADER
  * Checks the types of given studies and laod them accordingly.
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
@@ -8,7 +8,7 @@
 import dicomParser from 'dicom-parser'
 import * as edfdecoder from 'edfdecoder'
 import { FileSystemItem, StudyLoader, StudyObject } from '../../types/common'
-const CONFIG_FILE_NAME = 'medigi_study_config.json'
+const CONFIG_FILE_NAME = 'medimg_study_config.json'
 const VALID_MODALITIES = {
     RADIOLOGY: ['CR', 'CT', 'MR', 'US']
 }

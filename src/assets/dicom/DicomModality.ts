@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER DICOM FILE MODALITY
+/** MEDICAL IMAGING VIEWER DICOM FILE MODALITY
  * List of supported DICOM file mdoalities.
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

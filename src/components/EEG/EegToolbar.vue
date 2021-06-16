@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer-eeg-toolbar`">
+    <div :id="`${$store.state.appName}-medimg-viewer-eeg-toolbar`">
         <component v-for="(control, idx) in controlRow" :key="`toolbar-control-${idx}`"
             :is="control.type === 'select' ? 'toolbar-select' : 'toolbar-button'"
             :id="control.id"
@@ -13,9 +13,9 @@
             :selected="control.selected"
             :tooltip="control.tooltip"
             :class="{
-                'medigi-viewer-disabled': !control.enabled,
+                'medimg-viewer-disabled': !control.enabled,
                 'element-active': typeof control.active === 'boolean' ? control.active : control.active(),
-                'medigi-viewer-toolbar-setfirst': control.setFirst
+                'medimg-viewer-toolbar-setfirst': control.setFirst
             }"
             @button-clicked="controlClicked"
             @option-selected="optionSelected(control.id, $event)"
@@ -413,7 +413,7 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-toolbar > div {
+.medimg-viewer-toolbar > div {
     display: flex;
     padding: 10px 0;
 }

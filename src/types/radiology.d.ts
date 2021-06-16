@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER RADIOLOGY TYPES
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER RADIOLOGY TYPES
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

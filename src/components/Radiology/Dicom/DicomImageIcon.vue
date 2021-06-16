@@ -1,21 +1,21 @@
 <template>
-    <div class="medigi-viewer-media-icon">
+    <div class="medimg-viewer-media-icon">
         <!-- DICOM image -->
-        <div v-if="cover" ref="cover-image" class="medigi-viewer-cover-image"></div>
+        <div v-if="cover" ref="cover-image" class="medimg-viewer-cover-image"></div>
         <!-- Single image -->
-        <div v-else class="medigi-viewer-default-icon">
-            <div v-if="type==='image'" class="medigi-viewer-icon-image-single">
+        <div v-else class="medimg-viewer-default-icon">
+            <div v-if="type==='image'" class="medimg-viewer-icon-image-single">
                 <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
             <!-- Image stack -->
-            <div v-else-if="stack" class="medigi-viewer-icon-image-stack">
+            <div v-else-if="stack" class="medimg-viewer-icon-image-stack">
                 <div></div>
                 <div></div>
                 <div></div>
                 <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
             <!-- Single biosignal -->
-            <div v-else-if="type==='biosignal' && count===1" class="medigi-viewer-icon-biosignal-single">
+            <div v-else-if="type==='biosignal' && count===1" class="medimg-viewer-icon-biosignal-single">
                 <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
         </div>
@@ -121,54 +121,54 @@ export default Vue.extend({
 
 <style scoped>
 
-.medigi-viewer-cover-image {
+.medimg-viewer-cover-image {
     /* Initial dimensions */
     height: 75px;
     width: 75px;
 }
-.medigi-viewer-default-icon {
+.medimg-viewer-default-icon {
     width: 75px; /* Initial width */
     height: 75px;
     padding: 10% 20% 20% 10%; /* Apply margins to all the default icons */
 }
-    .medigi-viewer-icon-image-single {
+    .medimg-viewer-icon-image-single {
         position: relative;
         height: 100%;
         width: 100%;
-        border: solid 1px var(--medigi-viewer-text-main);
+        border: solid 1px var(--medimg-viewer-text-main);
         border-radius: 5%;
     }
-    .medigi-viewer-icon-image-stack {
+    .medimg-viewer-icon-image-stack {
         position: relative;
         height: 100%;
         width: 100%;
     }
-    .medigi-viewer-icon-image-stack > div {
+    .medimg-viewer-icon-image-stack > div {
         position: absolute;
         height: 80%;
         width: 80%;
-        border: solid 1px var(--medigi-viewer-text-main);
-        background-color: var(--medigi-viewer-background);
+        border: solid 1px var(--medimg-viewer-text-main);
+        background-color: var(--medimg-viewer-background);
         border-radius: 5%;
     }
-    .medigi-viewer-icon-image-stack > div:nth-child(1) {
+    .medimg-viewer-icon-image-stack > div:nth-child(1) {
         top: 0;
         left: 0;
     }
-    .medigi-viewer-icon-image-stack > div:nth-child(2) {
+    .medimg-viewer-icon-image-stack > div:nth-child(2) {
         top: 10%;
         left: 10%;
     }
-    .medigi-viewer-icon-image-stack > div:nth-child(3) {
+    .medimg-viewer-icon-image-stack > div:nth-child(3) {
         top: 20%;
         left: 20%;
     }
-    .medigi-viewer-media-icon span {
+    .medimg-viewer-media-icon span {
         position: absolute;
         bottom: -20%;
         right: -10%;
         padding: 3px;
-        background-color: var(--medigi-viewer-background);
+        background-color: var(--medimg-viewer-background);
     }
 
 </style>

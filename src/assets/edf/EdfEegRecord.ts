@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER EDF SIGNAL
+/** MEDICAL IMAGING VIEWER EDF SIGNAL
  * Class for handling DICOM waveforms (mostly biosignals).
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

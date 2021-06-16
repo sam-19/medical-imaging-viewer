@@ -1,76 +1,76 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-image-wrapper" @mouseleave="mouseLeftImageArea">
+    <div ref="wrapper" class="medimg-viewer-image-wrapper" @mouseleave="mouseLeftImageArea">
         <div ref="annotation-menu"
             :class="[
-                'medigi-viewer-annotation-menu',
-                { 'medigi-viewer-hidden': !annotationMenu },
+                'medimg-viewer-annotation-menu',
+                { 'medimg-viewer-hidden': !annotationMenu },
             ]"
             :style="getAnnotationMenuStyles()"
             @contextmenu.prevent
         >
-            <div v-if="!isSelectedAnnotation"  class="medigi-viewer-annotation-action" @click="annotationMenu.select()">
+            <div v-if="!isSelectedAnnotation"  class="medimg-viewer-annotation-action" @click="annotationMenu.select()">
                 {{ t('Select as reference #{n}', { n: getNextFreeReferenceNum() }) }}
             </div>
-            <div v-else class="medigi-viewer-annotation-action" @click="annotationMenu.unselect()">
+            <div v-else class="medimg-viewer-annotation-action" @click="annotationMenu.unselect()">
                 {{ t('Unselect reference #{n}', { n: getReferenceNumber() }) }}
             </div>
-            <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medigi-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
-                <div v-if="ref" class="medigi-viewer-annotation-compare-title">{{ $t('Compared to reference #') + (idx + 1) }}</div>
-                <div v-if="ref" class="medigi-viewer-annotation-compare-row">
+            <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medimg-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
+                <div v-if="ref" class="medimg-viewer-annotation-compare-title">{{ $t('Compared to reference #') + (idx + 1) }}</div>
+                <div v-if="ref" class="medimg-viewer-annotation-compare-row">
                     <span>{{ t('Length') }}</span>
                     <span>{{ getAnnotationLengthDiff(ref, annotationMenu.data) }}</span>
                 </div>
-                <div v-if="ref" class="medigi-viewer-annotation-compare-row">
+                <div v-if="ref" class="medimg-viewer-annotation-compare-row">
                     <span>{{ t('Angle') }}</span>
                     <span>{{ getAnnotationAngleBetween(ref, annotationMenu.data) }}</span>
                 </div>
             </div>
-            <div @click="annotationMenu.remove()" class="medigi-viewer-annotation-action">
+            <div @click="annotationMenu.remove()" class="medimg-viewer-annotation-action">
                 {{ t('Delete') }}
             </div>
         </div>
         <div ref="orientation-marker-top"
             :class="[
-                'medigi-viewer-orientation-marker',
-                'medigi-viewer-orientation-marker-top',
-                { 'medigi-viewer-hidden': !orientationMarkers.top },
+                'medimg-viewer-orientation-marker',
+                'medimg-viewer-orientation-marker-top',
+                { 'medimg-viewer-hidden': !orientationMarkers.top },
             ]"
         >
             {{ orientationMarkers.top }}
         </div>
         <div ref="orientation-marker-left"
             :class="[
-                'medigi-viewer-orientation-marker',
-                'medigi-viewer-orientation-marker-left',
-                { 'medigi-viewer-hidden': !orientationMarkers.left },
+                'medimg-viewer-orientation-marker',
+                'medimg-viewer-orientation-marker-left',
+                { 'medimg-viewer-hidden': !orientationMarkers.left },
             ]"
         >
             {{ orientationMarkers.left }}
         </div>
         <div ref="orientation-marker-bottom"
             :class="[
-                'medigi-viewer-orientation-marker',
-                'medigi-viewer-orientation-marker-bottom',
-                { 'medigi-viewer-hidden': !orientationMarkers.bottom },
+                'medimg-viewer-orientation-marker',
+                'medimg-viewer-orientation-marker-bottom',
+                { 'medimg-viewer-hidden': !orientationMarkers.bottom },
             ]"
         >
             {{ orientationMarkers.bottom }}
         </div>
         <div ref="orientation-marker-right"
             :class="[
-                'medigi-viewer-orientation-marker',
-                'medigi-viewer-orientation-marker-right',
-                { 'medigi-viewer-hidden': !orientationMarkers.right },
+                'medimg-viewer-orientation-marker',
+                'medimg-viewer-orientation-marker-right',
+                { 'medimg-viewer-hidden': !orientationMarkers.right },
             ]"
         >
             {{ orientationMarkers.right }}
         </div>
         <div ref="container" :id="`container-${id}-${instanceNum}`"
-            class="medigi-viewer-image-container"
+            class="medimg-viewer-image-container"
             @contextmenu.prevent
         >
-            <div v-if="!mainImageLoaded" class="medigi-viewer-image-loading">
+            <div v-if="!mainImageLoaded" class="medimg-viewer-image-loading">
                 {{ t('Loading') }}
                 <span ref="loading-dot-1" style="visibility: hidden">.</span>
                 <span ref="loading-dot-2" style="visibility: hidden">.</span>
@@ -82,18 +82,18 @@
             :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
             :title="t('Link this image stack')"
             @click="linkImageStack()"
-            :class="{ 'medigi-viewer-link-icon-active' : resource.isLinked }"
-            class="medigi-viewer-link-icon"
+            :class="{ 'medimg-viewer-link-icon-active' : resource.isLinked }"
+            class="medimg-viewer-link-icon"
             fixed-width
         />
         <!-- Metadata -->
-        <div v-if="isFirstLoaded" class="medigi-viewer-meta-topleft">
+        <div v-if="isFirstLoaded" class="medimg-viewer-meta-topleft">
             <div>{{ resource.name }}</div>
         </div>
-        <div v-if="isFirstLoaded" class="medigi-viewer-meta-topright">
+        <div v-if="isFirstLoaded" class="medimg-viewer-meta-topright">
             <div>{{ resource.dimensions[0] }} x {{ resource.dimensions[1] }}</div>
         </div>
-        <div v-if="isFirstLoaded" class="medigi-viewer-meta-bottomleft">
+        <div v-if="isFirstLoaded" class="medimg-viewer-meta-bottomleft">
             <div v-if="resource.currentImage.tubeCurrent && resource.currentImage.exposureTime && resource.currentImage.exposure">
                 Exp: {{ resource.currentImage.tubeCurrent }} mA,
                      {{ resource.currentImage.exposureTime }} msec,
@@ -112,12 +112,12 @@
                 KVP: {{ resource.currentImage.KVP }} kV
             </div>
         </div>
-        <div class="medigi-viewer-meta-bottomright">
+        <div class="medimg-viewer-meta-bottomright">
             <!-- Topogram -->
             <div v-if="resource.topogram" ref="topogram" :id="`topogram-${id}-${instanceNum}`"
                 :class="[
-                    'medigi-viewer-topogram',
-                    { 'medigi-viewer-hidden': !topoImageLoaded }
+                    'medimg-viewer-topogram',
+                    { 'medimg-viewer-hidden': !topoImageLoaded }
                 ]"
                 @contextmenu.prevent
             >
@@ -131,8 +131,8 @@
         </div>
         <!-- Loading indicator -->
         <div :class="[
-            'medigi-viewer-image-loading-progress',
-            { 'medigi-viewer-hidden': mainImageLoaded || !resource.isStack }
+            'medimg-viewer-image-loading-progress',
+            { 'medimg-viewer-hidden': mainImageLoaded || !resource.isStack }
         ]">
             <div ref="loading-progress-bar"></div>
         </div>
@@ -601,9 +601,9 @@ export default Vue.extend({
             this.dicomEl.style.width = `${dimensions[0]/colPos[1] - hPad}px`
             this.dicomEl.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
             this.dicomWrapper.style.borderLeft
-                = isRowFirst? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+                = isRowFirst? 'none' : '1px solid var(--medimg-viewer-border-faint)'
             this.dicomWrapper.style.borderBottom
-                = isColLast ? 'none' : '1px solid var(--medigi-viewer-border-faint)'
+                = isColLast ? 'none' : '1px solid var(--medimg-viewer-border-faint)'
             // Resize image if it is done loading
             if (this.mainImageLoaded) {
                 cornerstone.resize(this.dicomEl, false)
@@ -613,7 +613,7 @@ export default Vue.extend({
             } else {
                 // Update the loading text position
                 const loadingText = (document.querySelector(
-                        `#container-${this.id}-${this.instanceNum} > .medigi-viewer-image-loading`
+                        `#container-${this.id}-${this.instanceNum} > .medimg-viewer-image-loading`
                     ) as HTMLDivElement)
                 loadingText.style.width = `${dimensions[0]/colPos[1] - hPad}px`
                 loadingText.style.height = `${dimensions[1]/rowPos[1] - vPad}px`
@@ -898,7 +898,7 @@ export default Vue.extend({
             const showLoadingError = (reason: any) => {
                 window.clearInterval(this.loadingDotCycle)
                 //;(document.querySelector(
-                //        `#container-${this.id}-${this.instanceNum} > .medigi-viewer-image-loading`
+                //        `#container-${this.id}-${this.instanceNum} > .medimg-viewer-image-loading`
                 //    ) as HTMLDivElement).innerText = this.$t('ERROR').toString()
                 console.error(reason)
             }
@@ -1240,38 +1240,38 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-image-wrapper {
+.medimg-viewer-image-wrapper {
     position: relative;
     float: left;
     padding: 10px;
 }
-    .medigi-viewer-image-wrapper > .medigi-viewer-annotation-menu {
+    .medimg-viewer-image-wrapper > .medimg-viewer-annotation-menu {
         position: absolute;
         display: inline-block;
-        border: 2px solid var(--medigi-viewer-border);
-        background-color: var(--medigi-viewer-background);
+        border: 2px solid var(--medimg-viewer-border);
+        background-color: var(--medimg-viewer-background);
         cursor: pointer;
         z-index: 200;
     }
-        .medigi-viewer-image-wrapper > .medigi-viewer-annotation-menu > div {
+        .medimg-viewer-image-wrapper > .medimg-viewer-annotation-menu > div {
             line-height: 30px;
             padding: 0 10px;
         }
-        .medigi-viewer-image-wrapper .medigi-viewer-annotation-action {
-            color: var(--medigi-viewer-text-highlight);
+        .medimg-viewer-image-wrapper .medimg-viewer-annotation-action {
+            color: var(--medimg-viewer-text-highlight);
         }
-        .medigi-viewer-image-wrapper .medigi-viewer-annotation-action:hover {
-            background-color: var(--medigi-viewer-background-emphasize);
+        .medimg-viewer-image-wrapper .medimg-viewer-annotation-action:hover {
+            background-color: var(--medimg-viewer-background-emphasize);
         }
-        .medigi-viewer-image-wrapper .medigi-viewer-annotation-compare-row {
+        .medimg-viewer-image-wrapper .medimg-viewer-annotation-compare-row {
             width: 200px;
             opacity: 0.9;
             font-size: 90%;
         }
-            .medigi-viewer-image-wrapper .medigi-viewer-annotation-compare-row > span:nth-child(2) {
+            .medimg-viewer-image-wrapper .medimg-viewer-annotation-compare-row > span:nth-child(2) {
                 float: right;
             }
-    .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker {
+    .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker {
         position: absolute;
         display: inline-block;
         width: 40px;
@@ -1281,43 +1281,43 @@ export default Vue.extend({
         z-index: 100; /* Below delete button toolbar button groups */
         pointer-events: none;
     }
-        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-bottom {
+        .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker-bottom {
             bottom: 0;
         }
-        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-left {
+        .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker-left {
             left: 0;
         }
-        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-right {
+        .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker-right {
             right: 0;
         }
-        .medigi-viewer-image-wrapper > .medigi-viewer-orientation-marker-top {
+        .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker-top {
             top: 0;
         }
-    .medigi-viewer-image-loading-progress {
+    .medimg-viewer-image-loading-progress {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 10px;
-        border-bottom: solid 1px var(--medigi-viewer-border-faint);
+        border-bottom: solid 1px var(--medimg-viewer-border-faint);
     }
-        .medigi-viewer-image-loading-progress > div {
+        .medimg-viewer-image-loading-progress > div {
             width: 0px;
             height: 9px;
-            background-color: var(--medigi-viewer-background-emphasize);
+            background-color: var(--medimg-viewer-background-emphasize);
         }
-    .medigi-viewer-image-wrapper > .medigi-viewer-link-icon {
+    .medimg-viewer-image-wrapper > .medimg-viewer-link-icon {
         position: absolute;
         top: 40px;
         right: 10px;
         font-size: 20px;
         cursor: pointer;
-        color: var(--medigi-viewer-text-faint);
+        color: var(--medimg-viewer-text-faint);
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-link-icon-active {
-        color: var(--medigi-viewer-text-main);
+    .medimg-viewer-image-wrapper > .medimg-viewer-link-icon-active {
+        color: var(--medimg-viewer-text-main);
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-meta-topleft {
+    .medimg-viewer-image-wrapper > .medimg-viewer-meta-topleft {
         position: absolute;
         left: 10px;
         top: 10px;
@@ -1326,7 +1326,7 @@ export default Vue.extend({
         line-height: 20px;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-meta-topright {
+    .medimg-viewer-image-wrapper > .medimg-viewer-meta-topright {
         position: absolute;
         right: 10px;
         top: 10px;
@@ -1336,7 +1336,7 @@ export default Vue.extend({
         text-align: right;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-meta-bottomleft {
+    .medimg-viewer-image-wrapper > .medimg-viewer-meta-bottomleft {
         position: absolute;
         left: 10px;
         bottom: 10px;
@@ -1345,7 +1345,7 @@ export default Vue.extend({
         line-height: 20px;
         pointer-events: none;
     }
-    .medigi-viewer-image-wrapper > .medigi-viewer-meta-bottomright {
+    .medimg-viewer-image-wrapper > .medimg-viewer-meta-bottomright {
         position: absolute;
         right: 10px;
         bottom: 10px;
@@ -1356,22 +1356,22 @@ export default Vue.extend({
         line-height: 20px;
         pointer-events: none;
     }
-    .medigi-viewer-meta-bottomright > .medigi-viewer-topogram {
+    .medimg-viewer-meta-bottomright > .medimg-viewer-topogram {
         position: relative;
         right: -11px; /* cover the default image border */
         bottom: -11px;
         height: 20%;
         pointer-events: none;
-        border: solid 1px var(--medigi-viewer-border-faint);
-        background-color: var(--medigi-viewer-background);
+        border: solid 1px var(--medimg-viewer-border-faint);
+        background-color: var(--medimg-viewer-background);
         transform-origin: bottom right;
     }
-        .medigi-viewer-image-container > div {
+        .medimg-viewer-image-container > div {
             font-size: 24px;
             font-family: sans-serif;
             font-weight: bold;
             font-style: italic;
-            color: var(--medigi-viewer-text-faint);
+            color: var(--medimg-viewer-text-faint);
             text-align: center;
         }
 </style>

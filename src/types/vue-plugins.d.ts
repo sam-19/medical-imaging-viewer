@@ -1,10 +1,10 @@
-/** MEDIGI VIEWER GLOBAL TYPES
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER GLOBAL TYPES
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
-type MEDigiI18n = {
+type MedImgI18n = {
     setup (): any,
     messages: object,
     dateTimeFormats: object,

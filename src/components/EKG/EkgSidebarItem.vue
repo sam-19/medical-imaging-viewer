@@ -1,12 +1,12 @@
 <template>
-    <div class="medigi-viewer-sidebar-item"
-        :class="{ 'medigi-viewer-sidebar-item-active': active }"
+    <div class="medimg-viewer-sidebar-item"
+        :class="{ 'medimg-viewer-sidebar-item-active': active }"
         @click="$emit('toggle-active-item', index, $event)"
     >
-        <div class="medigi-viewer-sidebar-icon">
+        <div class="medimg-viewer-sidebar-icon">
             <ekg-sidebar-icon :channels="channels" :label="label" :type="type" />
         </div>
-        <div class="medigi-viewer-sidebar-details">
+        <div class="medimg-viewer-sidebar-details">
             <div>{{ title }}</div>
             <div>{{ t('{n} channels', { n: channels }) }}</div>
             <div>{{ parsedDuration }}</div>
@@ -70,7 +70,7 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-sidebar-item {
+.medimg-viewer-sidebar-item {
     position: relative;
     display: flex;
     height: 89px;
@@ -78,33 +78,33 @@ export default Vue.extend({
     padding: 5px;
     margin-bottom: 10px;
     cursor: pointer;
-    border: 2px solid var(--medigi-viewer-border-faint);
+    border: 2px solid var(--medimg-viewer-border-faint);
     border-radius: 10px;
     opacity: 0.8;
 }
-    .medigi-viewer-sidebar-item:hover, .medigi-viewer-sidebar-item-active {
+    .medimg-viewer-sidebar-item:hover, .medimg-viewer-sidebar-item-active {
         opacity: 1.0;
     }
-    .medigi-viewer-sidebar-item-active {
-        border-color: var(--medigi-viewer-border-highlight);
+    .medimg-viewer-sidebar-item-active {
+        border-color: var(--medimg-viewer-border-highlight);
     }
-    .medigi-viewer-sidebar-details {
+    .medimg-viewer-sidebar-details {
         height: 60px;
         flex-grow: 1;
         padding: 5px 0 0 5px;
-        color: var(--medigi-viewer-text-main);
+        color: var(--medimg-viewer-text-main);
     }
-        .medigi-viewer-sidebar-details > div:nth-child(1) {
+        .medimg-viewer-sidebar-details > div:nth-child(1) {
             font-size: 14px;
             line-height: 16px;
             max-height: 32px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .medigi-viewer-sidebar-details > div:nth-child(2),
-        .medigi-viewer-sidebar-details > div:nth-child(3) {
+        .medimg-viewer-sidebar-details > div:nth-child(2),
+        .medimg-viewer-sidebar-details > div:nth-child(3) {
             font-size: 12px;
             margin-top: 5px;
-            color: var(--medigi-viewer-text-minor);
+            color: var(--medimg-viewer-text-minor);
         }
 </style>

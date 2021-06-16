@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER I18N MODULE
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER I18N MODULE
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
@@ -11,7 +11,7 @@ import { messagesEN, datetimeUS } from './locales/en'
 import { messagesFI, datetimeFI } from './locales/fi'
 import { messagesSE, datetimeSE } from './locales/se'
 
-class MEDigiI18n {
+class MedImgI18n {
     messages = {
         en: messagesEN,
         fi: messagesFI,
@@ -40,4 +40,4 @@ class MEDigiI18n {
 }
 
 type ValidLocale = 'en' | 'fi' | 'se'
-export { MEDigiI18n, ValidLocale }
+export { MedImgI18n, ValidLocale }

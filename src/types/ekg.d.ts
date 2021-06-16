@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER EKG TYPES
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER EKG TYPES
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

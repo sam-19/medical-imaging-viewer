@@ -1,6 +1,6 @@
 /**
- * MEDIGI IMAGING VIEWER VUEX STORE
- * @package    medigi-viewer
+ * MEDICAL IMAGING VIEWER VUEX STORE
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
@@ -216,15 +216,15 @@ type MDStore = Omit<
     [K in keyof Getters]: ReturnType<Getters[K]>
     }
 }
-// MEDigiStore class implementing the above
-class MEDigiStore {
+// MedImgStore class implementing the above
+class MedImgStore {
     constructor () {
 
     }
     setup = function (vueInstance: VueConstructor) {
         vueInstance.use(Vuex)
         // Check if we have locally saved settings
-        const localSettings = JSON.parse(window.localStorage.getItem('medigiViewerSettings') || '{}')
+        const localSettings = JSON.parse(window.localStorage.getItem('medimgViewerSettings') || '{}')
         // Create a local state to keep multiple instances isolated
         const state: State = {
             activeTool: null as null | string,
@@ -332,4 +332,4 @@ class MEDigiStore {
     }
 }
 
-export { MEDigiStore, MutationTypes }
+export { MedImgStore, MutationTypes }

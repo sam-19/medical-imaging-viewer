@@ -1,6 +1,6 @@
 <template>
-    <div :id="`${$store.state.appName}-medigi-viewer-radiology-sidebar`">
-        <div class="medigi-viewer-sidebar-items">
+    <div :id="`${$store.state.appName}-medimg-viewer-radiology-sidebar`">
+        <div class="medimg-viewer-sidebar-items">
             <vue-draggable v-model="items" ref="draggable-list" :sort="allowSorting" @change="listChanged" @end="itemDropped">
                 <radiology-sidebar-item v-for="(item, idx) in items" :key="`sidebaritem-${idx}-${item.id}`"
                     ref="sidebar-item"
@@ -19,15 +19,15 @@
                 />
             </vue-draggable>
             <div :class="[
-                'medigi-viewer-sidebar-loading',
-                { 'medigi-viewer-hidden': !$store.state.loadingStudies }
+                'medimg-viewer-sidebar-loading',
+                { 'medimg-viewer-hidden': !$store.state.loadingStudies }
             ]">
                 <font-awesome-icon :icon="['fad', 'spinner-third']" spin></font-awesome-icon>
                 {{ t('LOADING STUDIES') }}
             </div>
-            <div :id="`${$store.state.appName}-medigi-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medigi-viewer-dropzone"></div>
+            <div :id="`${$store.state.appName}-medimg-viewer-radiology-dropzone`" :style="dropZoneStyles" class="medimg-viewer-dropzone"></div>
         </div>
-        <div :id="`${$store.state.appName}-medigi-viewer-radiology-statusbar`" class="medigi-viewer-statusbar">
+        <div :id="`${$store.state.appName}-medimg-viewer-radiology-statusbar`" class="medimg-viewer-statusbar">
             <span>{{ t('Cache status') }}</span>
             <span>{{ cacheImages === 1 ? t('1 image') : t('{n} images', { n: cacheImages }) }}</span>
             <span v-if="cacheSize">
@@ -105,7 +105,7 @@ export default Vue.extend({
         },
         clearDropZoneHighlight: function () {
             if (this.dropZone) {
-                this.dropZone.classList.remove('medigi-viewer-highlight')
+                this.dropZone.classList.remove('medimg-viewer-highlight')
             }
         },
         secondItemMounted: function () {
@@ -132,7 +132,7 @@ export default Vue.extend({
                 event.dataTransfer.dropEffect = 'copy'
                 // Highlight the dropzone
                 if (this.dropZone) {
-                    this.dropZone.classList.add('medigi-viewer-highlight')
+                    this.dropZone.classList.add('medimg-viewer-highlight')
                 }
             }
         },
@@ -144,9 +144,9 @@ export default Vue.extend({
         },
         itemDropped: function (evt: any) {
             const targetId = evt?.originalEvent?.target?.id
-            if (targetId && targetId.startsWith(`${this.$store.state.appName}-medigi-viewer-image-drop-`)) {
+            if (targetId && targetId.startsWith(`${this.$store.state.appName}-medimg-viewer-image-drop-`)) {
                 // Image resource was dropped on one of the placeholder elements
-                const targetIdx = parseInt(targetId.replace(`${this.$store.state.appName}-medigi-viewer-image-drop-`, ''))
+                const targetIdx = parseInt(targetId.replace(`${this.$store.state.appName}-medimg-viewer-image-drop-`, ''))
                 ;(this.dicomItems[evt.oldIndex] as ImageResource).isActive = true
                 this.$emit('item-dropped', { item: evt.oldIndex, target: targetIdx })
             }
@@ -233,7 +233,7 @@ export default Vue.extend({
     },
     mounted () {
         // Set up DICOM file dropzone
-        this.dropZone = document.getElementById(`${this.$store.state.appName}-medigi-viewer-radiology-dropzone`)
+        this.dropZone = document.getElementById(`${this.$store.state.appName}-medimg-viewer-radiology-dropzone`)
         if (this.dropZone) {
             this.dropZone.addEventListener('dragover', this.handleFileDrag, false)
             this.dropZone.addEventListener('drop', this.handleFileDrop, false)
@@ -245,40 +245,40 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-sidebar > div {
+.medimg-viewer-sidebar > div {
     position: relative;
     padding: 80px 10px 10px 10px;
     width: 300px;
     height: calc(100% - 50px);
     margin-top: 0; /* Unset possible margin from another scope */
 }
-.medigi-viewer-sidebar-loading {
+.medimg-viewer-sidebar-loading {
     height: 50px;
     line-height: 50px;
     text-align: center;
     font-weight: bold;
-    color: var(--medigi-viewer-text-faint);
+    color: var(--medimg-viewer-text-faint);
 }
-.medigi-viewer-sidebar-items {
+.medimg-viewer-sidebar-items {
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow-y: scroll;
 }
-.medigi-viewer-dropzone {
+.medimg-viewer-dropzone {
     flex-grow: 1;
     margin-bottom: 10px;
     min-height: 100px;
 }
-    .medigi-viewer-dropzone.medigi-viewer-highlight {
-        background-color: var(--medigi-viewer-background-emphasize);
+    .medimg-viewer-dropzone.medimg-viewer-highlight {
+        background-color: var(--medimg-viewer-background-emphasize);
     }
-.medigi-viewer-statusbar {
+.medimg-viewer-statusbar {
     height: 50px;
     line-height: 25px;
-    color: var(--medigi-viewer-text-faint);
+    color: var(--medimg-viewer-text-faint);
 }
-    .medigi-viewer-statusbar > span:nth-child(1) {
+    .medimg-viewer-statusbar > span:nth-child(1) {
         display: block;
     }
 </style>

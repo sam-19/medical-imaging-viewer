@@ -1,6 +1,6 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer-ekg-toolbar`">
+    <div :id="`${$store.state.appName}-medimg-viewer-ekg-toolbar`">
         <toolbar-button v-for="(button, idx) in buttonRow" :key="`toolbar-button-${idx}`"
             :id="button.id"
             :emit="button.emit"
@@ -9,9 +9,9 @@
             :overlay="button.overlay"
             :tooltip="button.tooltip"
             :class="{
-                'medigi-viewer-disabled': !button.enabled,
+                'medimg-viewer-disabled': !button.enabled,
                 'element-active': typeof button.active === 'boolean' ? button.active : button.active(),
-                'medigi-viewer-toolbar-setfirst': button.setFirst
+                'medimg-viewer-toolbar-setfirst': button.setFirst
             }"
             @button-clicked="buttonClicked"
         />
@@ -366,7 +366,7 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-toolbar > div {
+.medimg-viewer-toolbar > div {
     display: flex;
     padding: 10px 0;
 }

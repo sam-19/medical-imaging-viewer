@@ -1,22 +1,22 @@
 <template>
 
-    <div ref="wrapper" class="medigi-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
-        <div ref="trace" class="medigi-viewer-waveform-trace" @scroll.passive="updateViewBounds">
+    <div ref="wrapper" class="medimg-viewer-waveform-wrapper" @mouseleave="hideAnnotationMenu">
+        <div ref="trace" class="medimg-viewer-waveform-trace" @scroll.passive="updateViewBounds">
             <div ref="container"
-                class="medigi-viewer-waveform-container"
+                class="medimg-viewer-waveform-container"
                 :style="containerStyles"
                 @contextmenu.prevent
             ></div>
             <div ref="mousedrag" :class="[
-                'medigi-viewer-ekg-mousedrag',
-                { 'medigi-viewer-drag-active': mouseDragIndicator && !measurements },
-                { 'medigi-viewer-hidden': !mouseDragIndicator },
-                { 'medigi-viewer-ekg-ruler': $store.state.SETTINGS.ekg.showRuler },
+                'medimg-viewer-ekg-mousedrag',
+                { 'medimg-viewer-drag-active': mouseDragIndicator && !measurements },
+                { 'medimg-viewer-hidden': !mouseDragIndicator },
+                { 'medimg-viewer-ekg-ruler': $store.state.SETTINGS.ekg.showRuler },
             ]"></div>
             <div ref="measurements"
                 :class="[
-                    'medigi-viewer-ekg-measurements',
-                    { 'medigi-viewer-hidden': !measurements }
+                    'medimg-viewer-ekg-measurements',
+                    { 'medimg-viewer-hidden': !measurements }
                 ]"
                 @contextmenu.prevent
             >
@@ -31,18 +31,18 @@
             </div>
         </div>
         <!-- EKG channel labels -->
-        <div v-for="(n, idx) in displayedTraceCount" :key="`medigi-dicom-waveform-label-${instanceNum}-${idx}`"
-            class="medigi-viewer-waveform-label"
+        <div v-for="(n, idx) in displayedTraceCount" :key="`medimg-dicom-waveform-label-${instanceNum}-${idx}`"
+            class="medimg-viewer-waveform-label"
             :style="`top:${getChannelLabelOffset(idx) - 10}px`"
         >
             {{ getChannelLabel(firstTraceIndex + displayedTraceCount - n) }}
         </div>
         <!-- Navigator -->
-        <div class="medigi-viewer-waveform-navigator">
+        <div class="medimg-viewer-waveform-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-left" ref="navigator-overlay-left"></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-active" ref="navigator-overlay-active"></div>
-            <div class="medigi-viewer-waveform-navigator-overlay-right" ref="navigator-overlay-right"></div>
+            <div class="medimg-viewer-waveform-navigator-overlay-left" ref="navigator-overlay-left"></div>
+            <div class="medimg-viewer-waveform-navigator-overlay-active" ref="navigator-overlay-active"></div>
+            <div class="medimg-viewer-waveform-navigator-overlay-right" ref="navigator-overlay-right"></div>
         </div>
     </div>
 
@@ -816,7 +816,7 @@ export default Vue.extend({
         // Set ruler scale
         //const hSqr = this.pxPerHorizontalSquare
         //const vSqr = this.pxPerVerticalSquare
-        //;(document.querySelector('.medigi-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
+        //;(document.querySelector('.medimg-viewer-ekg-mousedrag') as HTMLDivElement).style.backgroundSize
         //    = `${vSqr}px ${vSqr}px, ${hSqr}px ${hSqr}px, ${vSqr/5}px ${vSqr/5}px, ${hSqr/5}px ${hSqr/5}px`
         // Load navigator
         ;(this.$refs['navigator-overlay-left'] as HTMLDivElement).style.left = `${this.$store.state.SETTINGS.ekg.margin.left}px`
@@ -833,53 +833,53 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-waveform-trace {
+.medimg-viewer-waveform-trace {
     overflow-x: auto;
 }
-.medigi-viewer-waveform-container {
+.medimg-viewer-waveform-container {
     display: inline-block;
 }
-.medigi-viewer-ekg-mousedrag {
+.medimg-viewer-ekg-mousedrag {
     position: absolute;
     background-color: rgba(255, 0, 0, 0.2);
     pointer-events: none;
     opacity: 0.5;
 }
-    .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler {
-        border-bottom: solid 1px var(--medigi-viewer-border);
+    .medimg-viewer-ekg-mousedrag.medimg-viewer-ekg-ruler {
+        border-bottom: solid 1px var(--medimg-viewer-border);
         background-image:
             linear-gradient(rgba(0, 0, 0, 0.4) 1px, transparent 1px),
             linear-gradient(90deg, rgba(0, 0, 0, 0.4) 1px, transparent 1px),
             linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
             linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
     }
-        .medigi-viewer-ekg-mousedrag.medigi-viewer-ekg-ruler.medigi-viewer-drag-active {
+        .medimg-viewer-ekg-mousedrag.medimg-viewer-ekg-ruler.medimg-viewer-drag-active {
             background-color: rgba(255, 0, 0, 0.1);
-            border-right: solid 1px var(--medigi-viewer-border);
+            border-right: solid 1px var(--medimg-viewer-border);
             opacity: 1;
         }
-    .medigi-viewer-ekg-mousedrag:not(.medigi-viewer-ekg-ruler).medigi-viewer-drag-active {
+    .medimg-viewer-ekg-mousedrag:not(.medimg-viewer-ekg-ruler).medimg-viewer-drag-active {
         background-color: rgba(255, 0, 0, 0.1);
-        border-left: solid 1px var(--medigi-viewer-border);
-        border-right: solid 1px var(--medigi-viewer-border);
+        border-left: solid 1px var(--medimg-viewer-border);
+        border-right: solid 1px var(--medimg-viewer-border);
         opacity: 1;
     }
-.medigi-viewer-ekg-measurements {
+.medimg-viewer-ekg-measurements {
     position: absolute;
-    background-color: var(--medigi-viewer-background-emphasize);
+    background-color: var(--medimg-viewer-background-emphasize);
     padding: 6px 10px;
-    border: solid 1px var(--medigi-viewer-border);
+    border: solid 1px var(--medimg-viewer-border);
     pointer-events: none;
 }
-    .medigi-viewer-ekg-measurements > div > span {
+    .medimg-viewer-ekg-measurements > div > span {
         display: inline-block;
         height: 24px;
         line-height: 24px;
     }
-    .medigi-viewer-ekg-measurements > div > span:nth-child(1) {
+    .medimg-viewer-ekg-measurements > div > span:nth-child(1) {
         width: 80px;
     }
-.medigi-viewer-waveform-label {
+.medimg-viewer-waveform-label {
     position: absolute;
     left: 0px;
     width: 40px;
@@ -887,17 +887,17 @@ export default Vue.extend({
     line-height: 20px;
     text-align: right;
 }
-.medigi-viewer-waveform-navigator {
+.medimg-viewer-waveform-navigator {
     position: relative;
 }
-    .medigi-viewer-waveform-navigator-overlay-left {
+    .medimg-viewer-waveform-navigator-overlay-left {
         position: absolute;
         height: 50px;
         background-color: #FFFFFF;
         opacity: 0.75;
         cursor: default;
     }
-    .medigi-viewer-waveform-navigator-overlay-active {
+    .medimg-viewer-waveform-navigator-overlay-active {
         position: absolute;
         height: 50px;
         background-color: #000000;
@@ -905,7 +905,7 @@ export default Vue.extend({
         cursor: pointer;
         z-index: 1; /* In case the overlays overlap by 1px, prefer this one */
     }
-    .medigi-viewer-waveform-navigator-overlay-right {
+    .medimg-viewer-waveform-navigator-overlay-right {
         position: absolute;
         top: 20px;
         height: 50px;
@@ -914,8 +914,8 @@ export default Vue.extend({
         cursor: default;
     }
 /* Do not allow adjusting the range */
-.medigi-viewer-waveform-wrapper .rangeslider-grabber-min,
-.medigi-viewer-waveform-wrapper .rangeslider-grabber-max {
+.medimg-viewer-waveform-wrapper .rangeslider-grabber-min,
+.medimg-viewer-waveform-wrapper .rangeslider-grabber-max {
     pointer-events: none !important;
 }
 </style>

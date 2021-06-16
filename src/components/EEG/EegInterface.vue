@@ -1,11 +1,11 @@
 <template>
-    <div :id="`${$store.state.appName}-medigi-viewer-eeg-interface`"
+    <div :id="`${$store.state.appName}-medimg-viewer-eeg-interface`"
         :class="[
-            'medigi-viewer-eeg-interface',
-            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+            'medimg-viewer-eeg-interface',
+            { 'medimg-viewer-sidebar-closed': !sidebarOpen },
         ]"
     >
-        <div class="medigi-viewer-toolbar">
+        <div class="medimg-viewer-toolbar">
             <eeg-toolbar
                 :activeItems="activeItems"
                 :allAtEnd="allAtEnd"
@@ -16,17 +16,17 @@
                 v-on:next-page="nextPage()"
             />
         </div>
-        <div class="medigi-viewer-sidebar">
+        <div class="medimg-viewer-sidebar">
             <eeg-sidebar
                 :items="resources"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
             />
         </div>
-        <div ref="media" class="medigi-viewer-media">
-            <div class="medigi-viewer-eegs">
+        <div ref="media" class="medimg-viewer-media">
+            <div class="medimg-viewer-eegs">
                 <eeg-display v-for="(resource, idx) in activeItems"
-                    :key="`${$store.state.appName}-medigi-viewer-eeg-element-${resource.id}`"
+                    :key="`${$store.state.appName}-medimg-viewer-eeg-element-${resource.id}`"
                     :ref="`eeg-element`"
                     :cmPerSec="cmPerSec"
                     :containerSize="singleContainerSize"
@@ -265,7 +265,7 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-eeg-interface {
+.medimg-viewer-eeg-interface {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -278,27 +278,27 @@ export default Vue.extend({
     overflow: auto;
     transition: left 0.5s;
 }
-    .medigi-viewer-eeg-interface.medigi-viewer-sidebar-closed {
+    .medimg-viewer-eeg-interface.medimg-viewer-sidebar-closed {
         left: -240px;
     }
-    .medigi-viewer-eeg-interface > .medigi-viewer-sidebar {
+    .medimg-viewer-eeg-interface > .medimg-viewer-sidebar {
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;
         grid-row-end: bottom-edge;
         overflow: auto;
     }
-    .medigi-viewer-eeg-interface > .medigi-viewer-toolbar {
+    .medimg-viewer-eeg-interface > .medimg-viewer-toolbar {
         grid-column-start: divider;
         grid-row-start: top-edge;
         grid-row-end: divider;
     }
-    .medigi-viewer-eeg-interface > .medigi-viewer-media {
+    .medimg-viewer-eeg-interface > .medimg-viewer-media {
         position: relative;
         grid-column-start: divider;
         grid-row-start: divider;
         margin: 0 10px 10px 0;
-        border: 1px solid var(--medigi-viewer-border-faint);
+        border: 1px solid var(--medimg-viewer-border-faint);
         overflow: hidden; /* Without this DICOM elements do not scale down */
     }
 </style>

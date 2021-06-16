@@ -1,12 +1,12 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-dicom-radiology-interface`"
+    <div :id="`${$store.state.appName}-medimg-viewer-dicom-radiology-interface`"
         :class="[
-            'medigi-viewer-dicom-image-interface',
-            { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+            'medimg-viewer-dicom-image-interface',
+            { 'medimg-viewer-sidebar-closed': !sidebarOpen },
         ]"
     >
-        <div class="medigi-viewer-toolbar">
+        <div class="medimg-viewer-toolbar">
             <radiology-toolbar
                 :allLinked="allResourcesLinked"
                 :anyActive="anyActiveItem"
@@ -17,7 +17,7 @@
                 v-on:link-all-resources="linkAllResources"
             />
         </div>
-        <div class="medigi-viewer-sidebar">
+        <div class="medimg-viewer-sidebar">
             <radiology-sidebar
                 ref="sidebar"
                 :allowSorting="!gridLayout || !gridLayout[0] || !gridLayout[1]"
@@ -28,12 +28,12 @@
                 v-on:update-item-order="$emit('update-item-order', $event)"
             />
         </div>
-        <div ref="media" class="medigi-viewer-media">
-            <div class="medigi-viewer-images">
+        <div ref="media" class="medimg-viewer-media">
+            <div class="medimg-viewer-images">
                 <!-- Add active DICOM images and placeholders -->
                 <component v-for="(resource, idx) in activeItems"
                     :is="resource ? 'dicom-image-display' : 'dicom-image-placeholder'"
-                    :key="`${$store.state.appName}-medigi-viewer-element-${resource ? resource.id : idx}`"
+                    :key="`${$store.state.appName}-medimg-viewer-element-${resource ? resource.id : idx}`"
                     ref="dicom-element"
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
@@ -44,7 +44,7 @@
                 />
                 <!-- Add a necessary amount of placeholder elements -->
                 <dicom-image-placeholder v-for="idx in getEmptyLayoutCells()"
-                    :key="`${$store.state.appName}-medigi-viewer-placeholder-${idx}`"
+                    :key="`${$store.state.appName}-medimg-viewer-placeholder-${idx}`"
                     :containerSize="mediaContainerSize"
                     :layoutPosition="getElementLayoutPosition(idx)"
                     :resource="undefined"
@@ -420,24 +420,24 @@ export default Vue.extend({
             this.gridLayout = layout
         },
         toggleColorTheme: function (light?: boolean) {
-            const appEl = document.getElementById(`${this.$store.state.appName}-medigi-viewer`)
+            const appEl = document.getElementById(`${this.$store.state.appName}-medimg-viewer`)
             if (appEl) {
-                appEl.classList.add('medigi-viewer-theme-change')
+                appEl.classList.add('medimg-viewer-theme-change')
                 this.$nextTick(() => {
                     if (light === undefined) {
-                        if (appEl.classList.contains('medigi-viewer-dark-mode')) {
-                            appEl.classList.remove('medigi-viewer-dark-mode')
-                            appEl.classList.add('medigi-viewer-light-mode')
+                        if (appEl.classList.contains('medimg-viewer-dark-mode')) {
+                            appEl.classList.remove('medimg-viewer-dark-mode')
+                            appEl.classList.add('medimg-viewer-light-mode')
                         } else {
-                            appEl.classList.remove('medigi-viewer-light-mode')
-                            appEl.classList.add('medigi-viewer-dark-mode')
+                            appEl.classList.remove('medimg-viewer-light-mode')
+                            appEl.classList.add('medimg-viewer-dark-mode')
                         }
                     } else if (light) {
-                        appEl.classList.remove('medigi-viewer-dark-mode')
-                        appEl.classList.add('medigi-viewer-light-mode')
+                        appEl.classList.remove('medimg-viewer-dark-mode')
+                        appEl.classList.add('medimg-viewer-light-mode')
                     } else {
-                        appEl.classList.remove('medigi-viewer-light-mode')
-                        appEl.classList.add('medigi-viewer-dark-mode')
+                        appEl.classList.remove('medimg-viewer-light-mode')
+                        appEl.classList.add('medimg-viewer-dark-mode')
                     }
                 })
                 if (this.themeChange) {
@@ -448,7 +448,7 @@ export default Vue.extend({
                 // 2. It forces Chromium browsers to update the color of text and icons
                 //    (which sometimes takes AGES, for some reason)
                 this.themeChange = window.setTimeout(() => {
-                    appEl.classList.remove('medigi-viewer-theme-change')
+                    appEl.classList.remove('medimg-viewer-theme-change')
                 }, 2100)
             }
         },
@@ -593,7 +593,7 @@ export default Vue.extend({
 </script>
 
 <style>
-.medigi-viewer-dicom-image-interface {
+.medimg-viewer-dicom-image-interface {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -606,26 +606,26 @@ export default Vue.extend({
     overflow: auto;
     transition: left 0.5s;
 }
-    .medigi-viewer-dicom-image-interface.medigi-viewer-sidebar-closed {
+    .medimg-viewer-dicom-image-interface.medimg-viewer-sidebar-closed {
         left: -240px;
     }
-    .medigi-viewer-dicom-image-interface > .medigi-viewer-sidebar {
+    .medimg-viewer-dicom-image-interface > .medimg-viewer-sidebar {
         grid-column-start: left-edge;
         grid-column-end: divider;
         grid-row-start: top-edge;
         grid-row-end: bottom-edge;
         overflow: auto;
     }
-    .medigi-viewer-dicom-image-interface > .medigi-viewer-toolbar {
+    .medimg-viewer-dicom-image-interface > .medimg-viewer-toolbar {
         grid-column-start: divider;
         grid-row-start: top-edge;
         grid-row-end: divider;
     }
-    .medigi-viewer-dicom-image-interface > .medigi-viewer-media {
+    .medimg-viewer-dicom-image-interface > .medimg-viewer-media {
         grid-column-start: divider;
         grid-row-start: divider;
         margin: 0 10px 10px 0;
-        border: 1px solid var(--medigi-viewer-border-faint);
+        border: 1px solid var(--medimg-viewer-border-faint);
         overflow: hidden; /* Without this DICOM elements do not scale down */
     }
 </style>

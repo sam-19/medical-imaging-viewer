@@ -1,13 +1,13 @@
-/** MEDIGI VIEWER MAIN VIEWER COMPONENT TESTS
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER MAIN VIEWER COMPONENT TESTS
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */
 
 import { createLocalVue, shallowMount } from '@vue/test-utils'
-import { MEDigiI18n } from '../../src/i18n'
+import { MedImgI18n } from '../../src/i18n'
 const localVue = createLocalVue()
-const i18n = new MEDigiI18n().setup(localVue)
+const i18n = new MedImgI18n().setup(localVue)
 // Jest doesn't handle vue component imports well
 jest.mock('vue-fullscreen/src/component.vue', () => {})
 

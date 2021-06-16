@@ -1,30 +1,30 @@
 <template>
-    <div class="medigi-viewer-settings-modal">
-        <div class="medigi-viewer-settings-modal-title">
+    <div class="medimg-viewer-settings-modal">
+        <div class="medimg-viewer-settings-modal-title">
             {{ t('Settings') }}
         </div>
         <!-- TABS -->
         <!-- First tab depends on scope, and that is the default open tab -->
-        <div class="medigi-viewer-settings-modal-tabs">
+        <div class="medimg-viewer-settings-modal-tabs">
             <div v-if="scope === 'eeg'" :class="[
-                    'medigi-viewer-settings-modal-tab',
-                    { 'medigi-viewer-settings-modal-tab-blurred': tab !== 'eeg' }
+                    'medimg-viewer-settings-modal-tab',
+                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'eeg' }
                 ]"
                 @click="selectTab('eeg')"
             >
                 {{ t('EEG') }}
             </div>
             <div v-if="scope === 'ekg'" :class="[
-                    'medigi-viewer-settings-modal-tab',
-                    { 'medigi-viewer-settings-modal-tab-blurred': tab !== 'ekg' }
+                    'medimg-viewer-settings-modal-tab',
+                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'ekg' }
                 ]"
                 @click="selectTab('ekg')"
             >
                 {{ t('EKG') }}
             </div>
             <div v-if="scope === 'radiology'" :class="[
-                    'medigi-viewer-settings-modal-tab',
-                    { 'medigi-viewer-settings-modal-tab-blurred': tab !== 'radiology' }
+                    'medimg-viewer-settings-modal-tab',
+                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'radiology' }
                 ]"
                 @click="selectTab('radiology')"
             >
@@ -32,14 +32,14 @@
             </div>
             <!-- Main settings tab is always available -->
             <div :class="[
-                    'medigi-viewer-settings-modal-tab',
-                    { 'medigi-viewer-settings-modal-tab-blurred': tab !== 'general' }
+                    'medimg-viewer-settings-modal-tab',
+                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'general' }
                 ]"
                 @click="selectTab('general')"
             >
                 {{ t('General') }}
             </div>
-            <div class="medigi-viewer-settings-modal-tabend">
+            <div class="medimg-viewer-settings-modal-tabend">
                 <label>
                     <input type="checkbox" v-model="saveSettings" />
                     {{ t('Save settings') }}
@@ -48,15 +48,15 @@
         </div>
         <div style="clear:both"></div>
         <!-- SETTINGS -->
-        <div v-if="tab === 'eeg'" class="medigi-viewer-settings-modal-content">
-            <div class="medigi-viewer-settings-modal-row">
+        <div v-if="tab === 'eeg'" class="medimg-viewer-settings-modal-content">
+            <div class="medimg-viewer-settings-modal-row">
                 {{ t('EEG') }}
             </div>
-            <div class="medigi-viewer-settings-modal-row">
-                <div class="medigi-viewer-settings-modal-label">
+            <div class="medimg-viewer-settings-modal-row">
+                <div class="medimg-viewer-settings-modal-label">
                     {{ t('Signal polarity') }}
                 </div>
-                <div class="medigi-viewer-settings-modal-value">
+                <div class="medimg-viewer-settings-modal-value">
                     <select v-model="eegSignalPolarity">
                         <option :value="-1">{{ t('Negative') }}</option>
                         <option :value="1">{{ t('Positive') }}</option>
@@ -65,25 +65,25 @@
                 </div>
             </div>
         </div>
-        <div v-else-if="tab === 'ekg'" class="medigi-viewer-settings-modal-content">
-            <div class="medigi-viewer-settings-modal-row">
+        <div v-else-if="tab === 'ekg'" class="medimg-viewer-settings-modal-content">
+            <div class="medimg-viewer-settings-modal-row">
                 {{ t('EKG') }}
             </div>
         </div>
-        <div v-else-if="tab === 'radiology'" class="medigi-viewer-settings-modal-content">
-            <div class="medigi-viewer-settings-modal-row">
+        <div v-else-if="tab === 'radiology'" class="medimg-viewer-settings-modal-content">
+            <div class="medimg-viewer-settings-modal-row">
                 {{ t('Radiology') }}
             </div>
         </div>
-        <div v-else class="medigi-viewer-settings-modal-content">
-            <div class="medigi-viewer-settings-modal-topic">
+        <div v-else class="medimg-viewer-settings-modal-content">
+            <div class="medimg-viewer-settings-modal-topic">
                 {{ t('Language settings') }}
             </div>
-            <div class="medigi-viewer-settings-modal-row">
-                <div class="medigi-viewer-settings-modal-label">
+            <div class="medimg-viewer-settings-modal-row">
+                <div class="medimg-viewer-settings-modal-label">
                     {{ t('Interface language') }}
                 </div>
-                <div class="medigi-viewer-settings-modal-value">
+                <div class="medimg-viewer-settings-modal-value">
                     <!-- TODO: Create config and fetch values from there -->
                     <select v-model="appLocale">
                         <option value="en">{{ t('English') }}</option>
@@ -93,15 +93,15 @@
                 </div>
             </div>
             <hr />
-            <div class="medigi-viewer-settings-modal-topic">
+            <div class="medimg-viewer-settings-modal-topic">
                 {{ t('Display settings') }}
             </div>
-            <div class="medigi-viewer-settings-modal-row">
-                <div class="medigi-viewer-settings-modal-label">
+            <div class="medimg-viewer-settings-modal-row">
+                <div class="medimg-viewer-settings-modal-label">
                     {{ t('Screen PPI') }}
                     <font-awesome-icon :icon="['fad', 'question-circle']" style="cursor:help" :title="t('Screen PPI:help')" />
                 </div>
-                <div class="medigi-viewer-settings-modal-value">
+                <div class="medimg-viewer-settings-modal-value">
                     <input type="number" min="72" max="1000" step="1" v-model="appPPI" />
                     <font-awesome-icon
                         :icon="['far', 'undo-alt']"
@@ -110,7 +110,7 @@
                         @click="appPPI = originalPPI"
                     />
                 </div>
-                <div class="medigi-viewer-settings-modal-ppi-scale" :style="ppiScaleStyle"></div>
+                <div class="medimg-viewer-settings-modal-ppi-scale" :style="ppiScaleStyle"></div>
             </div>
         </div>
     </div>
@@ -178,9 +178,9 @@ export default Vue.extend({
             if (!this.saveSettings) {
                 return
             }
-            const localSettings = JSON.parse(window.localStorage.getItem('medigiViewerSettings') || '{}')
+            const localSettings = JSON.parse(window.localStorage.getItem('medimgViewerSettings') || '{}')
             localSettings[setting as keyof typeof localSettings] = value
-            window.localStorage.setItem('medigiViewerSettings', JSON.stringify(localSettings))
+            window.localStorage.setItem('medimgViewerSettings', JSON.stringify(localSettings))
         },
     },
 })
@@ -192,81 +192,81 @@ export default Vue.extend({
 label {
     cursor: pointer;
 }
-.medigi-viewer-settings-modal {
+.medimg-viewer-settings-modal {
     width: 620px;
     margin: 30px auto;
     padding: 10px;
     height: calc(100% - 60px);
-    background-color: var(--medigi-viewer-background);
+    background-color: var(--medimg-viewer-background);
 }
-.medigi-viewer-settings-modal-title {
+.medimg-viewer-settings-modal-title {
     height: 48px;
     line-height: 40px;
     font-size: 32px;
 }
-.medigi-viewer-settings-modal-tabs {
+.medimg-viewer-settings-modal-tabs {
     display: flex;
     height: 32px;
     line-height: 32px;
 }
-    .medigi-viewer-settings-modal-tab {
+    .medimg-viewer-settings-modal-tab {
         flex-grow: 0;
         padding: 0 10px;
-        border: 1px solid var(--medigi-viewer-border-faint);
+        border: 1px solid var(--medimg-viewer-border-faint);
         border-right: none;
         border-bottom: none;
         cursor: pointer;
     }
-        .medigi-viewer-settings-modal-tab-blurred {
-            border-bottom: 1px solid var(--medigi-viewer-border-faint);
-            color: var(--medigi-viewer-text-faint);
+        .medimg-viewer-settings-modal-tab-blurred {
+            border-bottom: 1px solid var(--medimg-viewer-border-faint);
+            color: var(--medimg-viewer-text-faint);
         }
-    .medigi-viewer-settings-modal-tabend {
+    .medimg-viewer-settings-modal-tabend {
         flex-grow: 1;
-        border: 1px solid var(--medigi-viewer-border-faint);
+        border: 1px solid var(--medimg-viewer-border-faint);
         border-top: none;
         border-right: none;
         text-align: right;
     }
-.medigi-viewer-settings-modal-content {
+.medimg-viewer-settings-modal-content {
     height: calc(100% - 80px);
     padding: 10px;
-    border: 1px solid var(--medigi-viewer-border-faint);
+    border: 1px solid var(--medimg-viewer-border-faint);
     border-top: none !important;
 }
-    .medigi-viewer-settings-modal-content > hr {
-        border-color: var(--medigi-viewer-border-faint);
+    .medimg-viewer-settings-modal-content > hr {
+        border-color: var(--medimg-viewer-border-faint);
         border-style: solid none none;
         border-width: 1px 0px 0px;
     }
-    .medigi-viewer-settings-modal-topic {
+    .medimg-viewer-settings-modal-topic {
         height: 36px;
         line-height: 36px;
         font-variant: small-caps;
     }
-    .medigi-viewer-settings-modal-row {
+    .medimg-viewer-settings-modal-row {
         height: 36px;
         line-height: 36px;
     }
-        .medigi-viewer-settings-modal-label {
+        .medimg-viewer-settings-modal-label {
             display: inline-block;
             width: 190px;
         }
-        .medigi-viewer-settings-modal-value {
+        .medimg-viewer-settings-modal-value {
             display: inline-block;
             width: 383px;
         }
-            .medigi-viewer-settings-modal-value input[type=text],
-            .medigi-viewer-settings-modal-value input[type=number],
-            .medigi-viewer-settings-modal-value select {
+            .medimg-viewer-settings-modal-value input[type=text],
+            .medimg-viewer-settings-modal-value input[type=number],
+            .medimg-viewer-settings-modal-value select {
                 height: 24px;
                 width: 200px;
             }
-        .medigi-viewer-settings-modal-ppi-scale {
+        .medimg-viewer-settings-modal-ppi-scale {
             height: 10px;
             margin: 5px 0 0 194px;
-            border: 1px solid var(--medigi-viewer-border-faint);
-            background-color: var(--medigi-viewer-background-highlight);
+            border: 1px solid var(--medimg-viewer-border-faint);
+            background-color: var(--medimg-viewer-background-highlight);
         }
 
 </style>

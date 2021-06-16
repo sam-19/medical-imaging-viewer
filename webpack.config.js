@@ -3,7 +3,7 @@ const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
     entry: {
-        'medigi-viewer': { import: path.join(__dirname, 'src', 'index.ts') },
+        'medimg-viewer': { import: path.join(__dirname, 'src', 'index.ts') },
     },
     externals: {
         /* These libraries will be very big if compiled into the source */

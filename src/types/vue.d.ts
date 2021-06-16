@@ -1,5 +1,5 @@
-/** MEDIGI VIEWER GLOBAL TYPES
- * @package    medigi-viewer
+/** MEDICAL IMAGING VIEWER GLOBAL TYPES
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

@@ -1,7 +1,7 @@
-Contributing to MEDigi Medical Imaging Viewer
-=============================================
+Contributing to Medical Imaging Viewer
+======================================
 
-MEDigi Medical Imaging Viewer is an open source project. Contributions to the project are welcome, provided that they follow the code of conduct and guidelines detailed below.
+Medical Imaging Viewer is an open source project. Contributions to the project are welcome, provided that they follow the code of conduct and guidelines detailed below.
 
 ## Code of Conduct
 

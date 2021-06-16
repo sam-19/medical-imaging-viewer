@@ -1,29 +1,29 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer`" ref="app" class="medigi-viewer medigi-viewer-dark-mode">
+    <div :id="`${$store.state.appName}-medimg-viewer`" ref="app" class="medimg-viewer medimg-viewer-dark-mode">
         <div :class="[
-                'medigi-viewer-settings',
-                { 'medigi-viewer-hidden': !$store.state.settingsOpen },
+                'medimg-viewer-settings',
+                { 'medimg-viewer-hidden': !$store.state.settingsOpen },
             ]"
             @click="handleModalClick"
         >
             <viewer-settings :scope="scope"></viewer-settings>
         </div>
         <div :class="[
-                'medigi-viewer-interface-dropdown',
-                { 'medigi-viewer-interface-dropdown-open' : menuOpen },
-                { 'medigi-viewer-sidebar-closed': !sidebarOpen },
+                'medimg-viewer-interface-dropdown',
+                { 'medimg-viewer-interface-dropdown-open' : menuOpen },
+                { 'medimg-viewer-sidebar-closed': !sidebarOpen },
             ]"
             @mouseleave="toggleMenu(false)"
         >
             <div v-if="activeVisit"
-                class="medigi-viewer-oneliner"
+                class="medimg-viewer-oneliner"
                 @click="toggleMenu()"
             >
                 {{ getVisitTitle() }}
             </div>
             <div v-else
-                class="medigi-viewer-oneliner"
+                class="medimg-viewer-oneliner"
                 @click="toggleMenu()"
             >
                 {{ t('No visit selected') }}
@@ -35,14 +35,14 @@
             />
             <ul>
                 <li v-for="(visit, idx) in visits" :key="`${$store.state.appName}-visit-option-${idx}`">
-                    <div class="medigi-viewer-visit-title medigi-viewer-oneliner">
+                    <div class="medimg-viewer-visit-title medimg-viewer-oneliner">
                         {{ getVisitTitle(idx) }}
-                        <div v-if="visit.date" class="medigi-viewer-visit-date medigi-viewer-oneliner">
+                        <div v-if="visit.date" class="medimg-viewer-visit-date medimg-viewer-oneliner">
                             {{ getLocalDatetime(visit.date) }}
                         </div>
                     </div>
                     <div v-if="visit.studies.eeg.length"
-                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
+                        class="medimg-viewer-visit-studies medimg-viewer-oneliner"
                         @click="selectActiveResource(visit, 'eeg')"
                     >
                         {{
@@ -51,7 +51,7 @@
                         }}
                     </div>
                     <div v-if="visit.studies.ekg.length"
-                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
+                        class="medimg-viewer-visit-studies medimg-viewer-oneliner"
                         @click="selectActiveResource(visit, 'ekg')"
                     >
                         {{
@@ -60,7 +60,7 @@
                         }}
                     </div>
                     <div v-if="visit.studies.radiology.length"
-                        class="medigi-viewer-visit-studies medigi-viewer-oneliner"
+                        class="medimg-viewer-visit-studies medimg-viewer-oneliner"
                          @click="selectActiveResource(visit, 'radiology')"
                     >
                         {{
@@ -71,7 +71,7 @@
                 </li>
             </ul>
         </div>
-        <div class="medigi-viewer-settings-button">
+        <div class="medimg-viewer-settings-button">
             <toolbar-button
                 id="settings"
                 :enabled="true"
@@ -82,15 +82,15 @@
             />
         </div>
         <div :class="[
-                'medigi-viewer-settings-menu',
-                { 'medigi-viewer-hidden' : !settingsMenuOpen }
+                'medimg-viewer-settings-menu',
+                { 'medimg-viewer-hidden' : !settingsMenuOpen }
             ]"
         >
-            <div v-if="fullscreen !== null" class="medigi-viewer-settings-menu-row" @click="toggleFullscreen()">
+            <div v-if="fullscreen !== null" class="medimg-viewer-settings-menu-row" @click="toggleFullscreen()">
                 <font-awesome-icon :icon="['far', fullscreen ? 'compress' : 'expand']" />
                 {{ t('Fullscreen') }}
             </div>
-            <div class="medigi-viewer-settings-menu-row" @click="toggleSettings()">
+            <div class="medimg-viewer-settings-menu-row" @click="toggleSettings()">
                 <font-awesome-icon :icon="['far', 'cog']" />
                 {{ t('Settings') }}
             </div>
@@ -230,7 +230,7 @@ export default Vue.extend({
         },
         handleModalClick: function (ev: any) {
             // Close the settings modal if the underlying (semi-transparent) background was clicked
-            if (ev.target === document.querySelector('div.medigi-viewer-settings')) {
+            if (ev.target === document.querySelector('div.medimg-viewer-settings')) {
                 this.$store.commit('toggle-settings', false)
             }
         },
@@ -291,24 +291,24 @@ export default Vue.extend({
             this.toggleMenu(false)
         },
         toggleColorTheme: function (light?: boolean) {
-            const appEl = document.getElementById(`${this.$store.state.appName}-medigi-viewer`)
+            const appEl = document.getElementById(`${this.$store.state.appName}-medimg-viewer`)
             if (appEl) {
-                appEl.classList.add('medigi-viewer-theme-change')
+                appEl.classList.add('medimg-viewer-theme-change')
                 this.$nextTick(() => {
                     if (light === undefined) {
-                        if (appEl.classList.contains('medigi-viewer-dark-mode')) {
-                            appEl.classList.remove('medigi-viewer-dark-mode')
-                            appEl.classList.add('medigi-viewer-light-mode')
+                        if (appEl.classList.contains('medimg-viewer-dark-mode')) {
+                            appEl.classList.remove('medimg-viewer-dark-mode')
+                            appEl.classList.add('medimg-viewer-light-mode')
                         } else {
-                            appEl.classList.remove('medigi-viewer-light-mode')
-                            appEl.classList.add('medigi-viewer-dark-mode')
+                            appEl.classList.remove('medimg-viewer-light-mode')
+                            appEl.classList.add('medimg-viewer-dark-mode')
                         }
                     } else if (light) {
-                        appEl.classList.remove('medigi-viewer-dark-mode')
-                        appEl.classList.add('medigi-viewer-light-mode')
+                        appEl.classList.remove('medimg-viewer-dark-mode')
+                        appEl.classList.add('medimg-viewer-light-mode')
                     } else {
-                        appEl.classList.remove('medigi-viewer-light-mode')
-                        appEl.classList.add('medigi-viewer-dark-mode')
+                        appEl.classList.remove('medimg-viewer-light-mode')
+                        appEl.classList.add('medimg-viewer-dark-mode')
                     }
                 })
                 if (this.themeChange) {
@@ -319,7 +319,7 @@ export default Vue.extend({
                 // 2. It forces Chromium browsers to update the color of text and icons
                 //    (which sometimes takes AGES, for some reason)
                 this.themeChange = window.setTimeout(() => {
-                    appEl.classList.remove('medigi-viewer-theme-change')
+                    appEl.classList.remove('medimg-viewer-theme-change')
                 }, 2100)
             }
         },
@@ -396,59 +396,59 @@ export default Vue.extend({
 
 <style>
 /* Global app styles */
-.medigi-viewer-theme-change, .medigi-viewer-theme-change * {
+.medimg-viewer-theme-change, .medimg-viewer-theme-change * {
     -ms-transition: background-color 1.0s ease, border-color 1.0s ease;
     -moz-transition: background-color 1.0s ease, border-color 1.0s ease;
     -webkit-transition: background-color 1.0s ease, border-color 1.0s ease;
     transition: background-color 1.0s ease, border-color 1.0s ease;
 }
-.medigi-viewer-dark-mode, .medigi-viewer-dark-mode * {
-    --medigi-viewer-background: #000000;
-    --medigi-viewer-background-highlight: #181818;
-    --medigi-viewer-background-emphasize: #303030;
-    --medigi-viewer-background-modal: rgba(0, 0, 0, 0.7);
-    --medigi-viewer-border: #C0C0C0;
-    --medigi-viewer-border-faint: #606060;
-    --medigi-viewer-border-highlight: #F0F0F0;
-    --medigi-viewer-text-main: #E0E0E0;
-    --medigi-viewer-text-highlight: #F0F0F0;
-    --medigi-viewer-text-minor: #C0C0C0;
-    --medigi-viewer-text-faint: #808080;
+.medimg-viewer-dark-mode, .medimg-viewer-dark-mode * {
+    --medimg-viewer-background: #000000;
+    --medimg-viewer-background-highlight: #181818;
+    --medimg-viewer-background-emphasize: #303030;
+    --medimg-viewer-background-modal: rgba(0, 0, 0, 0.7);
+    --medimg-viewer-border: #C0C0C0;
+    --medimg-viewer-border-faint: #606060;
+    --medimg-viewer-border-highlight: #F0F0F0;
+    --medimg-viewer-text-main: #E0E0E0;
+    --medimg-viewer-text-highlight: #F0F0F0;
+    --medimg-viewer-text-minor: #C0C0C0;
+    --medimg-viewer-text-faint: #808080;
 }
-.medigi-viewer-light-mode, .medigi-viewer-light-mode * {
-    --medigi-viewer-background: #FFFFFF;
-    --medigi-viewer-background-highlight: #F8F8F8;
-    --medigi-viewer-background-emphasize: #F0F0F0;
-    --medigi-viewer-background-modal: rgba(255, 255, 255, 0.7);
-    --medigi-viewer-border: #808080;
-    --medigi-viewer-border-faint: #A0A0A0;
-    --medigi-viewer-border-highlight: #404040;
-    --medigi-viewer-text-main: #303030;
-    --medigi-viewer-text-highlight: #101010;
-    --medigi-viewer-text-minor: #606060;
-    --medigi-viewer-text-faint: #909090;
+.medimg-viewer-light-mode, .medimg-viewer-light-mode * {
+    --medimg-viewer-background: #FFFFFF;
+    --medimg-viewer-background-highlight: #F8F8F8;
+    --medimg-viewer-background-emphasize: #F0F0F0;
+    --medimg-viewer-background-modal: rgba(255, 255, 255, 0.7);
+    --medimg-viewer-border: #808080;
+    --medimg-viewer-border-faint: #A0A0A0;
+    --medimg-viewer-border-highlight: #404040;
+    --medimg-viewer-text-main: #303030;
+    --medimg-viewer-text-highlight: #101010;
+    --medimg-viewer-text-minor: #606060;
+    --medimg-viewer-text-faint: #909090;
 }
 /* Use prettier and more consistent scrollbars */
-.medigi-viewer *::-webkit-scrollbar {
+.medimg-viewer *::-webkit-scrollbar {
     width: 0px;
     height: 0px;
 }
-.medigi-viewer *::-webkit-scrollbar-thumb {
-    color: var(--medigi-viewer-border-faint);
+.medimg-viewer *::-webkit-scrollbar-thumb {
+    color: var(--medimg-viewer-border-faint);
     border-radius: 5px;
 }
-.medigi-viewer *::-webkit-scrollbar-track-piece {
+.medimg-viewer *::-webkit-scrollbar-track-piece {
     background-color: transparent;
 }
 /* Main app view component styles */
-.medigi-viewer {
+.medimg-viewer {
     position: relative;
     width: 100%;
     height: 100%;
-    color: var(--medigi-viewer-text-main);
-    background-color: var(--medigi-viewer-background);
+    color: var(--medimg-viewer-text-main);
+    background-color: var(--medimg-viewer-background);
 }
-.medigi-viewer * {
+.medimg-viewer * {
     /* Don't allow selecting text by default */
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -458,36 +458,36 @@ export default Vue.extend({
     /* Set scrollbar width for Firefox */
     scrollbar-width: none;
 }
-    .medigi-viewer div {
+    .medimg-viewer div {
         box-sizing: border-box;
     }
-    .medigi-viewer-disabled {
+    .medimg-viewer-disabled {
         opacity: 0.5;
         cursor: default;
     }
-    .medigi-viewer-hidden {
+    .medimg-viewer-hidden {
         display: none !important;
     }
-    .medigi-viewer-oneliner {
+    .medimg-viewer-oneliner {
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
     }
-    .medigi-viewer-settings {
+    .medimg-viewer-settings {
         position: absolute;
         inset: 0;
         z-index: 900;
-        background-color: var(--medigi-viewer-background-modal);
+        background-color: var(--medimg-viewer-background-modal);
     }
-    .medigi-viewer-interface-dropdown {
+    .medimg-viewer-interface-dropdown {
         position: absolute;
         top: 10px;
         left: 10px;
         height: 60px;
         width: 280px;
-        border: solid 2px var(--medigi-viewer-border);
+        border: solid 2px var(--medimg-viewer-border);
         border-radius: 5px;
-        background-color: var(--medigi-viewer-background);
+        background-color: var(--medimg-viewer-background);
         font-size: 24px;
         line-height: 56px;
         font-size: 16px;
@@ -496,30 +496,30 @@ export default Vue.extend({
         z-index: 1;
         transition: left 0.5s;
     }
-        .medigi-viewer-interface-dropdown-open {
+        .medimg-viewer-interface-dropdown-open {
             opacity: 1.0;
             height: auto;
         }
-        .medigi-viewer-interface-dropdown.medigi-viewer-sidebar-closed {
+        .medimg-viewer-interface-dropdown.medimg-viewer-sidebar-closed {
             left: -230px;
         }
-        .medigi-viewer-interface-dropdown > div {
+        .medimg-viewer-interface-dropdown > div {
             width: 210px;
             height: 56px;
             margin: 0 10px;
             font-size: 18px;
         }
-        .medigi-viewer-interface-dropdown > svg {
+        .medimg-viewer-interface-dropdown > svg {
             position: absolute;
             right: 10px;
             top: 10px;
             font-size: 36px;
             opacity: 0.5;
         }
-            .medigi-viewer-interface-dropdown > svg:hover {
+            .medimg-viewer-interface-dropdown > svg:hover {
                 opacity: 0.75;
             }
-        .medigi-viewer-interface-dropdown > ul {
+        .medimg-viewer-interface-dropdown > ul {
             display: none;
             width: 100%;
             list-style-type: none;
@@ -529,60 +529,60 @@ export default Vue.extend({
             margin-block-end: 0;
             padding-inline-start: 0;
         }
-            .medigi-viewer-interface-dropdown > ul > li > div {
+            .medimg-viewer-interface-dropdown > ul > li > div {
                 line-height: 30px;
                 padding: 5px 10px;
             }
-                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-title {
+                .medimg-viewer-interface-dropdown > ul > li > .medimg-viewer-visit-title {
                     font-weight: bold;
                     cursor: default;
-                    border-top: solid 1px var(--medigi-viewer-border-faint);
-                    background-color: var(--medigi-viewer-background-emphasize);
+                    border-top: solid 1px var(--medimg-viewer-border-faint);
+                    background-color: var(--medimg-viewer-background-emphasize);
                 }
-                .medigi-viewer-interface-dropdown > ul > li .medigi-viewer-visit-date {
+                .medimg-viewer-interface-dropdown > ul > li .medimg-viewer-visit-date {
                     height: 20px;
                     line-height: 20px;
                     font-size: 80%;
                     font-weight: normal;
-                    color: var(--medigi-viewer-text-minor);
-                    background-color: var(--medigi-viewer-background-emphasize);
+                    color: var(--medimg-viewer-text-minor);
+                    background-color: var(--medimg-viewer-background-emphasize);
                 }
-                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-studies {
+                .medimg-viewer-interface-dropdown > ul > li > .medimg-viewer-visit-studies {
                     padding-left: 15px;
                 }
-                .medigi-viewer-interface-dropdown > ul > li > .medigi-viewer-visit-studies:hover {
-                    background-color: var(--medigi-viewer-background-highlight);
+                .medimg-viewer-interface-dropdown > ul > li > .medimg-viewer-visit-studies:hover {
+                    background-color: var(--medimg-viewer-background-highlight);
                 }
-        .medigi-viewer-interface-dropdown-open > ul {
+        .medimg-viewer-interface-dropdown-open > ul {
             display: block;
         }
-    .medigi-viewer-settings-button {
+    .medimg-viewer-settings-button {
         position: absolute;
         right: 0px;
         top: 10px;
         padding-left: 10px;
         z-index: 1000; /* On top of modal */
-        background-color: var(--medigi-viewer-background);
+        background-color: var(--medimg-viewer-background);
     }
-    .medigi-viewer-settings-menu {
+    .medimg-viewer-settings-menu {
         position: absolute;
         top: 80px;
         right: 10px;
-        background-color: var(--medigi-viewer-background);
-        border-left: solid 1px var(--medigi-viewer-border-faint);
-        border-bottom: solid 1px var(--medigi-viewer-border-faint);
+        background-color: var(--medimg-viewer-background);
+        border-left: solid 1px var(--medimg-viewer-border-faint);
+        border-bottom: solid 1px var(--medimg-viewer-border-faint);
         z-index: 500;
     }
-        .medigi-viewer-settings-menu-row {
+        .medimg-viewer-settings-menu-row {
             height: 32px;
             line-height: 32px;
             padding: 0 10px;
             cursor: pointer;
         }
-            .medigi-viewer-settings-menu-row:hover {
-                background-color: var(--medigi-viewer-background-emphasize);
+            .medimg-viewer-settings-menu-row:hover {
+                background-color: var(--medimg-viewer-background-emphasize);
             }
-            .medigi-viewer-settings-menu-row > svg {
+            .medimg-viewer-settings-menu-row > svg {
                 margin-right: 5px;
             }
 </style>

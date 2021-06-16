@@ -1,6 +1,6 @@
-/** MEDIGI VIEWER LOCAL FILE LOADER
+/** MEDICAL IMAGING VIEWER LOCAL FILE LOADER
  * Loads drag-n-drop files from the local filesystem.
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

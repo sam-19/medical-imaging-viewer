@@ -1,7 +1,7 @@
-/** MEDIGI VIEWER DICOM VALUE REPRESENTATIONS
+/** MEDICAL IMAGING VIEWER DICOM VALUE REPRESENTATIONS
  * This class contains the standard DICOM Value Representations according to the 2017 standard.
  * See http://dicom.nema.org/medical/Dicom/2017c/output/chtml/part05/sect_6.2.html
- * @package    medigi-viewer
+ * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
  */

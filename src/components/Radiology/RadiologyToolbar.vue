@@ -1,9 +1,9 @@
 <template>
 
-    <div :id="`${$store.state.appName}-medigi-viewer-radiology-toolbar`">
+    <div :id="`${$store.state.appName}-medimg-viewer-radiology-toolbar`">
         <div v-if="activeGroup"
             :class="[
-                'medigi-viewer-toolbar-buttongroup',
+                'medimg-viewer-toolbar-buttongroup',
             ]"
             :style="`left:${activeGroupOffset}px`"
         >
@@ -15,9 +15,9 @@
                 :overlay="button.overlay"
                 :tooltip="`Radiology.${button.tooltip}`"
                 :class="[
-                    { 'medigi-viewer-disabled': !button.enabled },
+                    { 'medimg-viewer-disabled': !button.enabled },
                     { 'element-active': typeof button.active === 'function' ? button.active() : button.active },
-                    { 'medigi-viewer-toolbar-setfirst': button.setFirst }
+                    { 'medimg-viewer-toolbar-setfirst': button.setFirst }
                 ]"
                 @button-clicked="buttonClicked($event, activeGroup)"
             />
@@ -31,9 +31,9 @@
             :overlay="button.overlay"
             :tooltip="`Radiology.${button.tooltip}`"
             :class="[
-                { 'medigi-viewer-disabled': !button.enabled },
+                { 'medimg-viewer-disabled': !button.enabled },
                 { 'element-active': typeof button.active === 'function' ? button.active() : button.active },
-                { 'medigi-viewer-toolbar-setfirst': button.setFirst }
+                { 'medimg-viewer-toolbar-setfirst': button.setFirst }
             ]"
             @button-clicked="buttonClicked"
         />
@@ -778,19 +778,19 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.medigi-viewer-toolbar > div {
+.medimg-viewer-toolbar > div {
     position: relative;
     display: flex;
     padding: 10px 0;
 }
-.medigi-viewer-toolbar-buttongroup {
+.medimg-viewer-toolbar-buttongroup {
     position: absolute;
     top: 80px;
     display: flex;
-    background-color: var(--medigi-viewer-background);
-    border-left: solid 1px var(--medigi-viewer-border-faint);
-    border-right: solid 1px var(--medigi-viewer-border-faint);
-    border-bottom: solid 1px var(--medigi-viewer-border-faint);
+    background-color: var(--medimg-viewer-background);
+    border-left: solid 1px var(--medimg-viewer-border-faint);
+    border-right: solid 1px var(--medimg-viewer-border-faint);
+    border-bottom: solid 1px var(--medimg-viewer-border-faint);
     padding: 0px 0px 10px 10px;
     z-index: 500;
 }
