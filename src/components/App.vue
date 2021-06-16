@@ -240,9 +240,11 @@ export default Vue.extend({
          * @param config External visit configuration
          */
         loadStudiesFromFsItem: async function (fsItem: FileSystemItem, config?: any) {
+            // Display loading studies indicator
             if (!this.$store.state.loadingStudies) {
                 this.$store.state.loadingStudies = true
             }
+            // Fall back to loading the visit in main thread (bad user experience!)
             const visitLoader = new GenericVisitLoader()
             visitLoader.loadFromFsItem(fsItem, config).then(async visits => {
                 this.visits.push(...visits)

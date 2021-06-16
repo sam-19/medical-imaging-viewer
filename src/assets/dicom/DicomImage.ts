@@ -9,7 +9,7 @@ import cornerstoneTools from 'cornerstone-tools'
 import { DicomImageResource } from '../../types/radiology'
 
 const TOPOGRAM_PADDING = 0.2
-const convertToVector3 = cornerstoneTools.importInternal('util/convertToVector3')
+const convertToVector3 = cornerstoneTools?.importInternal('util/convertToVector3')
 
 class DicomImage implements DicomImageResource {
     private _active: boolean = false

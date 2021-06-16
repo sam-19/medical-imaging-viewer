@@ -3,6 +3,7 @@ const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
     entry: {
+        'medimg-eeg-signal-worker': { import: path.join(__dirname, 'src', 'assets', 'workers', 'EegSignalWorker.ts') },
         'medimg-viewer': { import: path.join(__dirname, 'src', 'index.ts') },
     },
     externals: {

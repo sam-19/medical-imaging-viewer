@@ -3,7 +3,7 @@ const { merge } = require('webpack-merge')
 const common = require('./webpack.config.js')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
-const ASSET_PATH = process.env.ASSET_PATH || '/dist/'
+const ASSET_PATH = process.env.ASSET_PATH || '/'
 
 module.exports = merge(common, {
     mode: 'development',
