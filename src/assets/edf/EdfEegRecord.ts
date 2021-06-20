@@ -18,24 +18,30 @@ class EdfEegRecord implements EegResource {
     protected _montages: EegMontage[] = []
     protected _activeMontage: EegMontage | null = null
     protected _rawMontage: EegMontage | null = null
+    protected _recordStart: number = 0
     protected _samples: number = 0
     protected _setups: EegSetup[] = []
+    protected _startTime: Date | null = null
     protected _activeSetup: EegSetup | null = null
     protected _id: string
     protected _name: string
     protected _maxSamplingRate: number = 0 // Maximum resolution in this recording
     protected _type: string = 'unknown'
     protected _url: string = ''
+    protected _videos: any[] = []
     protected _viewStart: number = 0
     // Signal filtering
     private iirCalculator = new Fili.CalcCascades()
 
-    constructor (name: string, data?: object, loader?: string) {
+    constructor (name: string, data?: object, meta?: any) {
         // Generate a pseudo-random identifier for this object
         this._id = Math.random().toString(36).substr(2, 8)
         this._name = name
+        if (meta.startDate) {
+            this._startTime = meta.startDate
+        }
         if (data) {
-            this.extractSignalsFromEdfData(data, loader || undefined)
+            this.extractSignalsFromEdfData(data, meta.loader || undefined)
         }
     }
     // Getters and setters
@@ -75,6 +81,9 @@ class EdfEegRecord implements EegResource {
     get maxSamplingRate () {
         return this._maxSamplingRate
     }
+    get recordStart () {
+        return this._recordStart
+    }
     get sampleCount () {
         return this._samples
     }
@@ -83,6 +92,9 @@ class EdfEegRecord implements EegResource {
     }
     set setup (setup: EegSetup | null) {
         this._activeSetup = setup
+    }
+    get startTime () {
+        return this._startTime
     }
     get type () {
         return this._type.split(':')[0]
@@ -95,6 +107,12 @@ class EdfEegRecord implements EegResource {
     }
     set url (url: string) {
         this._url = url
+    }
+    get videos () {
+        return this._videos
+    }
+    set videos (videos: any[]) {
+        this._videos = videos
     }
     get viewStart () {
         return this._viewStart
@@ -144,6 +162,7 @@ class EdfEegRecord implements EegResource {
                 const sigType = label.toLowerCase().indexOf('eeg') > -1 ? 'eeg' as BiosignalType :
                                 label.toLowerCase().indexOf('ekg') > -1 ? 'ekg' as BiosignalType :
                                 label.toLowerCase().indexOf('eog') > -1 ? 'eog' as BiosignalType : undefined
+                // Try to determine record start
                 const chanData = {
                     label: label,
                     name: label,
@@ -159,6 +178,15 @@ class EdfEegRecord implements EegResource {
                     physicalMax: data.getSignalPhysicalMax(i) || 0,
                     filter: data.getSignalPrefiltering(i) || '',
                     transducer: data.getSignalTransducerType(i) || '',
+                }
+                if (sigType === 'eeg' && !this._recordStart) {
+                    // See if there is some padding at the start of the actual recording
+                    for (let i=0; i<chanData.signal.length; i++) {
+                        if (chanData.signal[i] < chanData.physicalMax*0.5 && chanData.signal[i] > chanData.physicalMin*0.5) {
+                            this._recordStart = i/chanData.samplingRate
+                            break
+                        }
+                    }
                 }
                 chanData.sampleCount = chanData.signal.length // Here we have all samples cached already
                 totalSamplesPerRecord += chanData.samplesPerRecord || 0
@@ -223,6 +251,8 @@ class EdfEegRecord implements EegResource {
         if (this._activeSetup === null || !this._activeMontage || this._activeMontage.label === 'raw-signals') {
             return this.getAllRawSignals(range, config, true)
         }
+        // Correct for start padding
+        range = [range[0] + this._recordStart, range[1] + this._recordStart]
         // Calculate signals only for the part that we need
         const filtPad = config?.filterPadding || 0
         const filter = [range[0] - filtPad, range[1] + filtPad]
@@ -262,6 +292,7 @@ class EdfEegRecord implements EegResource {
         if (range.length !== 2) {
             return signals
         }
+        range = [range[0] + this._recordStart, range[1] + this._recordStart]
         if (this._activeSetup === null || asRec) {
             // If there is no setup loaded, just return the actual signal data
             for (const chan of this._channels) {
@@ -335,6 +366,7 @@ class EdfEegRecord implements EegResource {
         if (this._activeSetup === null || !this._activeMontage) {
             return this.getRawSignal(range, channel)
         }
+        range = [range[0] + this._recordStart, range[1] + this._recordStart]
         // Calculate signal offsets if config is provided
         this._activeMontage.calculateSignalOffsets(config)
         if (typeof channel === 'string') {
@@ -371,6 +403,7 @@ class EdfEegRecord implements EegResource {
         if (range.length !== 2 || channel < 0 || channel >= this._channels.length) {
             return [] as number[]
         }
+        range = [range[0] + this._recordStart, range[1] + this._recordStart]
         if (this._activeSetup === null) {
             const res = this._channels[channel as number].samplingRate
             // If there is no setup loaded, just return the actual signal data

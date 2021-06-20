@@ -28,12 +28,20 @@
             </div>
         </div>
         <!-- Video -->
-        <div ref="video"
-            :class="[
+        <div ref="cursor" v-if="resource.videos && showVideo"
+            class="medimg-viewer-eeg-cursor"
+            @mousedown="handleCursorMousedown"
+        >
+            <div></div>
+        </div>
+        <div :class="[
                 'medimg-viewer-eeg-video',
-                { 'medimg-viewer-hidden': !resource.video || !showVideo }
+                { 'medimg-viewer-hidden': !resource.videos || !showVideo }
             ]"
-        ></div>
+        >
+            <video ref="video" controls :src="resource.videos[0].url" />
+        </div>
+        <div ref="clock" style="position:absolute;bottom:100px;left:10px;z-index:499;height:20px;width:100px">{{ curTime }}</div>
         <!-- Navigator -->
         <div class="medimg-viewer-eeg-navigator">
             <div ref="navigator" @contextmenu.prevent></div>
@@ -122,13 +130,16 @@ export default Vue.extend({
             mouseDragIndicator: false,
             measurements: null as null | object,
             // Video properties
-            showVideo: false,
+            showVideo: true,
+            lastTime: null as null | number,
             // Keep track of screen PPI changes
             lastPPI: this.$store.state.SETTINGS.screenPPI,
             unsubscribeSettings: null as any,
             // We need a way to uniquely identify this component instance's elements
             // from other iterations of the same resource
             instanceNum: INSTANCE_NUM++,
+            // Check if the component has been destroyed
+            destroyed: false
         }
     },
     watch: {
@@ -342,6 +353,29 @@ export default Vue.extend({
                                       - this.$store.state.SETTINGS.eeg.border.left.width
             const newWidth = viewWidth/(this.pxPerMinorGridline*5)/this.downSampleFactor
             return this.resource.viewStart + newWidth
+        },
+        handleCursorMousedown: function (e: MouseEvent) {
+            const mdPoint = { x: e.clientX, y: e.clientY }
+            const cursorStart = (this.$refs['cursor'] as HTMLDivElement).offsetLeft
+            ;(this.$refs['cursor'] as HTMLDivElement).style.zIndex = '50'
+            const video = this.$refs['video'] as HTMLVideoElement | null
+            const mouseMove = (e: MouseEvent) => {
+                const dif = e.clientX - mdPoint.x
+                ;(this.$refs['cursor'] as HTMLDivElement).style.left = cursorStart + dif + 'px'
+                if (video) {
+                    const cursorPos = (this.$refs['cursor'] as HTMLDivElement).offsetLeft - this.marginLeft + 6
+                    const vidOffset = (this.resource.startTime.getTime() - this.resource.videos[0].startTime.getTime())/1000
+                    const newTime = cursorPos/(this.pxPerMinorGridline*5) + this.resource.viewStart + vidOffset
+                    video.currentTime = 600/(600 + this.resource.recordStart)*newTime
+                }
+            }
+            const mouseUp = (e: MouseEvent) => {
+                ;(this.$refs['overlay'] as HTMLDivElement).removeEventListener('mousemove', mouseMove)
+                ;(this.$refs['overlay'] as HTMLDivElement).removeEventListener('mouseup', mouseUp)
+                ;(this.$refs['cursor'] as HTMLDivElement).style.zIndex = '400'
+            }
+            ;(this.$refs['overlay'] as HTMLDivElement).addEventListener('mousemove', mouseMove)
+            ;(this.$refs['overlay'] as HTMLDivElement).addEventListener('mouseup', mouseUp)
         },
         handleKeydown: function (event: KeyboardEvent) {
             if (event.key === 'PageUp') {
@@ -557,6 +591,12 @@ export default Vue.extend({
             }
             this.resource.viewStart += stepLength
             this.viewEnd += stepLength
+            // Pause video if playing
+            const video = (this.$refs['video'] as HTMLVideoElement)
+            if (video && !video.paused) {
+                video.pause()
+            }
+            this.setVideoTime(this.resource.viewStart)
             this.refreshTraces()
             if (this.isAtEnd) {
                 this.$emit('at-end', true)
@@ -577,6 +617,11 @@ export default Vue.extend({
             }
             this.resource.viewStart -= stepLength
             this.viewEnd -= stepLength
+            const video = (this.$refs['video'] as HTMLVideoElement)
+            if (video && !video.paused) {
+                video.pause()
+            }
+            this.setVideoTime(this.resource.viewStart)
             this.refreshTraces()
             if (!this.resource.viewStart) {
                 this.$emit('at-start', true)
@@ -642,7 +687,7 @@ export default Vue.extend({
             const borderBStyle = this.$store.state.SETTINGS.eeg.border.bottom.style
             const borderBWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
             const borderBColor = this.$store.state.SETTINGS.eeg.border.bottom.color
-            const totalOffsetB = this.navigatorConfig.height + this.marginBottom + borderBWidth
+            const totalOffsetB = this.navigatorConfig.height + this.marginBottom - borderBWidth
             ;(this.$refs['ylabels'] as HTMLDivElement).style.bottom = `${totalOffsetB}px`
             ;(this.$refs['ylabels'] as HTMLDivElement).style.width = `${this.marginLeft}px`
             // Assign new trace labels
@@ -770,9 +815,26 @@ export default Vue.extend({
             this.plotCanvas.style.height = `${height}px`
             this.plotCanvas.style.marginLeft = `${this.marginLeft + lbWidth}px`
         },
+        setVideoTime: function (vidTime: number) {
+            const video = (this.$refs['video'] as HTMLVideoElement)
+            if (video) {
+                const vidOffset = (this.resource.startTime.getTime() - this.resource.videos[0].startTime.getTime())/1000
+                video.currentTime = 600/(600 + this.resource.recordStart) *vidTime + vidOffset
+            }
+        },
         updateViewStart: function () {
             const xPxRatio = this.resource.maxSamplingRate/(this.pxPerMinorGridline*5)
             this.resource.viewStart = (this.$refs['trace'] as HTMLDivElement).scrollLeft*xPxRatio
+        },
+        videoReady: function () {
+            const video = (this.$refs['video'] as HTMLVideoElement)
+            const vidOffset = (this.resource.startTime.getTime() - this.resource.videos[0].startTime.getTime())/1000
+            if (vidOffset > 0) {
+                video.currentTime = vidOffset
+                this.lastTime = vidOffset
+            }
+            this.lastTime = 0
+            video.removeEventListener('canplay', this.videoReady)
         },
     },
     mounted () {
@@ -812,10 +874,37 @@ export default Vue.extend({
                 this.refreshTraces()
             }
         })
+        const video = this.$refs['video'] as HTMLVideoElement | null
+        if (video) {
+            video.addEventListener('canplay', this.videoReady)
+        }
         // Start animation frame request loop
+        console.log('rs', this.resource.recordStart)
         const newFrame = () => {
             this.wglPlot?.update()
-            requestAnimationFrame(newFrame)
+            if (video) {
+                const curTime = video.currentTime*(600 + this.resource.recordStart)/600
+                const vidOffset = (this.resource.startTime.getTime() - this.resource.videos[0].startTime.getTime())/1000
+                if (curTime - vidOffset > this.viewEnd && !video.paused) {
+                    // Navigate to next page
+                    this.resource.viewStart = curTime - vidOffset
+                    this.viewEnd = this.getViewEnd()
+                    this.refreshTraces()
+                } else if (this.lastTime !== null && curTime !== undefined && curTime !== this.lastTime) {
+                    const startLeft = this.marginLeft + this.$store.state.SETTINGS.eeg.border.left.width - 6
+                    const borderBWidth = this.$store.state.SETTINGS.eeg.border.bottom.width
+                    const totalOffsetB = this.navigatorConfig.height + this.marginBottom - borderBWidth
+                    const vidPos = curTime - this.resource.viewStart
+                    const leftAdd = (vidPos - vidOffset)*this.pxPerMinorGridline*5
+                    const leftPos = startLeft + (leftAdd > 0 ? leftAdd : 0)
+                    ;(this.$refs['cursor'] as HTMLDivElement).style.left = `${leftPos}px`
+                    ;(this.$refs['cursor'] as HTMLDivElement).style.bottom = `${totalOffsetB}px`
+                    this.lastTime = curTime
+                }
+            }
+            if (!this.destroyed) {
+                requestAnimationFrame(newFrame)
+            }
         }
         requestAnimationFrame(newFrame)
         // Emit navigation position
@@ -833,6 +922,7 @@ export default Vue.extend({
             this.unsubscribeSettings()
         }
         this.$emit('destroyed')
+        this.destroyed = true
     },
 })
 </script>
@@ -891,6 +981,32 @@ export default Vue.extend({
     }
     .medimg-viewer-eeg-measurements > div > span:nth-child(1) {
         width: 80px;
+    }
+.medimg-viewer-eeg-cursor {
+    position: absolute;
+    top: 0;
+    z-index: 400;
+    width: 12px;
+    padding: 0 5px;
+    cursor: pointer;
+}
+    .medimg-viewer-eeg-cursor > div {
+        height: 100%;
+        width: 2px;
+        background-color: rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+    }
+.medimg-viewer-eeg-video {
+    position: absolute;
+    bottom: 100px;
+    right: -1px;
+    z-index: 500;
+    width: 50%;
+    border: solid 1px var(--medimg-viewer-border);
+    background: var(--medimg-viewer-background-highlight);
+}
+    .medimg-viewer-eeg-video > video {
+        width: 100%;
     }
 .medimg-viewer-eeg-navigator {
     position: relative;

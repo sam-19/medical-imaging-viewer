@@ -119,7 +119,8 @@ class GenericVisitLoader implements VisitLoader {
                         hasAnyRecord = true
                     } else if (study.format === 'edf') {
                         // Pass the EDF data to EdfSignal class to determine record type
-                        const record = new EdfSignal(study.name, study.data, study.meta.loader)
+                        const record = new EdfSignal(study.name, study.data, study.meta)
+                        console.log(record)
                         if (record.type === 'eeg') {
                             // Load default setup
                             record.addSetup('default:10-20')
@@ -131,6 +132,10 @@ class GenericVisitLoader implements VisitLoader {
                             // Add EEG record
                             visit.studies.eeg.push(record)
                             hasAnyRecord = true
+                        }
+                        // Add possible videos
+                        if (study.meta.videos) {
+                            record.videos = study.meta.videos
                         }
                     }
                 }

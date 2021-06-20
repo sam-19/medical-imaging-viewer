@@ -222,7 +222,6 @@ export default Vue.extend({
         },
         anyActiveItem (): boolean {
             // Active items array may include null items, so check if there are any actual items
-            console.log(this.activeItems)
             for (const item of this.activeItems) {
                 if (item) {
                     return true
