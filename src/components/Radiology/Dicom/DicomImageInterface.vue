@@ -22,9 +22,11 @@
                 ref="sidebar"
                 :allowSorting="!gridLayout || !gridLayout[0] || !gridLayout[1]"
                 :dicomItems="resources"
+                :hasStudiesToLoad="hasStudiesToLoad"
                 v-on:element-status-changed="updateElements"
                 v-on:file-dropped="handleFileDrop"
                 v-on:item-dropped="itemDropped"
+                v-on:load-studies="$emit('load-studies')"
                 v-on:update-item-order="$emit('update-item-order', $event)"
             />
         </div>
@@ -90,6 +92,7 @@ export default Vue.extend({
         DicomImagePlaceholder: () => import('./DicomImagePlaceholder.vue'),
     },
     props: {
+        hasStudiesToLoad: Boolean,
         resources: Array,
         sidebarOpen: Boolean,
     },

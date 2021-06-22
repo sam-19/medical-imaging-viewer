@@ -18,7 +18,10 @@
                     v-on:toggle-active-item="toggleActiveItem"
                 />
             </vue-draggable>
-            <div :class="[
+            <div v-if="hasStudiesToLoad && !$store.state.loadingStudies" class="medimg-viewer-sidebar-loadstudies" @click="$emit('load-studies')">
+                {{ t('Load studies')}}
+            </div>
+            <div v-else :class="[
                 'medimg-viewer-sidebar-loading',
                 { 'medimg-viewer-hidden': !$store.state.loadingStudies }
             ]">
@@ -51,6 +54,7 @@ export default Vue.extend({
     props: {
         allowSorting: Boolean,
         dicomItems: Array,
+        hasStudiesToLoad: Boolean,
     },
     data () {
         return {
@@ -252,12 +256,16 @@ export default Vue.extend({
     height: calc(100% - 50px);
     margin-top: 0; /* Unset possible margin from another scope */
 }
+.medimg-viewer-sidebar-loadstudies,
 .medimg-viewer-sidebar-loading {
     height: 50px;
     line-height: 50px;
     text-align: center;
     font-weight: bold;
     color: var(--medimg-viewer-text-faint);
+}
+.medimg-viewer-sidebar-loadstudies {
+    cursor: pointer;
 }
 .medimg-viewer-sidebar-items {
     display: flex;

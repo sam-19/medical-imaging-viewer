@@ -29,6 +29,7 @@
         "{n} images": "{n} kuvaa",
         "1 image": "1 kuva",
         "Cache status": "Välimuistin tila",
+        "Load studies": "Lataa tutkimukset",
         "LOADING STUDIES": "LADATAAN TUTKIMUKSIA"
     },
     "RadiologySidebarItem": {

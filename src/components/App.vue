@@ -97,8 +97,10 @@
         </div>
         <dicom-image-interface v-if="scope==='radiology'"
             ref="dicom-image-interface"
+            :hasStudiesToLoad="studiesToLoad !== null"
             :resources="activeVisit ? activeVisit.studies.radiology : []"
             :sidebarOpen="sidebarOpen"
+            v-on:load-studies="loadStudiesFromFsItem()"
             v-on:update-item-order="updateDicomImageOrder"
         />
         <ekg-interface v-else-if="scope==='ekg'"
@@ -138,6 +140,7 @@ export default Vue.extend({
             selectedVisit: null as PatientVisit|null,
             settingsMenuOpen: false,
             sidebarOpen: true,
+            studiesToLoad: null as null | FileSystemItem,
             visits: [] as PatientVisit[],
             // Theme change trigger
             themeChange: 0,
@@ -172,6 +175,9 @@ export default Vue.extend({
             } else {
                 return (this.$t('components.App') as any)[str]
             }
+        },
+        cacheStudyFsItem: function (fsItem: FileSystemItem | null) {
+            this.studiesToLoad = fsItem
         },
         getLocalDatetime: function (datetimeStr: string): string {
             if (datetimeStr.length !== 12) {
@@ -239,7 +245,16 @@ export default Vue.extend({
          * @param fsItem FilesystemItem to load
          * @param config External visit configuration
          */
-        loadStudiesFromFsItem: async function (fsItem: FileSystemItem, config?: any) {
+        loadStudiesFromFsItem: async function (fsItem?: FileSystemItem, config?: any) {
+            this.$store.state.loadingStudies = true
+            if (!fsItem) {
+                // Retrieve possible cached item
+                if (this.studiesToLoad) {
+                    fsItem = this.studiesToLoad
+                } else {
+                    return
+                }
+            }
             // Display loading studies indicator
             if (!this.$store.state.loadingStudies) {
                 this.$store.state.loadingStudies = true

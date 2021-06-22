@@ -165,10 +165,16 @@ class MedImgViewer {
     }
     /**
      * Load studies from a filesystem-like object.
-     * @param fsItem a filesystem-like object (FileSystemItem)
+     * @param fsItem a filesystem-like object (FileSystemItem), optional; use cached item if omitted
      */
-    loadFsItem (fsItem: FileSystemItem): void {
-        (this.viewer as any).loadStudiesFromFsItem(fsItem)
+    loadFsItem (fsItem?: FileSystemItem, autoload=false): void {
+        if (fsItem && autoload) {
+            (this.viewer as any).loadStudiesFromFsItem(fsItem)
+        } else if (fsItem) {
+            (this.viewer as any).cacheStudyFsItem(fsItem)
+        } else {
+            (this.viewer as any).loadStudiesFromFsItem()
+        }
     }
     /**
      * Set a new unique identifier to the app. Cannot be called after initialization.
