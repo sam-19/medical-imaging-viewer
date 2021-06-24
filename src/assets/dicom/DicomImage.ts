@@ -80,8 +80,12 @@ class DicomImage implements DicomImageResource {
     set coverImage (image: DicomImageResource | null) {
         this._coverImage = image
     }
-    get currentImage () {
-        return this._images[this._currentPosition] || null
+    get currentImage (): DicomImageResource {
+        if (this.isStack) {
+            return this._images[this._currentPosition] || null
+        } else {
+            return this
+        }
     }
     get currentPosition () {
         return this._currentPosition
