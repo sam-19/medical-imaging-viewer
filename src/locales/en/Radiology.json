@@ -2,6 +2,7 @@
     "Dicom": {
         "DicomImageDisplay": {
             "Angle": "Angle",
+            "Compared to reference #{n}": "Compared to reference #{n}",
             "Delete": "Delete",
             "Length": "Length",
             "Link this image stack": "Link this image stack",

@@ -3,6 +3,7 @@
         "DicomImageDisplay": {
             "Angle": "Kulma",
             "Delete": "Poista",
+            "Compared to reference #{n}": "Verrattuna referenssiin #{n}",
             "Length": "Etäisyys",
             "Link this image stack": "Kytke tämä pakka",
             "Loading": "Ladataan",

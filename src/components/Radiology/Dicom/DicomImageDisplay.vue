@@ -16,7 +16,7 @@
                 {{ t('Unselect reference #{n}', { n: getReferenceNumber() }) }}
             </div>
             <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medimg-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
-                <div v-if="ref" class="medimg-viewer-annotation-compare-title">{{ $t('Compared to reference #') + (idx + 1) }}</div>
+                <div v-if="ref" class="medimg-viewer-annotation-compare-title">{{ t('Compared to reference #{n}', { n: (idx + 1) }) }}</div>
                 <div v-if="ref" class="medimg-viewer-annotation-compare-row">
                     <span>{{ t('Length') }}</span>
                     <span>{{ getAnnotationLengthDiff(ref, annotationMenu.data) }}</span>
