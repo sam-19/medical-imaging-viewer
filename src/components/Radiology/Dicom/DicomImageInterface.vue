@@ -179,12 +179,6 @@ export default Vue.extend({
                                : items.splice(this.failedElement, 1, false)[0]
                 ;(failEl as DicomImage).isActive = false
                 // Remove from position list
-                //for (let j=0; j<this.resources.length; j++) {
-                //    if (this.elementPositions[j] === this.failedElement) {
-                //        delete this.elementPositions[j]
-                //        break
-                //    }
-                //}
                 const failIdx = this.resources.indexOf(failEl)
                 if (this.pendingElements.indexOf(failIdx) === -1) {
                     this.pendingElements.push(failIdx)
@@ -226,7 +220,6 @@ export default Vue.extend({
         },
         anyActiveItem (): boolean {
             // Active items array may include null items, so check if there are any actual items
-            console.log(this.activeItems)
             for (const item of this.activeItems) {
                 if (item) {
                     return true

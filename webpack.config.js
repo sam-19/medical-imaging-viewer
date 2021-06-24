@@ -3,13 +3,11 @@ const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
     entry: {
-        'medimg-eeg-signal-worker': { import: path.join(__dirname, 'src', 'assets', 'workers', 'EegSignalWorker.ts') },
         'medimg-viewer': { import: path.join(__dirname, 'src', 'index.ts') },
     },
     externals: {
         /* These libraries will be very big if compiled into the source */
         'vue': 'Vue',
-        'plotly': 'Plotly',
         'hammerjs': 'Hammer',
         'dicom-parser': 'dicomParser',
         'cornerstone-core': 'cornerstone',

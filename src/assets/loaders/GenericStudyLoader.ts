@@ -51,131 +51,72 @@ class GenericStudyLoader implements StudyLoader {
             if (prop !== 'meta' && !study[prop as keyof StudyObject]
                 || prop === 'meta' && Object.keys(study[prop as keyof StudyObject]).length === 0
             ) {
-                // Try to load the file, according to extension
-                if (file.name.toLowerCase().endsWith('.edf')) {
-                    // EDF Decoder is very handy forf small files, but cannot be used to pipe data from large files
-                    if (file.size < 50*1024*1024) {
-                        try {
-                            const decoder = new (edfdecoder as any).EdfDecoder()
-                            decoder.setInput(await file.arrayBuffer())
-                            decoder.decode()
-                            const edfData = decoder.getOutput()
-                            if (!study.format) {
-                                // EDF format
-                                study.format = 'edf'
-                            }
-                            // Try to fetch metadata from header
-                            // Saving metadata separately is important in case libraries are added or changed later
-                            study.meta.patientId = study.meta.patientId || edfData.getPatientID() || null
-                            study.meta.recordId = study.meta.recordId || edfData.getRecordingID() || null
-                            study.meta.startDate = study.meta.startDate || edfData.getRecordingStartDate() || null
-                            study.meta.nRecords = edfData.getNumberOfRecords() || null
-                            study.meta.recordLen = edfData.getRecordDuration() || null
-                            study.meta.nSignals = edfData.getNumberOfSignals() || null
-                            study.data = edfData
-                            study.meta.loader = 'edf-decoder'
-
-                        } catch (e) {
-                            console.log("EDF ERROR", e)
-                            // Not a regular EDF file, perhaps EDF+?
-                        }
-                    } else {
-                        // Need something else for larger files
+                // DICOM files may not have any extension, try DICOM first
+                try {
+                    const byteArray = new Uint8Array(await file.arrayBuffer())
+                    const dataSet = dicomParser.parseDicom(byteArray)
+                    if (!study.format) {
+                        // DICOM format
+                        study.format = 'dicom'
                     }
-                } else if (file.name.toLowerCase().endsWith('.pdf')) {
-                    // TODO: Implement PDF loader
-                } else if (file.name.toLowerCase().endsWith('.txt')) {
-                    // TODO: Implement text file loader (reports)
-                } else if (file.name.toLowerCase().endsWith('.zip')) {
-                    // Zip files would be tricky. They would first have to be decompressed
-                    // and then passed through this again.
-                }  else if (file.name.toLowerCase().endsWith('.jpg') ||
-                            file.name.toLowerCase().endsWith('.jpeg') ||
-                            file.name.toLowerCase().endsWith('.png') ||
-                            file.name.toLowerCase().endsWith('.gif')
-                ) {
-                    // TODO: Implement image file loaders?
-                } else {
-                    // DICOM files may not have any extension, try DICOM first
-                    try {
-                        const byteArray = new Uint8Array(await file.arrayBuffer())
-                        const dataSet = dicomParser.parseDicom(byteArray)
-                        console.log(dataSet)
-                        if (!study.format) {
-                            // DICOM format
-                            study.format = 'dicom'
+                    if (!study.meta.instanceId) {
+                        // Save study instance UID
+                        study.meta.instanceId = dataSet.string('x0020000d') || ''
+                    }
+                    if (!study.meta.modality) {
+                        study.meta.modality = (dataSet.string('x00080060') || '').toUpperCase()
+                    }
+                    // First try if this is a DICOM image file
+                    const imageType = dataSet.string('x00080008')
+                    const imageModality = dataSet.string('x00080060')
+                    if (imageType || (imageModality && VALID_MODALITIES.RADIOLOGY.indexOf(imageModality) !== -1)) {
+                        // This is a radiological image
+                        if (!study.scope) {
+                            study.scope = 'radiology'
                         }
-                        if (!study.meta.instanceId) {
-                            // Save study instance UID
-                            study.meta.instanceId = dataSet.string('x0020000d') || ''
-                        }
-                        if (!study.meta.modality) {
-                            study.meta.modality = (dataSet.string('x00080060') || '').toUpperCase()
-                        }
-                        // First try if this is a DICOM image file
-                        const imageType = dataSet.string('x00080008')
-                        const imageModality = dataSet.string('x00080060')
-                        if (imageType || (imageModality && VALID_MODALITIES.RADIOLOGY.indexOf(imageModality) !== -1)) {
-                            // This is a radiological image
-                            if (!study.scope) {
-                                study.scope = 'radiology'
+                        // Use the file as data object for WADOImageLoader
+                        study.data = file
+                        if (!study.type) {
+                            const typeParts = (imageType || '\\\\').split('\\')
+                            // Part 3 defines a possible localizer (topogram) image
+                            if (typeParts[2]?.toLowerCase() === 'localizer') {
+                                study.type = 'image:topogram'
+                            } else {
+                                study.type = 'image'
                             }
-                            // Use the file as data object for WADOImageLoader
-                            study.data = file
-                            if (!study.type) {
-                                const typeParts = (imageType || '\\\\').split('\\')
-                                // Part 3 defines a possible localizer (topogram) image
-                                if (typeParts[2]?.toLowerCase() === 'localizer') {
-                                    study.type = 'image:topogram'
-                                } else {
-                                    study.type = 'image'
-                                }
-                            }
-                            study.meta.type = imageType
-                            study.meta.modality = imageModality
-                            // Add possible related study instances
-                            if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
-                                for (const relItem of dataSet.elements.x00081140.items) {
-                                    if (relItem.dataSet) {
-                                        if (!study.meta.relatedStudies) {
-                                            study.meta.relatedStudies = []
-                                        }
-                                        study.meta.relatedStudies.push(relItem.dataSet.string('x00081150'))
+                        }
+                        study.meta.type = imageType
+                        study.meta.modality = imageModality
+                        // Add possible related study instances
+                        if (dataSet.elements.x00081140 && dataSet.elements.x00081140.items) {
+                            for (const relItem of dataSet.elements.x00081140.items) {
+                                if (relItem.dataSet) {
+                                    if (!study.meta.relatedStudies) {
+                                        study.meta.relatedStudies = []
                                     }
+                                    study.meta.relatedStudies.push(relItem.dataSet.string('x00081150'))
                                 }
                             }
-                        } else if (dataSet.elements.x54000100) {
-                            // This is a waveform sequence
-                            if (study.meta.modality === 'ECG') {
-                                if (!study.scope) {
-                                    study.scope = 'ekg'
-                                }
-                                if (!study.type) {
-                                    study.type = dataSet.string('x00081030') || ''
-                                }
-                                // Use the parsed dataset as data object
-                                study.data = dataSet
-                            }
-                        } else if (dataSet.elements.x00420011) {
-                            // This is an encapsulated document
-                            if (!study.scope) {
-                                study.scope = 'document'
-                            }
-                            if (!study.name) {
-                                study.name = dataSet.string('x00420010') || ''
-                            }
-                            if (!study.meta.mime) {
-                                study.meta.mime = dataSet.string('x00420012') || ''
-                            }
-                            // Document data can be retrieved from x00420011
-                            // study.data = dataSet.string('x00420011')
                         }
-                    } catch (e) {
-                        if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
-                            // This was not a DICOM file, try something else
-                        } else {
-                            console.error(e)
+                    } else if (dataSet.elements.x00420011) {
+                        // This is an encapsulated document
+                        if (!study.scope) {
+                            study.scope = 'document'
                         }
+                        if (!study.name) {
+                            study.name = dataSet.string('x00420010') || ''
+                        }
+                        if (!study.meta.mime) {
+                            study.meta.mime = dataSet.string('x00420012') || ''
+                        }
+                        // Document data can be retrieved from x00420011
+                        // study.data = dataSet.string('x00420011')
+                    }
+                } catch (e) {
+                    if (typeof e === 'string' && (e as string).indexOf('DICM prefix not found') >= 0) {
+                        // This was not a DICOM file, try something else
+                    } else {
+                        console.error(e)
                     }
                 }
             }

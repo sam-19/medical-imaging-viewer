@@ -1,15 +1,4 @@
 {
-    "EEG": {
-        "Analyse signal": "Analyse signal",
-        "Default montages": "Default montages",
-        "Double banana": "Double banana",
-        "Montage": "Montage",
-        "Next page": "Next page",
-        "Previous page": "Previous page",
-        "Raw signals": "Raw signals",
-        "Record montage": "Record montage",
-        "Select montage": "Select montage"
-    },
     "Radiology": {
         "Adjust window": "Adjust window",
         "Automatic layout": "Automatic layout",

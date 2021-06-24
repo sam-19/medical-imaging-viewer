@@ -1,19 +1,12 @@
 {
     "Display settings": "Näyttöasetukset",
-    "EEG": "EEG",
-    "EKG": "EKG",
     "English": "Englanti",
     "Finnish": "Suomi",
     "General": "Yleiset",
     "Interface language": "Käyttöliittymän kieli",
     "Language settings": "Kieliasetukset",
-    "Negative": "Negatiivinen",
-    "Positive": "Positiivinen",
     "Radiology": "Radiologia",
     "Reset": "Palauta",
     "Save settings": "Tallenna asetukset",
-    "Screen PPI": "Näytön PPI",
-    "Screen PPI:help": "Pixels Per Inch on näytön fyysinen ominaisuus. Säädä arvoa ylös tai alas, kunnes alla näkyvä palkki on leveydeltään 5cm.",
-    "Settings": "Asetukset",
-    "Signal polarity": "Signaalin polariteetti"
+    "Settings": "Asetukset"
 }

@@ -41,24 +41,6 @@
                             {{ getLocalDatetime(visit.date) }}
                         </div>
                     </div>
-                    <div v-if="visit.studies.eeg.length"
-                        class="medimg-viewer-visit-studies medimg-viewer-oneliner"
-                        @click="selectActiveResource(visit, 'eeg')"
-                    >
-                        {{
-                            visit.studies.eeg.length === 1 ? t('1 EEG study') :
-                            t('{n} EEG studies', { n: visit.studies.eeg.length })
-                        }}
-                    </div>
-                    <div v-if="visit.studies.ekg.length"
-                        class="medimg-viewer-visit-studies medimg-viewer-oneliner"
-                        @click="selectActiveResource(visit, 'ekg')"
-                    >
-                        {{
-                            visit.studies.ekg.length === 1 ? t('1 EKG study') :
-                            t('{n} EKG studies', { n: visit.studies.ekg.length })
-                        }}
-                    </div>
                     <div v-if="visit.studies.radiology.length"
                         class="medimg-viewer-visit-studies medimg-viewer-oneliner"
                          @click="selectActiveResource(visit, 'radiology')"
@@ -103,16 +85,6 @@
             v-on:load-studies="loadStudiesFromFsItem()"
             v-on:update-item-order="updateDicomImageOrder"
         />
-        <ekg-interface v-else-if="scope==='ekg'"
-            ref="dicom-waveform-interface"
-            :resources="activeVisit ? activeVisit.studies.ekg : []"
-            :sidebarOpen="sidebarOpen"
-        />
-        <eeg-interface v-else-if="scope==='eeg'"
-            ref="eeg-interface"
-            :resources="activeVisit ? activeVisit.studies.eeg : []"
-            :sidebarOpen="sidebarOpen"
-        />
     </div>
 
 </template>
@@ -127,8 +99,6 @@ import LocalFileLoader from '../assets/loaders/LocalFileLoader'
 export default Vue.extend({
     components: {
         DicomImageInterface: () => import(/* webpackChunkName: "radiology" */'./Radiology/Dicom/DicomImageInterface.vue'),
-        EegInterface: () => import(/* webpackChunkName: "eeg" */'./EEG/EegInterface.vue'),
-        EkgInterface: () => import(/* webpackChunkName: "ekg" */'./EKG/EkgInterface.vue'),
         ViewerSettings: () => import('./ViewerSettings.vue'),
         ToolbarButton: () => import('./ToolbarButton.vue'),
     },
@@ -276,6 +246,10 @@ export default Vue.extend({
                                 (bestScope === '' || scopePrio.indexOf(scope) < scopePrio.indexOf(bestScope))
                             ) {
                                 bestScope = scope
+                            }
+                            // 0.1 release only supports radiology studies; print warning for others
+                            if (scope !== 'radiology') {
+                                console.warn(`A ${scope} study was included in the dataset, but this feature is not yet available!`)
                             }
                         }
                         if (bestScope !== '') {

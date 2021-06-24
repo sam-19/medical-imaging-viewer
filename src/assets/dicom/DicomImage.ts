@@ -479,7 +479,6 @@ class DicomImage implements DicomImageResource {
                             this._dimensions = [image.width, image.height]
                         }
                     }).catch((reason: any) => {
-                        console.log('error')
                         resolve({ success: false, reason: reason })
                     })
                     if (this._preloaded === this._images.length) {

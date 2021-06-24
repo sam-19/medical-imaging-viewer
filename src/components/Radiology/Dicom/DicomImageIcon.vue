@@ -14,10 +14,6 @@
                 <div></div>
                 <span :style="getLabelFontSize()">{{ label }}</span>
             </div>
-            <!-- Single biosignal -->
-            <div v-else-if="type==='biosignal' && count===1" class="medimg-viewer-icon-biosignal-single">
-                <span :style="getLabelFontSize()">{{ label }}</span>
-            </div>
         </div>
     </div>
 </template>
@@ -39,7 +35,6 @@ export default Vue.extend({
     },
     watch: {
         cover: function (value: string, old: string) {
-            console.log('cover', value)
             if (value === 'LOADING') {
 
             } else {
@@ -64,34 +59,11 @@ export default Vue.extend({
             if (coverEl) {
                 cornerstone.enable(coverEl)
                 cornerstone.loadAndCacheImage(this.cover.url).then((image: any) => {
-                    // Get image dimensions and set the cover image dimensions to preserve the aspec ratio
-                    /*
-                    const maxDim = [150, 125] // Max width and height
-                    if (image.width && image.height) { // I don't think this is even needed but better safe than sorry
-                        const ar = image.width/image.height
-                        // Container height is our limiting factor
-                        coverEl.style.height = `${maxDim[1]}px`
-                        if (ar*maxDim[1] < maxDim[0]) {
-                            coverEl.style.width = `${Math.round(ar*maxDim[1])}px`
-                        } else {
-                            coverEl.style.width = `${maxDim[0]}px`
-                        }
-                        cornerstone.resize(coverEl)
-                    }*/
                     const viewport = cornerstone.getDefaultViewportForImage(coverEl, image)
                     cornerstone.displayImage(coverEl, image, viewport)
                     cornerstone.resize(coverEl)
                     this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
                 }).catch((response: any) => {
-                    if (response.dataSet && response.dataSet.elements && response.dataSet.elements.x54000100) {
-                        // Waveform sequence
-                        import('../../../assets/dicom/DicomWaveform').then(DicomWaveform => {
-                            const waveform = new DicomWaveform.default('Waveform', response.dataSet.elements)
-                            this.$root.$emit('add-ekg-resource', waveform)
-                        })
-                    } else {
-                        this.$emit('loading-cover-failed')
-                    }
                 })
             }
         },

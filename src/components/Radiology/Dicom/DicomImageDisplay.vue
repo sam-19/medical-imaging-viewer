@@ -184,12 +184,6 @@ export default Vue.extend({
             topoEl: null as unknown as HTMLDivElement, // Topogram element
             isFirstLoaded: false, // At least one image is loaded
             isLinked: false, // Whether this image is linked or not
-            //lastMousePos: [0, 0], // Last mouse position on the screen
-            //linkedPos: null as number | null, // Position where this stack was linked
-            //mouseLBtnDown: false, // Is the left mouse button down (depressed)
-            //mouseMBtnDown: false, // Is the middle mouse button down (depressed)
-            //mouseRBtnDown: false, // Is the right mouse button down (depressed)
-            //scrollProgress: 0, // Progress towards a scroll step
             annotationMenu: null as any, // Annotation selected by the user
             orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
@@ -478,75 +472,6 @@ export default Vue.extend({
             this.annotationMenu = null
         },
         /**
-         * Trigger the desired effect from mouse move according to the active toolbar tool.
-         * @param {MouseEvent} event
-
-        handleMouseMove: function (event: MouseEvent) {
-            event.stopPropagation()
-            event.preventDefault()
-            // Check that EXACTLY one mouse button is down
-            let mBtnsDown = 0
-            if (this.mouseLBtnDown) {
-                mBtnsDown++
-            }
-            if (this.mouseMBtnDown) {
-                mBtnsDown++
-            }
-            if (this.mouseRBtnDown) {
-                mBtnsDown++
-            }
-            if (mBtnsDown !== 1) {
-                return
-            }
-            // Calculate mouse move
-            const deltaX = this.lastMousePos[0] - event.pageX
-            const deltaY = this.lastMousePos[1] - event.pageY
-            // Update last position
-            this.lastMousePos = [event.pageX, event.pageY]
-            // Select appropriate response depending on mouse button
-            if (this.mouseLBtnDown) {
-                // Selecting a tool changes what left mouse button does
-                let activeTool = this.$store.state.activeTool
-                if (activeTool === null) {
-                    // If no tool is active, resort to default
-                    this.panImage(deltaX, deltaY)
-                } else if (activeTool === 'adjust') {
-                    this.adjustLevels(deltaX, deltaY)
-                } else if (activeTool === 'area') {
-                } else if (activeTool === 'distance') {
-                } else if (activeTool === 'link') {
-                } else if (activeTool === 'pan') {
-                    this.panImage(deltaX, deltaY)
-                } else if (activeTool === 'scroll') {
-                    if (!this.resource.isStack) {
-                        return
-                    }
-                    // Scroll relative to window height;
-                    // - half of image height to scroll the full stack, or
-                    // - if the stack has more images than half image heigh (in pixels),
-                    //   one image per pixel
-                    const yFac = ((this.containerSize[1] as number)/2)/this.resource.images.length > 1
-                                 ? ((this.containerSize[1] as number)/2)/this.resource.images.length
-                                 : 1
-                    // Invert the direction so moving the mouse down will scroll a stack caudally
-                    this.scrollProgress -= deltaY
-                    if (this.scrollProgress <= -yFac || this.scrollProgress >= yFac) {
-                        this.scrollStack(this.scrollProgress < 0
-                            ? Math.ceil(this.scrollProgress/yFac) // Round negatives up
-                            : Math.floor(this.scrollProgress/yFac) // and positives down
-                        )
-                        this.scrollProgress = this.scrollProgress%yFac
-                    }
-                } else if (activeTool === 'zoom') {
-                    this.zoomImage(deltaY)
-                }
-            } else if (this.mouseMBtnDown) {
-                this.zoomImage(deltaY)
-            } else if (this.mouseRBtnDown) {
-                this.adjustLevels(deltaX, deltaY)
-            }
-        },*/
-        /**
          * Invert the image colors values.
          */
         invertImage: function () {
@@ -700,51 +625,6 @@ export default Vue.extend({
             }
             return true
         },
-        /**
-         * Scroll the image stack.
-         * @param {number} delta positive or negative number (if absolute is false), or the absolute stack position.
-         * @param {boolean} absolute use delta as absolute stack position (default false).
-         * @param {boolean} announce announce new position to synchronize linked stacks (default true).
-
-        scrollStack: async function (delta: number, absolute: boolean = false, announce: boolean = true) {
-            if (!this.resource.isStack) {
-                return
-            }
-
-            // Check if this stack is linked and trigger an event if it is
-            if (this.isLinked && announce) {
-                // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.resource.currentPosition - (this.linkedPos || 0))/this.resource.images.length
-                               + (this.masterLinkPos || 0)
-                this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
-                // Update stack scroll tool position
-            }
-        },*/
-        /**
-         * Call when stack scroll tool displays a new image
-
-        stackScrolled (e: any, silent?: boolean) {
-            const newStackIndex = this.resource.getIndexByUrl(e.detail.image.imageId)
-            if (this.isLinked && !silent) {
-                // Calculate current position relative to linked position, and add master link position
-                const relPos = (this.resource.currentPosition - (this.linkedPos || 0))/this.resource.images.length
-                               + (this.masterLinkPos || 0)
-                this.$store.commit('set-linked-scroll-position', { origin: this.id, position: relPos })
-            }
-            this.resource.currentPosition = newStackIndex
-        },*/
-        /**
-         * Refresh the topogram when a new stack image is displayed.
-         */
-        synchronizerTopogram: function (e: any) {
-            //console.log(this.resource.getRefLineForImage(imageId))
-        },
-        /**
-         * Unlink this image stack.
-        unlinkImageStack: function () {
-            this.linkedOffset = null
-        },
-         */
         /**
          * Update the displayed orientation markers when image orientation has changed.
          * Cornerstone Tools orientation markers prints the markers at the edges of the image, which can be troublesome
@@ -949,70 +829,6 @@ export default Vue.extend({
             this.$emit('done-loading')
             return
         }
-        //this.dicomEl.addEventListener('cornerstonenewimage', this.stackScrolled)
-        // Bind mouse interaction listeners
-        /*
-        this.dicomEl.addEventListener('mousedown', (event) => {
-            // Do not handle events until viewport has been set up
-            if (!this.viewport) {
-                return
-            }
-            event.stopPropagation()
-            event.preventDefault()
-            // Catch which button was pressed
-            if (event.button === MOUSE_BUTTON.LEFT) {
-                this.mouseLBtnDown = true
-            } else if (event.button === MOUSE_BUTTON.MIDDLE) {
-                this.mouseMBtnDown = true
-            } else if (event.button === MOUSE_BUTTON.RIGHT) {
-                this.mouseRBtnDown = true
-            }
-            this.lastMousePos = [event.pageX, event.pageY]
-            this.dicomEl.addEventListener('mousemove', this.handleMouseMove)
-        })
-        this.dicomEl.addEventListener('mouseup', (event) => {
-            // Do not handle events until viewport has been set up
-            if (!this.viewport) {
-                return
-            }
-            event.stopPropagation()
-            event.preventDefault()
-            // Catch which button was released
-            if (event.button === MOUSE_BUTTON.LEFT) {
-                this.mouseLBtnDown = false
-            } else if (event.button === MOUSE_BUTTON.MIDDLE) {
-                this.mouseMBtnDown = false
-            } else if (event.button === MOUSE_BUTTON.RIGHT) {
-                this.mouseRBtnDown = false
-            }
-            this.dicomEl.removeEventListener('mousemove', this.handleMouseMove)
-        })
-        // Bind default mouse wheel event
-        this.dicomEl.addEventListener('wheel', (event: WheelEvent) => {
-            // Do not handle events until viewport has been set up
-            if (!this.viewport) {
-                return
-            }
-            event.stopPropagation()
-            event.preventDefault()
-            // Default event depends on image count
-            if (this.resource.images.length > 1) {
-                // For an image stack, bind mouse wheel to stack scroll
-                if (event.deltaY > 0) {
-                    this.scrollStack(1)
-                } else if (event.deltaY < 0) {
-                    this.scrollStack(-1)
-                }
-            } else {
-                // For single image, bind it to zoom
-                if (event.deltaY > 0) {
-                    this.zoomImage(-5)
-                } else if (event.deltaY < 0) {
-                    this.zoomImage(5)
-                }
-            }
-        })
-        */
         // Save viewport
         // Conerstone tool options
         const zoomOpts = {
@@ -1025,14 +841,6 @@ export default Vue.extend({
             }
         }
         // Set up basic tools
-        //cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.AngleTool,
-        //    { name: `Angle-${this.$store.state.appName}` }
-        //)
-        // Set up crosshairs cursor to use with the crosshairs tool
-        //const crosshairCursor = cornerstoneTools.importInternal('tools/cursors').crosshairCursor
-        //const cursorImg = document.createElement('img')
-        //cursorImg.src = window.URL.createObjectURL(crosshairCursor.iconSVG)
-        //document.querySelector('body')?.appendChild(cursorImg)
         cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool,
             { name: `EllipticalRoi-${this.$store.state.appName}` },
         )
@@ -1066,120 +874,117 @@ export default Vue.extend({
                             img.toolState = null
                         }
                     }
-                    // Stop loading dot cycler
-                    window.clearInterval(this.loadingDotCycle)
-                    this.mainImageLoaded = true
-                    // Set up cornerstone stack scroll tool
-                    const imageIds = this.resource.images.map((img: DicomImage) => img.url)
-                    const stackOpts = {
-                        currentImageIdIndex: this.resource.currentPosition,
-                        imageIds
-                    }
-                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
-                        { name: `Crosshairs-${this.$store.state.appName}` },
-                    )
-                    this.synchronizers.crosshairs.add(this.dicomEl)
-                    cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
-                    cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
-                        { name: `StackScroll-${this.$store.state.appName}` }
-                    )
-                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool,
-                        { name: `StackScrollMouseWheel-${this.$store.state.appName}` }
-                    )
-                    // Register element to synchronizers
-                    this.synchronizers.stackScroll.add(this.dicomEl)
-                    this.resource.currentPosition = this.resource.currentPosition
-                    const displayMainImage = () => {
-                        // Shorthand for these operations, as they are needed in a few (async) paths.
-                        // Don't trigger resize if the container has been destroyed
-                        if (!this.destroyed) {
-                            this.resizeImage(true)
-                        }
-                        this.displayImage().then(() => {
-                            this.$emit('done-loading')
-                            this.$nextTick(() => {
-                                // Set annotation tools passive before re-enabling the active tools.
-                                cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
-                                cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
-                                this.$store.dispatch('tools:re-enable-active')
-                            })
-                        })
-                    }
-                    // Display possible topogram
-                    if (this.resource.topogram !== null) {
-                        try {
-                            cornerstone.enable(this.topoEl)
-                        } catch (e) {
-                            this.$emit('enable-element-error')
-                            return
-                        }
-                        cornerstone.loadImage(this.resource.topogram.url).then((image: any) => {
-                            this.topoImageLoaded = true
-                            const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
-                            // Set displayed area on the topogram
-                            const topoBounds = this.resource.topogramPaddedBounds
-                            vp.displayedArea.tlhc.x = topoBounds.x[0]
-                            vp.displayedArea.tlhc.y = topoBounds.y[0]
-                            vp.displayedArea.brhc.x = topoBounds.x[1]
-                            vp.displayedArea.brhc.y = topoBounds.y[1]
-                            vp.displayedArea.columnPixelSpacing = 1
-                            vp.displayedArea.rowPixelSpacing = 1
-                            vp.displayedArea.presentationSizeMode = 'SCALE TO FIT'
-                            cornerstone.setViewport(this.topoEl, vp)
-                            // Display the topogram and set up synchronizer
-                            cornerstone.displayImage(this.topoEl, image, vp)
-                            this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
-                                'cornerstonenewimage',
-                                (synchronizer: any, source: any, target: any, event: any) => {
-                                    cornerstone.updateImage(this.topoEl, false)
-                                }
-                            )
-                            this.topogramSynchronizer.add(this.dicomEl)
-                            cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
-                                // Unique name to prevent tools from different topograms from conflicting with each other
-                                { name: `TopogramReferenceLines-${this.instanceNum}` }
-                            )
-                            cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
-                                synchronizationContext: this.topogramSynchronizer,
-                                // Pass a custom method to the reference line tool to get cropped and scaled line dimensions
-                                getReferenceLine: () => {
-                                    const refLine = this.resource.getRefLineForImage()
-                                    const topoDims = this.getTopogramDimensions()
-                                    if (!refLine || !topoDims) {
-                                        return undefined
-                                    }
-                                    if (topoDims.scale < 1) {
-                                        refLine.start = {
-                                            x: refLine.start.x/topoDims.scale,
-                                            y: refLine.start.y/topoDims.scale
-                                        },
-                                        refLine.end = {
-                                            x: refLine.end.x/topoDims.scale,
-                                            y: refLine.end.y/topoDims.scale
-                                        }
-                                    }
-                                    return refLine
-                                },
-                            })
-                            displayMainImage()
-                        }).catch((reason: any) => {
-                            console.error('Loading topogram failed!', reason)
-                            displayMainImage()
-                        })
-                    } else {
-                        displayMainImage()
-                    }
-                    this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
-                    this.isFirstLoaded = true
-                    // Save new position
-                    this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
-                        this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
-                    })
-                } else if (!this.destroyed) {
-                    // TODO: Return the reason somehow?
-                    showLoadingError(response.reason)
                 }
+                // Stop loading dot cycler
+                window.clearInterval(this.loadingDotCycle)
+                this.mainImageLoaded = true
+                // Set up cornerstone stack scroll tool
+                const imageIds = this.resource.images.map((img: DicomImage) => img.url)
+                const stackOpts = {
+                    currentImageIdIndex: this.resource.currentPosition,
+                    imageIds
+                }
+                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
+                    { name: `Crosshairs-${this.$store.state.appName}` },
+                )
+                this.synchronizers.crosshairs.add(this.dicomEl)
+                cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
+                cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
+                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
+                    { name: `StackScroll-${this.$store.state.appName}` }
+                )
+                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool,
+                    { name: `StackScrollMouseWheel-${this.$store.state.appName}` }
+                )
+                // Register element to synchronizers
+                this.synchronizers.stackScroll.add(this.dicomEl)
+                this.resource.currentPosition = this.resource.currentPosition
+                const displayMainImage = () => {
+                    // Shorthand for these operations, as they are needed in a few (async) paths.
+                    // Don't trigger resize if the container has been destroyed
+                    if (!this.destroyed) {
+                        this.resizeImage(true)
+                    }
+                    this.displayImage().then(() => {
+                        this.$emit('done-loading')
+                        this.$nextTick(() => {
+                            // Set annotation tools passive before re-enabling the active tools.
+                            cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
+                            cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
+                            this.$store.dispatch('tools:re-enable-active')
+                        })
+                    })
+                }
+                // Display possible topogram
+                if (this.resource.topogram !== null) {
+                    try {
+                        cornerstone.enable(this.topoEl)
+                    } catch (e) {
+                        this.$emit('enable-element-error')
+                        return
+                    }
+                    cornerstone.loadImage(this.resource.topogram.url).then((image: any) => {
+                        this.topoImageLoaded = true
+                        const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
+                        // Set displayed area on the topogram
+                        const topoBounds = this.resource.topogramPaddedBounds
+                        vp.displayedArea.tlhc.x = topoBounds.x[0]
+                        vp.displayedArea.tlhc.y = topoBounds.y[0]
+                        vp.displayedArea.brhc.x = topoBounds.x[1]
+                        vp.displayedArea.brhc.y = topoBounds.y[1]
+                        vp.displayedArea.columnPixelSpacing = 1
+                        vp.displayedArea.rowPixelSpacing = 1
+                        vp.displayedArea.presentationSizeMode = 'SCALE TO FIT'
+                        cornerstone.setViewport(this.topoEl, vp)
+                        // Display the topogram and set up synchronizer
+                        cornerstone.displayImage(this.topoEl, image, vp)
+                        this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
+                            'cornerstonenewimage',
+                            (synchronizer: any, source: any, target: any, event: any) => {
+                                cornerstone.updateImage(this.topoEl, false)
+                            }
+                        )
+                        this.topogramSynchronizer.add(this.dicomEl)
+                        cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
+                            // Unique name to prevent tools from different topograms from conflicting with each other
+                            { name: `TopogramReferenceLines-${this.instanceNum}` }
+                        )
+                        cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
+                            synchronizationContext: this.topogramSynchronizer,
+                            // Pass a custom method to the reference line tool to get cropped and scaled line dimensions
+                            getReferenceLine: () => {
+                                const refLine = this.resource.getRefLineForImage()
+                                const topoDims = this.getTopogramDimensions()
+                                if (!refLine || !topoDims) {
+                                    return undefined
+                                }
+                                if (topoDims.scale < 1) {
+                                    refLine.start = {
+                                        x: refLine.start.x/topoDims.scale,
+                                        y: refLine.start.y/topoDims.scale
+                                    },
+                                    refLine.end = {
+                                        x: refLine.end.x/topoDims.scale,
+                                        y: refLine.end.y/topoDims.scale
+                                    }
+                                }
+                                return refLine
+                            },
+                        })
+                        displayMainImage()
+                    }).catch((reason: any) => {
+                        console.error('Loading topogram failed!', reason)
+                        displayMainImage()
+                    })
+                } else {
+                    displayMainImage()
+                }
+                this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
+                this.isFirstLoaded = true
+                // Save new position
+                this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
+                    this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
+                })
             }).catch((reason: any) => {
                 showLoadingError(reason)
             })
@@ -1263,7 +1068,6 @@ export default Vue.extend({
         if (this.mainImageLoaded) {
             try {
                 // If the component is destroyed before all of the setup is done, some of these may throw errors
-                //cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.AngleTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.EllipticalRoiTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.LengthTool)
                 cornerstoneTools.removeToolForElement(this.dicomEl, cornerstoneTools.PanTool)
@@ -1290,11 +1094,8 @@ export default Vue.extend({
         if (this.resource.topogram && this.topoImageLoaded) {
             try {
                 // Same for topogram
-                //cornerstoneTools.clearToolState(this.topoEl, 'stack')
-                //cornerstoneTools.clearToolState(this.topoEl, 'Crosshairs')
                 cornerstoneTools.setToolDisabled(`TopogramReferenceLines-${this.instanceNum}`)
                 cornerstoneTools.removeToolForElement(this.topoEl, TopogramReferenceLineTool)
-                //this.synchronizers.stackScroll.remove(this.topoEl)
                 cornerstone.disable(this.topoEl)
             } catch (e) {}
         }
