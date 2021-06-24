@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER DICOM WAVEFORM
+/** MEDICAL IMAGING STUDY VIEWER DICOM WAVEFORM
  * Class for handling DICOM waveforms (mostly biosignals).
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

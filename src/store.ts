@@ -1,5 +1,5 @@
 /**
- * MEDICAL IMAGING VIEWER VUEX STORE
+ * MEDICAL IMAGING STUDY VIEWER VUEX STORE
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT

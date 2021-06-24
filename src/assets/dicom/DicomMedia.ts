@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER DICOM MEDIA
+/** MEDICAL IMAGING STUDY VIEWER DICOM MEDIA
  * Parent class for all DICOM media.
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

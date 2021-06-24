@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER SIDEBAR COMPONENT TESTS
+/** MEDICAL IMAGING STUDY VIEWER SIDEBAR COMPONENT TESTS
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT

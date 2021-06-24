@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER VISIT LOADER
+/** MEDICAL IMAGING STUDY VIEWER VISIT LOADER
  * Loads multiple visits from the given resource.
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

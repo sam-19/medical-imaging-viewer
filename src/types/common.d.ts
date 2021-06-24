@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER COMMON TYPES
+/** MEDICAL IMAGING STUDY VIEWER COMMON TYPES
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT

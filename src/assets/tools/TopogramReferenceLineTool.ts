@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER TOPOGRAM REFERENCE LINE TOOL
+/** MEDICAL IMAGING STUDY VIEWER TOPOGRAM REFERENCE LINE TOOL
  * A replacement for the default reference lines tool specifically for topogram elements.
  * It includes scaling of the reference line (at the time of writing this tool https://github.com/cornerstonejs/cornerstone/pull/476 was not merged).
  * @package    medimg-viewer

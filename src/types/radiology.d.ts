@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER RADIOLOGY TYPES
+/** MEDICAL IMAGING STUDY VIEWER RADIOLOGY TYPES
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT

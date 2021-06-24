@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER STUDY LOADER
+/** MEDICAL IMAGING STUDY VIEWER STUDY LOADER
  * Checks the types of given studies and laod them accordingly.
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

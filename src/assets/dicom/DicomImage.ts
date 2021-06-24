@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER DICOM IMAGE STACK
+/** MEDICAL IMAGING STUDY VIEWER DICOM IMAGE STACK
  * Class for managing DICOM image stacks.
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

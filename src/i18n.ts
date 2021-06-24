@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER I18N MODULE
+/** MEDICAL IMAGING STUDY VIEWER I18N MODULE
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT

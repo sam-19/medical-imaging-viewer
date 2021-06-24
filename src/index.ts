@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER ENTRY SCRIPT
+/** MEDICAL IMAGING STUDY VIEWER ENTRY SCRIPT
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
@@ -113,7 +113,7 @@ class MedImgViewer {
     viewer: Vue | undefined = undefined
 
     /**
-     * Medical imaging viewer
+     * Medical imaging study viewer
      * @param appName unique identifier used within the app in case several instances of MedImgViewer are run on the same page
      * @param idSuffix string following div element ID 'medimg-viewer-<idSuffix>'
      * @param locale app locale

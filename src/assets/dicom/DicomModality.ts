@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER DICOM FILE MODALITY
+/** MEDICAL IMAGING STUDY VIEWER DICOM FILE MODALITY
  * List of supported DICOM file mdoalities.
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi

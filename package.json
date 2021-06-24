@@ -1,7 +1,7 @@
 {
   "name": "medimg-viewer",
   "version": "0.0.1",
-  "description": "Javascript medical imaging viewer",
+  "description": "Javascript medical imaging study viewer",
   "main": "index.js",
   "scripts": {
     "build": "node node_modules/webpack/bin/webpack.js --progress --config webpack.build.js",

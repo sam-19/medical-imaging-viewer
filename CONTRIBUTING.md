@@ -1,7 +1,7 @@
-Contributing to Medical Imaging Viewer
-======================================
+Contributing to Medical Imaging Study Viewer
+============================================
 
-Medical Imaging Viewer is an open source project. Contributions to the project are welcome, provided that they follow the code of conduct and guidelines detailed below.
+Medical Imaging Study Viewer is an open source project. Contributions to the project are welcome, provided that they follow the code of conduct and guidelines detailed below.
 
 ## Code of Conduct
 

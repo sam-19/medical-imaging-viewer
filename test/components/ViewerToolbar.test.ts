@@ -1,4 +1,4 @@
-/** MEDICAL IMAGING VIEWER TOOLBAR COMPONENT TESTS
+/** MEDICAL IMAGING STUDY VIEWER TOOLBAR COMPONENT TESTS
  * @package    medimg-viewer
  * @copyright  2020-2021 Sampsa Lohi
  * @license    MIT
