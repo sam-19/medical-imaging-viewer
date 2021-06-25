@@ -1025,7 +1025,11 @@ export default Vue.extend({
                 { name: `Wwwc-${this.$store.state.appName}` },
             )
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
-            // Restore possible cached tool states
+            // Restore possible cached tool states.
+            // We need to set annotation tools active for the duration of image rendering, or the
+            // annotation will not be displayd.
+            cornerstoneTools.setToolActive(`EllipticalRoi-${this.$store.state.appName}`, { })
+            cornerstoneTools.setToolActive(`Length-${this.$store.state.appName}`, { })
             const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
@@ -1066,13 +1070,16 @@ export default Vue.extend({
                         this.synchronizers.stackScroll.add(this.dicomEl)
                         this.resource.currentPosition = this.resource.currentPosition
                         const displayMainImage = () => {
-                            // Shorthand for these operations, as they are needed in a few (async) paths
-                            this.$store.dispatch('tools:re-enable-active')
+                            // Shorthand for these operations, as they are needed in a few (async) paths.
                             // Don't trigger resize if the container has been destroyed
                             if (!this.destroyed) {
                                 this.resizeImage(true)
                             }
                             this.displayImage()
+                            // Set annotation tools passive before re-enabling the active tools.
+                            cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
+                            cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
+                            this.$store.dispatch('tools:re-enable-active')
                         }
                         // Display possible topogram
                         if (this.resource.topogram !== null) {
@@ -1162,12 +1169,12 @@ export default Vue.extend({
                     window.clearInterval(this.loadingDotCycle)
                     this.resource.readMetadataFromImage(image)
                     this.mainImageLoaded = true
-                    // Re-enable the active tool to include this image
+                    // Set annotation tools passive and re-enable the active tool to include this image
+                    cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
+                    cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
                     this.$store.dispatch('tools:re-enable-active')
                     this.isFirstLoaded = true
-                    Vue.nextTick(() => {
-                        this.resizeImage()
-                    })
+                    this.resizeImage()
                 }).catch((reason: any) => {
                     showLoadingError(reason)
                 })
