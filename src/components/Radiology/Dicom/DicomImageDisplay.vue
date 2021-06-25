@@ -186,7 +186,6 @@ export default Vue.extend({
                 len: [] as any[],
                 roiE: [] as any[],
             },
-            viewport: null as any, // Save viewport settings for image stacks
             orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
             mainImageLoaded: false,
@@ -256,39 +255,41 @@ export default Vue.extend({
          * @param {number} y amount to adjust window center.
          */
         adjustLevels: function (x: number, y: number) {
-            this.viewport.voi.windowWidth += (x / this.viewport.scale)
-            this.viewport.voi.windowCenter += (y / this.viewport.scale)
-            cornerstone.setViewport(this.dicomEl, this.viewport)
+            this.resource.viewport.voi.windowWidth += (x / this.resource.viewport.scale)
+            this.resource.viewport.voi.windowCenter += (y / this.resource.viewport.scale)
+            cornerstone.setViewport(this.dicomEl, this.resource.viewport)
         },
         /**
          * Display the single image from this.resource or current image (this.resource.currentPosition) from image stack.
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
-        displayImage: async function (defaultVP: boolean, stackPos?: number): Promise<void|object> {
+        displayImage: async function (defaultVP: boolean = false, stackPos?: number): Promise<void|object> {
             const imageUrl = this.resource.isStack
                              ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
             return await cornerstone.loadImage(imageUrl).then((image: any) => {
-                if (defaultVP) {
+                console.log('vp1', this.resource.viewport)
+                if (defaultVP || !this.resource.viewport) {
                     // Set this.viewport to default settings
-                    this.viewport = cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                    this.resource.viewport = cornerstone.getDefaultViewportForImage(this.dicomEl, image)
                 }
-                if (this.viewport) {
-                    cornerstone.displayImage(this.dicomEl, image, this.viewport)
+                console.log('vp2', this.resource.viewport)
+                if (this.resource.viewport) {
+                    cornerstone.displayImage(this.dicomEl, image, this.resource.viewport)
                 }
             })
         },
         flipHorizontally: function () {
-            if (this.dicomEl && this.viewport) {
-                this.viewport.hflip = !this.viewport.hflip
-                this.displayImage(false)
+            if (this.dicomEl && this.resource.viewport) {
+                this.resource.viewport.hflip = !this.resource.viewport.hflip
+                this.displayImage()
                 this.updateOrientationMarkers()
             }
         },
         flipVertically: function () {
-            if (this.dicomEl && this.viewport) {
-                this.viewport.vflip = !this.viewport.vflip
-                this.displayImage(false)
+            if (this.dicomEl && this.resource.viewport) {
+                this.resource.viewport.vflip = !this.resource.viewport.vflip
+                this.displayImage()
                 this.updateOrientationMarkers()
             }
         },
@@ -322,8 +323,8 @@ export default Vue.extend({
                 const offset = cornerstone.pageToPixel(this.dicomEl, 0, 0)
                 const osLeft = this.dicomEl.getBoundingClientRect().left
                 const osTop = this.dicomEl.getBoundingClientRect().top
-                const top = (this.annotationMenu.anchor.y - offset.y)*this.viewport.scale - osTop + 20
-                const left = (this.annotationMenu.anchor.x - offset.x)*this.viewport.scale - osLeft + 20
+                const top = (this.annotationMenu.anchor.y - offset.y)*this.resource.viewport.scale - osTop + 20
+                const left = (this.annotationMenu.anchor.x - offset.x)*this.resource.viewport.scale - osLeft + 20
                 return `top: ${top}px; left: ${left}px`
             }
         },
@@ -430,7 +431,7 @@ export default Vue.extend({
                     if (localState[index]) {
                         for (let i=0; i<localState[index].data.length; i++) {
                             const anno = localState[index].data[i]
-                            const threshold = CLICK_DISTANCE_THRESHOLD/this.viewport.scale // Take scale into account
+                            const threshold = CLICK_DISTANCE_THRESHOLD/this.resource.viewport.scale // Take scale into account
                             if (cornerstoneMath.point.distance(anno.handles.start, coords) <= threshold ||
                                 cornerstoneMath.point.distance(anno.handles.end, coords) <= threshold
                             ) {
@@ -536,8 +537,8 @@ export default Vue.extend({
          * Invert the image colors values.
          */
         invertImage: function () {
-            this.viewport.invert = !this.viewport.invert
-            this.displayImage(false)
+            this.resource.viewport.invert = !this.resource.viewport.invert
+            this.displayImage()
         },
         /**
          * Link image stack at current index. The link is used both to check if this
@@ -572,9 +573,9 @@ export default Vue.extend({
          * @param {number} y distance on the y-axis.
          */
         panImage: function (x: number, y: number) {
-            this.viewport.translation.x -= (x / this.viewport.scale)
-            this.viewport.translation.y -= (y / this.viewport.scale)
-            cornerstone.setViewport(this.dicomEl, this.viewport)
+            this.resource.viewport.translation.x -= (x / this.resource.viewport.scale)
+            this.resource.viewport.translation.y -= (y / this.resource.viewport.scale)
+            cornerstone.setViewport(this.dicomEl, this.resource.viewport)
         },
         /**
          * Reset the viewport to default state.
@@ -607,9 +608,6 @@ export default Vue.extend({
             // Resize image if it is done loading
             if (this.mainImageLoaded) {
                 cornerstone.resize(this.dicomEl, false)
-                // Store the resized viewport (or it will reset to initial config when the stack is scrolled)
-                this.viewport = cornerstone.getViewport(this.dicomEl)
-                //cornerstone.setViewport(this.dicomEl, this.viewport)
             } else {
                 // Update the loading text position
                 const loadingText = (document.querySelector(
@@ -631,9 +629,9 @@ export default Vue.extend({
             this.updateOrientationMarkers()
         },
         rotateBy: function (angle: number) {
-            if (this.dicomEl && this.viewport) {
-                this.viewport.rotation += angle
-                this.displayImage(false)
+            if (this.dicomEl && this.resource.viewport) {
+                this.resource.viewport.rotation += angle
+                this.displayImage()
                 this.updateOrientationMarkers()
             }
         },
@@ -665,7 +663,7 @@ export default Vue.extend({
                     } else {
                         this.resource.currentPosition = absPos
                     }
-                    await this.displayImage(false)
+                    await this.displayImage()
                     // Fetch the current tool state properties and update current image index
                     // to keep the scroll stack tool in sync with these changes
                     const opts = cornerstoneTools.getToolState(this.dicomEl, 'stack').data[0]
@@ -828,21 +826,21 @@ export default Vue.extend({
             }
             // Detect and correct for inversion and rotation of the image.
             // There should be a way to get the initial vector to include this, but I haven't found it.
-            if (this.viewport) {
-                if (this.viewport.hflip) {
+            if (this.resource.viewport) {
+                if (this.resource.viewport.hflip) {
                     [markers.left, markers.right] = [markers.right, markers.left]
                 }
-                if (this.viewport.vflip) {
+                if (this.resource.viewport.vflip) {
                     [markers.top, markers.bottom] = [markers.bottom, markers.top]
                 }
-                if (this.viewport.rotation > 45) {
-                    for (let i=this.viewport.rotation; i>45; i=i-90) {
+                if (this.resource.viewport.rotation > 45) {
+                    for (let i=this.resource.viewport.rotation; i>45; i=i-90) {
                         // Rotate markers 90 degrees at a time
                         [markers.top, markers.right, markers.bottom, markers.left]
                             = [markers.left, markers.top, markers.right, markers.bottom]
                     }
-                } else if (this.viewport.rotation < -45) {
-                    for (let i=this.viewport.rotation; i<-45; i=i+90) {
+                } else if (this.resource.viewport.rotation < -45) {
+                    for (let i=this.resource.viewport.rotation; i<-45; i=i+90) {
                         [markers.top, markers.right, markers.bottom, markers.left]
                         = [markers.right, markers.bottom, markers.left, markers.top]
                     }
@@ -862,8 +860,8 @@ export default Vue.extend({
          * @param {number} z zoom amount in percents.
          */
         zoomImage: function (z: number) {
-            this.viewport.scale *= 1 + z*0.01
-            cornerstone.setViewport(this.dicomEl, this.viewport)
+            this.resource.viewport.scale *= 1 + z*0.01
+            cornerstone.setViewport(this.dicomEl, this.resource.viewport)
         }
     },
     mounted () {
@@ -978,7 +976,6 @@ export default Vue.extend({
             })
             */
             // Save viewport
-            this.viewport = cornerstone.getViewport(this.dicomEl)
             // Conerstone tool options
             const zoomOpts = {
                 name: `Zoom-${this.$store.state.appName}`,
@@ -1044,7 +1041,7 @@ export default Vue.extend({
                         const displayMainImage = () => {
                             // Shorthand for these operations, as they are needed in a few (async) paths
                             this.$store.dispatch('tools:re-enable-active')
-                            this.displayImage(true)
+                            this.displayImage()
                             Vue.nextTick(() => {
                                 // Don't trigger resize if the container has been destroyed
                                 if (!this.destroyed) {
@@ -1131,7 +1128,7 @@ export default Vue.extend({
                 })
             } else {
                 // Display first image with default settings
-                this.displayImage(true).then(image => {
+                this.displayImage().then(image => {
                     window.clearInterval(this.loadingDotCycle)
                     this.resource.readMetadataFromImage(image)
                     this.mainImageLoaded = true

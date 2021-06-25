@@ -41,6 +41,7 @@ class DicomImage implements DicomImageResource {
     private _topogramIntersections: any = {}
     private _type: string
     private _url: string
+    private _viewport: any = null
     // Optional parameters depending on modality
     private _imageOrientation: number[] | undefined
     private _sliceThickness: number | undefined
@@ -267,6 +268,13 @@ class DicomImage implements DicomImageResource {
     }
     set url (url: string) {
         this._url = url
+    }
+    get viewport () {
+        return this._viewport
+    }
+    set viewport (vp: any) {
+        console.log(this._viewport, vp)
+        this._viewport = vp
     }
     ///////////////////////////////////////////
     //               METHODS                 //
