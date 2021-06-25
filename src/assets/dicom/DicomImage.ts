@@ -273,7 +273,6 @@ class DicomImage implements DicomImageResource {
         return this._viewport
     }
     set viewport (vp: any) {
-        console.log(this._viewport, vp)
         this._viewport = vp
     }
     ///////////////////////////////////////////
