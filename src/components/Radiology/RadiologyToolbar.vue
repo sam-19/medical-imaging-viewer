@@ -792,6 +792,6 @@ export default Vue.extend({
     border-right: solid 1px var(--medimg-viewer-border-faint);
     border-bottom: solid 1px var(--medimg-viewer-border-faint);
     padding: 0px 0px 10px 10px;
-    z-index: 500;
+    z-index: 5;
 }
 </style>

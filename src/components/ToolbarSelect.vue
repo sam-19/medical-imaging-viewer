@@ -125,7 +125,7 @@ export default Vue.extend({
     cursor: pointer;
     margin-right: 10px;
     opacity: 0.8;
-    z-index: 500;
+    z-index: 5;
     overflow: hidden;
 }
     .medimg-viewer-toolbar-select-open {

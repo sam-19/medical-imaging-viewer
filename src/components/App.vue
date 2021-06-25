@@ -493,7 +493,7 @@ export default Vue.extend({
     .medimg-viewer-settings {
         position: absolute;
         inset: 0;
-        z-index: 900;
+        z-index: 9;
         background-color: var(--medimg-viewer-background-modal);
     }
     .medimg-viewer-interface-dropdown {
@@ -578,7 +578,7 @@ export default Vue.extend({
         right: 0px;
         top: 10px;
         padding-left: 10px;
-        z-index: 1000; /* On top of modal */
+        z-index: 10; /* On top of modal */
         background-color: var(--medimg-viewer-background);
     }
     .medimg-viewer-settings-menu {
@@ -588,7 +588,7 @@ export default Vue.extend({
         background-color: var(--medimg-viewer-background);
         border-left: solid 1px var(--medimg-viewer-border-faint);
         border-bottom: solid 1px var(--medimg-viewer-border-faint);
-        z-index: 500;
+        z-index: 5;
     }
         .medimg-viewer-settings-menu-row {
             height: 32px;

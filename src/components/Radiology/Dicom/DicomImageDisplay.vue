@@ -1251,7 +1251,7 @@ export default Vue.extend({
         border: 2px solid var(--medimg-viewer-border);
         background-color: var(--medimg-viewer-background);
         cursor: pointer;
-        z-index: 200;
+        z-index: 2;
     }
         .medimg-viewer-image-wrapper > .medimg-viewer-annotation-menu > div {
             line-height: 30px;
@@ -1278,7 +1278,7 @@ export default Vue.extend({
         height: 40px;
         line-height: 40px;
         text-align: center;
-        z-index: 100; /* Below delete button toolbar button groups */
+        z-index: 1; /* Below delete button toolbar button groups */
         pointer-events: none;
     }
         .medimg-viewer-image-wrapper > .medimg-viewer-orientation-marker-bottom {
