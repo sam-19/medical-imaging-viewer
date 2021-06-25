@@ -189,6 +189,8 @@ export default Vue.extend({
             // Topogram reference line
             topogramSynchronizer: null as any,
             loadingDotCycle: 0,
+            // Cache some viewport properties
+            viewportProps: null as any,
             // Don't continue async operations if component has been destroyed
             destroyed: false,
             // Store unsubscribe methods
@@ -204,7 +206,10 @@ export default Vue.extend({
             this.resizeImage()
         },
         layoutPosition (value: Array<number>, old: Array<number>) {
+            // This REALLY has to be called twice or annotation menu position breaks.
+            // It has something to do with the viewport scale not updating on the first go.
             this.resizeImage()
+            this.resizeImage(true)
         },
         resource: {
             deep: true,
@@ -259,13 +264,17 @@ export default Vue.extend({
          * @param {boolean} defaultVP use the default viewport settings (resetting any modifications).
          */
         displayImage: async function (defaultVP: boolean = false, stackPos?: number): Promise<void|object> {
-            const imageUrl = this.resource.isStack
-                             ? this.resource.images[this.resource.currentPosition].url
-                             : this.resource.url
+            const imageUrl = this.resource.currentImage.url
             return await cornerstone.loadImage(imageUrl).then((image: any) => {
                 if (defaultVP || !this.resource.viewport) {
-                    // Set this.viewport to default settings
+                    // Set viewport to default settings
                     this.resource.viewport = cornerstone.getDefaultViewportForImage(this.dicomEl, image)
+                    if (this.viewportProps) {
+                        this.resource.viewport = Object.assign({...this.resource.viewport}, {...this.viewportProps})
+                        this.viewportProps = null
+                    }
+                    // Resize the image to align and display topogram
+                    this.resizeImage()
                 }
                 if (this.resource.viewport) {
                     cornerstone.displayImage(this.dicomEl, image, this.resource.viewport)
@@ -581,7 +590,7 @@ export default Vue.extend({
         /**
          * Resize the displayed image into given dimensions.
          */
-        resizeImage: function () {
+        resizeImage: function (first = false) {
             if (!this.dicomEl || !this.dicomWrapper) {
                 return
             }
@@ -601,7 +610,21 @@ export default Vue.extend({
                 = isColLast ? 'none' : '1px solid var(--medimg-viewer-border-faint)'
             // Resize image if it is done loading
             if (this.mainImageLoaded) {
+                if (first) {
+                    this.viewportProps = this.resource.viewport ?
+                        {
+                            hflip: this.resource.viewport.hflip,
+                            vflip: this.resource.viewport.vflip,
+                            invert: this.resource.viewport.invert,
+                            translation: {...this.resource.viewport.translation},
+                            rotation: this.resource.viewport.rotation,
+                            voi: {...this.resource.viewport.voi},
+                            voiLUT: this.resource.viewport.voiLUT
+                        } : null
+                    this.resource.viewport = cornerstone.getViewport(this.dicomEl)
+                }
                 cornerstone.resize(this.dicomEl, false)
+                console.log(this.resource.viewport?.scale)
             } else {
                 // Update the loading text position
                 const loadingText = (document.querySelector(
@@ -1045,13 +1068,11 @@ export default Vue.extend({
                         const displayMainImage = () => {
                             // Shorthand for these operations, as they are needed in a few (async) paths
                             this.$store.dispatch('tools:re-enable-active')
+                            // Don't trigger resize if the container has been destroyed
+                            if (!this.destroyed) {
+                                this.resizeImage(true)
+                            }
                             this.displayImage()
-                            Vue.nextTick(() => {
-                                // Don't trigger resize if the container has been destroyed
-                                if (!this.destroyed) {
-                                    this.resizeImage()
-                                }
-                            })
                         }
                         // Display possible topogram
                         if (this.resource.topogram !== null) {
