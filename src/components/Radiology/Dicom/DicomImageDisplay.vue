@@ -335,6 +335,8 @@ export default Vue.extend({
             const refs = this.resource.referenceAnnotations
             const valid = []
             for (const anno of this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs]) {
+                // Note! This method must return the same amount of elements as there are annotations, otherwise
+                // annotation numbering will be off
                 if (anno !== this.annotationMenu.data) {
                     valid.push(anno)
                 } else {
