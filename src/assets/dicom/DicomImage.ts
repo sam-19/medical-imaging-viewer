@@ -30,6 +30,11 @@ class DicomImage implements DicomImageResource {
     private _numberOfFrames: number | undefined
     private _preloadProcess: Promise<any> | null = null
     private _preloaded: number = 0
+    private _referenceAnnotations = {
+        ang: [] as any[],
+        len: [] as any[],
+        roiE: [] as any[],
+    }
     private _rows: number | undefined
     private _size: number
     private _sopClassUID: string | undefined
@@ -181,6 +186,9 @@ class DicomImage implements DicomImageResource {
     }
     get preloaded () {
         return this._preloaded
+    }
+    get referenceAnnotations () {
+        return this._referenceAnnotations
     }
     get rows () {
         return this._rows

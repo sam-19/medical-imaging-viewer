@@ -181,11 +181,6 @@ export default Vue.extend({
             //mouseRBtnDown: false, // Is the right mouse button down (depressed)
             //scrollProgress: 0, // Progress towards a scroll step
             annotationMenu: null as any, // Annotation selected by the user
-            referenceAnnotations: {
-                ang: [] as any[],
-                len: [] as any[],
-                roiE: [] as any[],
-            },
             orientationMarkers: { top: '', right: '', bottom: '', left: '' },
             // Keep track when the main and possible topogram images have loaded
             mainImageLoaded: false,
@@ -231,9 +226,9 @@ export default Vue.extend({
             if (!this.annotationMenu) {
                 return false
             }
-            const refs = this.referenceAnnotations // Stupid trick to avoid TS error
-            if (!this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length ||
-                this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) === -1
+            const refs = this.resource.referenceAnnotations // Stupid trick to avoid TS error
+            if (!this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length ||
+                this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) === -1
             ) {
                 return false
             }
@@ -330,16 +325,16 @@ export default Vue.extend({
             if (!this.annotationMenu) {
                 return 0
             }
-            const refs = this.referenceAnnotations
-            return this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length + 1
+            const refs = this.resource.referenceAnnotations
+            return this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].length + 1
         },
         getReferenceAnnotations () {
             if (!this.annotationMenu) {
                 return []
             }
-            const refs = this.referenceAnnotations
+            const refs = this.resource.referenceAnnotations
             const valid = []
-            for (const anno of this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs]) {
+            for (const anno of this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs]) {
                 if (anno !== this.annotationMenu.data) {
                     valid.push(anno)
                 } else {
@@ -352,8 +347,8 @@ export default Vue.extend({
             if (!this.annotationMenu) {
                 return 0
             }
-            const refs = this.referenceAnnotations
-            return this.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) + 1
+            const refs = this.resource.referenceAnnotations
+            return this.resource.referenceAnnotations[this.annotationMenu.type as keyof typeof refs].indexOf(this.annotationMenu.data) + 1
         },
         /**
          * Get topogram dimensions, scaled down if needed.
@@ -388,8 +383,7 @@ export default Vue.extend({
             //const getHandleNearImagePoint = cornerstoneTools.importInternal('manipulators/getHandleNearImagePoint')
             const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
             // Get tool state for currently displayed image
-            const localState = this.resource.isStack ?
-                               toolStates[this.resource.currentImage.url] : toolStates[this.resource.url]
+            const localState = toolStates[this.resource.currentImage.url]
             // Clicked image coordinates
             const coords = {...e.lastPoints.image}
             if (localState) {
@@ -401,9 +395,9 @@ export default Vue.extend({
                 // Remove annotation method
                 const removeAnnotation = (type: string, index: number) => {
                     const anno = localState[annoTypes[type as keyof typeof annoTypes]].data[index]
-                    const annoIdx = this.referenceAnnotations[type as keyof typeof annoTypes].indexOf(anno)
+                    const annoIdx = this.resource.referenceAnnotations[type as keyof typeof annoTypes].indexOf(anno)
                     if (annoIdx !== -1) {
-                        this.referenceAnnotations[type as keyof typeof annoTypes].splice(annoIdx, 1)
+                        this.resource.referenceAnnotations[type as keyof typeof annoTypes].splice(annoIdx, 1)
                     }
                     localState[annoTypes[type as keyof typeof annoTypes]].data.splice(index, 1)
                     cornerstoneTools.globalImageIdSpecificToolStateManager.restoreToolState(toolStates)
@@ -414,13 +408,13 @@ export default Vue.extend({
                 const selectAnnotation = (type: string, index: number) => {
                     if (type === 'roi') {
                         const anno = localState[`EllipticalRoi-${this.$store.state.appName}`].data[index]
-                        if (this.referenceAnnotations.roiE.indexOf(anno) === -1) {
-                            this.referenceAnnotations.roiE.push(anno)
+                        if (this.resource.referenceAnnotations.roiE.indexOf(anno) === -1) {
+                            this.resource.referenceAnnotations.roiE.push(anno)
                         }
                     } else if (type === 'len') {
                         const anno = localState[`Length-${this.$store.state.appName}`].data[index]
-                        if (this.referenceAnnotations.len.indexOf(anno) === -1) {
-                            this.referenceAnnotations.len.push(anno)
+                        if (this.resource.referenceAnnotations.len.indexOf(anno) === -1) {
+                            this.resource.referenceAnnotations.len.push(anno)
                         }
                     }
                 }
@@ -445,9 +439,9 @@ export default Vue.extend({
                                     },
                                     type: key,
                                     unselect: () => {
-                                        const annoIdx = this.referenceAnnotations[key as keyof typeof annoTypes].indexOf(anno)
+                                        const annoIdx = this.resource.referenceAnnotations[key as keyof typeof annoTypes].indexOf(anno)
                                         if (annoIdx !== -1) {
-                                            this.referenceAnnotations[key as keyof typeof annoTypes].splice(annoIdx, 1)
+                                            this.resource.referenceAnnotations[key as keyof typeof annoTypes].splice(annoIdx, 1)
                                         }
                                     },
                                 }
