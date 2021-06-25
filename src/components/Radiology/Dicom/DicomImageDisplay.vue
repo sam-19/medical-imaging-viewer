@@ -761,14 +761,6 @@ export default Vue.extend({
             ;(this.$refs['orientation-marker-left'] as HTMLElement).style.top = topOffset
             ;(this.$refs['orientation-marker-right'] as HTMLElement).style.top = topOffset
         },
-        /**
-         * Zoom in our out of the displayed image.
-         * @param {number} z zoom amount in percents.
-         */
-        zoomImage: function (z: number) {
-            this.resource.viewport.scale *= 1 + z*0.01
-            cornerstone.setViewport(this.dicomEl, this.resource.viewport)
-        }
     },
     mounted () {
         this.dicomWrapper = this.$refs[`wrapper`] as HTMLDivElement
