@@ -624,7 +624,6 @@ export default Vue.extend({
                     this.resource.viewport = cornerstone.getViewport(this.dicomEl)
                 }
                 cornerstone.resize(this.dicomEl, false)
-                console.log(this.resource.viewport?.scale)
             } else {
                 // Update the loading text position
                 const loadingText = (document.querySelector(
