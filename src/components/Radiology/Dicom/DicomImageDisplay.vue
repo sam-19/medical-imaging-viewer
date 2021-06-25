@@ -268,12 +268,10 @@ export default Vue.extend({
                              ? this.resource.images[this.resource.currentPosition].url
                              : this.resource.url
             return await cornerstone.loadImage(imageUrl).then((image: any) => {
-                console.log('vp1', this.resource.viewport)
                 if (defaultVP || !this.resource.viewport) {
                     // Set this.viewport to default settings
                     this.resource.viewport = cornerstone.getDefaultViewportForImage(this.dicomEl, image)
                 }
-                console.log('vp2', this.resource.viewport)
                 if (this.resource.viewport) {
                     cornerstone.displayImage(this.dicomEl, image, this.resource.viewport)
                 }
