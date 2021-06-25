@@ -1002,12 +1002,22 @@ export default Vue.extend({
                 { name: `Wwwc-${this.$store.state.appName}` },
             )
             cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.ZoomTool, zoomOpts)
+            // Restore possible cached tool states
+            const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
             // Sort the images if the resource is an image stack
             if (this.resource.isStack) {
                 // Add stack state manager to loaded images
                 this.resource.preloadAndSortImages().then((response: { success: boolean, reason?: any }) => {
                     // Check that dicomEl still exists, in case the container has been destroyed during the load
                     if (response.success && !this.destroyed) {
+                        // Fetch possible cached tool states
+                        for (const img of this.resource.images) {
+                            if (img.toolState) {
+                                // Move tool state to cornerstone tool state manager and reset cache
+                                toolStates[img.url] = {...img.toolState}
+                                img.toolState = null
+                            }
+                        }
                         // Stop loading dot cycler
                         window.clearInterval(this.loadingDotCycle)
                         this.mainImageLoaded = true
@@ -1121,6 +1131,11 @@ export default Vue.extend({
                     showLoadingError(reason)
                 })
             } else {
+                // Restore possible image tool state and reset cache value
+                if (this.resource.toolState) {
+                    toolStates[this.resource.url] = {...this.resource.toolState}
+                    this.resource.toolState = null
+                }
                 // Display first image with default settings
                 this.displayImage().then(image => {
                     window.clearInterval(this.loadingDotCycle)
@@ -1136,6 +1151,7 @@ export default Vue.extend({
                     showLoadingError(reason)
                 })
             }
+            cornerstoneTools.globalImageIdSpecificToolStateManager.restoreToolState(toolStates)
             // Subscribe to store dispatch events
             this.unsubscribeActions = this.$store.subscribeAction((action) => {
                 switch (action.type) {
@@ -1178,6 +1194,18 @@ export default Vue.extend({
         if (this.resource.isStack && this.resource.isLinked) {
             // Break linking
             this.resource.unlink()
+        }
+        // Save possible tool state
+        const toolStates = cornerstoneTools.globalImageIdSpecificToolStateManager.saveToolState()
+        if (this.resource.isStack) {
+            // Get tool state for currently displayed image
+            for (const img of this.resource.images) {
+                if (toolStates[img.url]) {
+                    img.toolState = toolStates[img.url]
+                }
+            }
+        } else if (toolStates[this.resource.url]) {
+            this.resource.toolState = toolStates[this.resource.url]
         }
         // Remove tools
         if (this.mainImageLoaded) {

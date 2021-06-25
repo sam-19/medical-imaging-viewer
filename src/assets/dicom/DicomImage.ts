@@ -41,6 +41,7 @@ class DicomImage implements DicomImageResource {
     private _sopInstanceUID: string | undefined
     private _studyID: string | undefined
     private _studyNumber: number | undefined
+    private _toolState: any = null
     private _topogram: null | DicomImageResource = null
     private _topogramBounds = { x: [-1, -1], y: [-1, -1] }
     private _topogramIntersections: any = {}
@@ -229,6 +230,12 @@ class DicomImage implements DicomImageResource {
     }
     set studyNumber (num: number | undefined) {
         this._studyNumber = num
+    }
+    get toolState () {
+        return this._toolState
+    }
+    set toolState (state: any) {
+        this._toolState = state
     }
     get topogram () {
         return this._topogram
