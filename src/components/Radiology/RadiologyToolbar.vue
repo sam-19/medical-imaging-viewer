@@ -342,8 +342,15 @@ export default Vue.extend({
             // Refresh button row
             this.buttonsUpdated++
         },
-        enableDefaults: function () {
-            cornerstoneTools.setToolActive(`Pan-${this.$store.state.appName}`, this.toolOptions['tool:Pan'].default)
+        disableDefaults: function () {
+            cornerstoneTools.setToolPassive(`Pan-${this.$store.state.appName}`)
+            cornerstoneTools.setToolPassive(`Wwwc-${this.$store.state.appName}`)
+            cornerstoneTools.setToolPassive(`Zoom-${this.$store.state.appName}`)
+        },
+        enableDefaults: function (onlySecondary = false) {
+            if (!onlySecondary) {
+                cornerstoneTools.setToolActive(`Pan-${this.$store.state.appName}`, this.toolOptions['tool:Pan'].default)
+            }
             cornerstoneTools.setToolActive(`Wwwc-${this.$store.state.appName}`, this.toolOptions['tool:Wwwc'].default)
             cornerstoneTools.setToolActive(`Zoom-${this.$store.state.appName}`, this.toolOptions['tool:Zoom'].default)
         },
@@ -757,7 +764,9 @@ export default Vue.extend({
                             `${this.$store.state.activeTool}-${this.$store.state.appName}`,
                             this.toolOptions[`tool:${this.$store.state.activeTool}` as keyof optType].active
                         )
+                        this.enableDefaults(true)
                     } else {
+                        // Enablew all defaults
                         this.enableDefaults()
                     }
                     cornerstoneTools.setToolActive(`StackScrollMouseWheel-${this.$store.state.appName}`, { })
