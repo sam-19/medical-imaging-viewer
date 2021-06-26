@@ -866,117 +866,120 @@ export default Vue.extend({
                             img.toolState = null
                         }
                     }
-                }
-                // Stop loading dot cycler
-                window.clearInterval(this.loadingDotCycle)
-                this.mainImageLoaded = true
-                // Set up cornerstone stack scroll tool
-                const imageIds = this.resource.images.map((img: DicomImage) => img.url)
-                const stackOpts = {
-                    currentImageIdIndex: this.resource.currentPosition,
-                    imageIds
-                }
-                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
-                    { name: `Crosshairs-${this.$store.state.appName}` },
-                )
-                this.synchronizers.crosshairs.add(this.dicomEl)
-                cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
-                cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
-                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
-                    { name: `StackScroll-${this.$store.state.appName}` }
-                )
-                cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool,
-                    { name: `StackScrollMouseWheel-${this.$store.state.appName}` }
-                )
-                // Register element to synchronizers
-                this.synchronizers.stackScroll.add(this.dicomEl)
-                this.resource.currentPosition = this.resource.currentPosition
-                const displayMainImage = () => {
-                    // Shorthand for these operations, as they are needed in a few (async) paths.
-                    // Don't trigger resize if the container has been destroyed
-                    if (!this.destroyed) {
-                        this.resizeImage(true)
+                    // Stop loading dot cycler
+                    window.clearInterval(this.loadingDotCycle)
+                    this.mainImageLoaded = true
+                    // Set up cornerstone stack scroll tool
+                    const imageIds = this.resource.images.map((img: DicomImage) => img.url)
+                    const stackOpts = {
+                        currentImageIdIndex: this.resource.currentPosition,
+                        imageIds
                     }
-                    this.displayImage().then(() => {
-                        this.$emit('done-loading')
-                        this.$nextTick(() => {
-                            // Set annotation tools passive before re-enabling the active tools.
-                            cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
-                            cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
-                            this.$store.dispatch('tools:re-enable-active')
+                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.CrosshairsTool,
+                        { name: `Crosshairs-${this.$store.state.appName}` },
+                    )
+                    this.synchronizers.crosshairs.add(this.dicomEl)
+                    cornerstoneTools.addStackStateManager(this.dicomEl, ['stack', 'Crosshairs'])
+                    cornerstoneTools.addToolState(this.dicomEl, 'stack', stackOpts)
+                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollTool,
+                        { name: `StackScroll-${this.$store.state.appName}` }
+                    )
+                    cornerstoneTools.addToolForElement(this.dicomEl, cornerstoneTools.StackScrollMouseWheelTool,
+                        { name: `StackScrollMouseWheel-${this.$store.state.appName}` }
+                    )
+                    // Register element to synchronizers
+                    this.synchronizers.stackScroll.add(this.dicomEl)
+                    this.resource.currentPosition = this.resource.currentPosition
+                    const displayMainImage = () => {
+                        // Shorthand for these operations, as they are needed in a few (async) paths.
+                        // Don't trigger resize if the container has been destroyed
+                        if (!this.destroyed) {
+                            this.resizeImage(true)
+                        }
+                        this.displayImage().then(() => {
+                            this.$emit('done-loading')
+                            this.$nextTick(() => {
+                                // Set annotation tools passive before re-enabling the active tools.
+                                cornerstoneTools.setToolPassive(`EllipticalRoi-${this.$store.state.appName}`)
+                                cornerstoneTools.setToolPassive(`Length-${this.$store.state.appName}`)
+                                this.$store.dispatch('tools:re-enable-active')
+                            })
                         })
-                    })
-                }
-                // Display possible topogram
-                if (this.resource.topogram !== null) {
-                    try {
-                        cornerstone.enable(this.topoEl)
-                    } catch (e) {
-                        this.$emit('enable-element-error')
-                        return
                     }
-                    cornerstone.loadImage(this.resource.topogram.url).then((image: any) => {
-                        this.topoImageLoaded = true
-                        const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
-                        // Set displayed area on the topogram
-                        const topoBounds = this.resource.topogramPaddedBounds
-                        vp.displayedArea.tlhc.x = topoBounds.x[0]
-                        vp.displayedArea.tlhc.y = topoBounds.y[0]
-                        vp.displayedArea.brhc.x = topoBounds.x[1]
-                        vp.displayedArea.brhc.y = topoBounds.y[1]
-                        vp.displayedArea.columnPixelSpacing = 1
-                        vp.displayedArea.rowPixelSpacing = 1
-                        vp.displayedArea.presentationSizeMode = 'SCALE TO FIT'
-                        cornerstone.setViewport(this.topoEl, vp)
-                        // Display the topogram and set up synchronizer
-                        cornerstone.displayImage(this.topoEl, image, vp)
-                        this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
-                            'cornerstonenewimage',
-                            (synchronizer: any, source: any, target: any, event: any) => {
-                                cornerstone.updateImage(this.topoEl, false)
-                            }
-                        )
-                        this.topogramSynchronizer.add(this.dicomEl)
-                        cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
-                            // Unique name to prevent tools from different topograms from conflicting with each other
-                            { name: `TopogramReferenceLines-${this.instanceNum}` }
-                        )
-                        cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
-                            synchronizationContext: this.topogramSynchronizer,
-                            // Pass a custom method to the reference line tool to get cropped and scaled line dimensions
-                            getReferenceLine: () => {
-                                const refLine = this.resource.getRefLineForImage()
-                                const topoDims = this.getTopogramDimensions()
-                                if (!refLine || !topoDims) {
-                                    return undefined
+                    // Display possible topogram
+                    if (this.resource.topogram !== null) {
+                        try {
+                            cornerstone.enable(this.topoEl)
+                        } catch (e) {
+                            this.$emit('enable-element-error')
+                            return
+                        }
+                        cornerstone.loadImage(this.resource.topogram.url).then((image: any) => {
+                            this.topoImageLoaded = true
+                            const vp = cornerstone.getDefaultViewportForImage(this.topoEl, image)
+                            // Set displayed area on the topogram
+                            const topoBounds = this.resource.topogramPaddedBounds
+                            vp.displayedArea.tlhc.x = topoBounds.x[0]
+                            vp.displayedArea.tlhc.y = topoBounds.y[0]
+                            vp.displayedArea.brhc.x = topoBounds.x[1]
+                            vp.displayedArea.brhc.y = topoBounds.y[1]
+                            vp.displayedArea.columnPixelSpacing = 1
+                            vp.displayedArea.rowPixelSpacing = 1
+                            vp.displayedArea.presentationSizeMode = 'SCALE TO FIT'
+                            cornerstone.setViewport(this.topoEl, vp)
+                            // Display the topogram and set up synchronizer
+                            cornerstone.displayImage(this.topoEl, image, vp)
+                            this.topogramSynchronizer = new cornerstoneTools.Synchronizer(
+                                'cornerstonenewimage',
+                                (synchronizer: any, source: any, target: any, event: any) => {
+                                    cornerstone.updateImage(this.topoEl, false)
                                 }
-                                if (topoDims.scale < 1) {
-                                    refLine.start = {
-                                        x: refLine.start.x/topoDims.scale,
-                                        y: refLine.start.y/topoDims.scale
-                                    },
-                                    refLine.end = {
-                                        x: refLine.end.x/topoDims.scale,
-                                        y: refLine.end.y/topoDims.scale
+                            )
+                            this.topogramSynchronizer.add(this.dicomEl)
+                            cornerstoneTools.addToolForElement(this.topoEl, TopogramReferenceLineTool,
+                                // Unique name to prevent tools from different topograms from conflicting with each other
+                                { name: `TopogramReferenceLines-${this.instanceNum}` }
+                            )
+                            cornerstoneTools.setToolEnabled(`TopogramReferenceLines-${this.instanceNum}`, {
+                                synchronizationContext: this.topogramSynchronizer,
+                                // Pass a custom method to the reference line tool to get cropped and scaled line dimensions
+                                getReferenceLine: () => {
+                                    const refLine = this.resource.getRefLineForImage()
+                                    const topoDims = this.getTopogramDimensions()
+                                    if (!refLine || !topoDims) {
+                                        return undefined
                                     }
-                                }
-                                return refLine
-                            },
+                                    if (topoDims.scale < 1) {
+                                        refLine.start = {
+                                            x: refLine.start.x/topoDims.scale,
+                                            y: refLine.start.y/topoDims.scale
+                                        },
+                                        refLine.end = {
+                                            x: refLine.end.x/topoDims.scale,
+                                            y: refLine.end.y/topoDims.scale
+                                        }
+                                    }
+                                    return refLine
+                                },
+                            })
+                            displayMainImage()
+                        }).catch((reason: any) => {
+                            console.error('Loading topogram failed!', reason)
+                            displayMainImage()
                         })
+                    } else {
                         displayMainImage()
-                    }).catch((reason: any) => {
-                        console.error('Loading topogram failed!', reason)
-                        displayMainImage()
+                    }
+                    this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
+                    this.isFirstLoaded = true
+                    // Save new position
+                    this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
+                        this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
                     })
-                } else {
-                    displayMainImage()
+                } else if (!this.destroyed) {
+                    // TODO: Return the reason somehow?
+                    showLoadingError(response.reason)
                 }
-                this.$store.commit('set-cache-status', cornerstone.imageCache.getCacheInfo())
-                this.isFirstLoaded = true
-                // Save new position
-                this.dicomEl.addEventListener('cornerstonenewimage', (e: any) => {
-                    this.resource.setCurrentPositionByUrl(e.detail.image.imageId)
-                })
             }).catch((reason: any) => {
                 showLoadingError(reason)
             })
