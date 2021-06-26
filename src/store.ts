@@ -13,6 +13,7 @@ type State = {
     activeTool: null | string,
     appName: string,
     cacheStatus: { count: number, max: number, size: number },
+    imageResourceLoading: boolean,
     linkedScrollPosition: number,
     loadingStudies: boolean,
     // App settings
@@ -140,6 +141,7 @@ enum MutationTypes {
     SET_ACTIVE_TOOL = 'set-active-tool',
     SET_APP_NAME = 'set-app-name',
     SET_CACHE_STATUS = 'set-cache-status',
+    SET_IMAGE_RESOURCE_LOADING = 'set-image-resource-loading',
     SET_LINKED_SCROLL_POSITION = 'set-linked-scroll-position',
     SET_SETTINGS_VALUE = 'set-settings-value',
     TOGGLE_SETTINGS = 'toggle-settings'
@@ -148,6 +150,7 @@ type Mutations<S = State> = {
     [MutationTypes.SET_ACTIVE_TOOL] (state: S, payload: string): void,
     [MutationTypes.SET_APP_NAME] (state: S, payload: string): void,
     [MutationTypes.SET_CACHE_STATUS] (state: S, payload: object): void,
+    [MutationTypes.SET_IMAGE_RESOURCE_LOADING] (state: S, payload: boolean): void,
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state: S, payload: { origin: string, position: number }): void,
     [MutationTypes.SET_SETTINGS_VALUE] (state: S, payload: { field: string, value: string | number }): void,
     [MutationTypes.TOGGLE_SETTINGS] (state: S, payload?: boolean): void,
@@ -169,6 +172,9 @@ const mutations: MutationTree<State> & Mutations = {
             max: payload.maximumSizeInBytes,
             size: payload.cacheSizeInBytes
         }
+    },
+    [MutationTypes.SET_IMAGE_RESOURCE_LOADING] (state, payload: boolean) {
+        state.imageResourceLoading = payload
     },
     [MutationTypes.SET_LINKED_SCROLL_POSITION] (state, payload: { origin: string, position: number }) {
         state.linkedScrollPosition = payload.position
@@ -230,6 +236,7 @@ class MedImgStore {
             activeTool: null as null | string,
             appName: '' as string,
             cacheStatus: { count: 0, max: 0, size: 0 },
+            imageResourceLoading: false,
             linkedScrollPosition: 0,
             loadingStudies: false,
             SETTINGS: {

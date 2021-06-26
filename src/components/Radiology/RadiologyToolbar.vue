@@ -191,6 +191,7 @@ export default Vue.extend({
             },
             // Unsubscribe from store actions
             unsubscribeActions: null as any,
+            unsubscribeMutations: null as any,
         }
     },
     computed: {
@@ -342,10 +343,35 @@ export default Vue.extend({
             // Refresh button row
             this.buttonsUpdated++
         },
-        disableDefaults: function () {
-            cornerstoneTools.setToolPassive(`Pan-${this.$store.state.appName}`)
-            cornerstoneTools.setToolPassive(`Wwwc-${this.$store.state.appName}`)
-            cornerstoneTools.setToolPassive(`Zoom-${this.$store.state.appName}`)
+        disableActiveTools: function () {
+            if (this.$store.state.activeTool) {
+                cornerstoneTools.setToolDisabled(
+                    `${this.$store.state.activeTool}-${this.$store.state.appName}`
+                )
+            } else {
+                cornerstoneTools.setToolDisabled(`Pan-${this.$store.state.appName}`)
+            }
+            cornerstoneTools.setToolDisabled(`Wwwc-${this.$store.state.appName}`)
+            cornerstoneTools.setToolDisabled(`Zoom-${this.$store.state.appName}`)
+        },
+        enableActiveTools: function () {
+            if (this.$store.state.imageResourceLoading) {
+                return // Don't enable tools until images are done loading
+            }
+            if (this.$store.state.activeTool) {
+                // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
+                const toolOpts = this.toolOptions
+                type optType = typeof toolOpts; // Typescript gimmics
+                cornerstoneTools.setToolActive(
+                    `${this.$store.state.activeTool}-${this.$store.state.appName}`,
+                    this.toolOptions[`tool:${this.$store.state.activeTool}` as keyof optType].active
+                )
+                this.enableDefaults(true)
+            } else {
+                // Enablew all defaults
+                this.enableDefaults()
+            }
+            cornerstoneTools.setToolActive(`StackScrollMouseWheel-${this.$store.state.appName}`, { })
         },
         enableDefaults: function (onlySecondary = false) {
             if (!onlySecondary) {
@@ -460,6 +486,9 @@ export default Vue.extend({
          * Check if button should be enabled.
          */
         isEnabled (button: string): boolean {
+            if (this.$store.state.imageResourceLoading) {
+                return false
+            }
             switch (button) {
                 case 'group:layout':
                     return this.anyItem
@@ -752,25 +781,28 @@ export default Vue.extend({
             'tool:Wwwc':            { active: false, visible: true, enabled: true } as ButtonState,
             'tool:Zoom':            { active: false, visible: true, enabled: true } as ButtonState,
         }
-        // Subscribe to store dispatches
+        // Subscribe to store commits and dispatches
         this.unsubscribeActions = this.$store.subscribeAction((action) => {
             switch (action.type) {
                 case 'tools:re-enable-active':
-                    if (this.$store.state.activeTool) {
-                        // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
-                        const toolOpts = this.toolOptions
-                        type optType = typeof toolOpts; // Typescript gimmics
-                        cornerstoneTools.setToolActive(
-                            `${this.$store.state.activeTool}-${this.$store.state.appName}`,
-                            this.toolOptions[`tool:${this.$store.state.activeTool}` as keyof optType].active
-                        )
-                        this.enableDefaults(true)
-                    } else {
-                        // Enablew all defaults
-                        this.enableDefaults()
-                    }
-                    cornerstoneTools.setToolActive(`StackScrollMouseWheel-${this.$store.state.appName}`, { })
+                    this.enableActiveTools()
                     break
+                case 'tools:disable-active':
+                    this.disableActiveTools()
+                    break
+            }
+        })
+        this.unsubscribeMutations = this.$store.subscribe((mutation, state) => {
+            if (mutation.type === 'set-image-resource-loading') {
+                if (mutation.payload) {
+                    // This is a failsafe against a bug in cornerstone.js or cornerstoneTools.
+                    // If a tool is active and in use (i.e. the mouse button controlling that tool)
+                    // is down) when a new image resource is loaded and displayed, cornerstone will
+                    // fail to remove some event listener and the component will not load.
+                    this.disableActiveTools()
+                } else {
+                    this.enableActiveTools()
+                }
             }
         })
         // Enable default tools

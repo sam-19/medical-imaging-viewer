@@ -42,6 +42,7 @@
                     :resource="resource"
                     :topogram="topogramElement"
                     :synchronizers="synchronizers"
+                    v-on:done-loading="updateElements()"
                     v-on:enable-element-error="enableElementError(idx)"
                 />
                 <!-- Add a necessary amount of placeholder elements -->
@@ -456,10 +457,22 @@ export default Vue.extend({
             }
         },
         /**
-         * Force a reactive update on the element list.
+         * Keep track of loaded elements and force a reactive update on the element list.
          */
         updateElements: function () {
-            this.elementsChanged++
+            this.$nextTick(() => {
+                this.elementsChanged++
+            })
+            for (const res of (this.resources as DicomImage[])) {
+                if (res.isActive && res.preloaded !== res.images.length &&
+                    !this.$store.state.imageResourceLoading
+                ) {
+                    // This image resource is not yet done loading
+                    this.$store.commit('set-image-resource-loading', true)
+                    return
+                }
+            }
+            this.$store.commit('set-image-resource-loading', false)
         },
     },
     mounted () {
