@@ -81,14 +81,21 @@
             </div>
         </div>
         <!-- Image tools -->
-        <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
-            :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
-            :title="t('Link this image stack')"
-            @click="linkImageStack()"
-            :class="{ 'medimg-viewer-link-icon-active' : resource.isLinked }"
-            class="medimg-viewer-link-icon"
-            fixed-width
-        />
+        <span class="medimg-viewer-tool-icons">
+            <font-awesome-icon v-if="resource.isStack && isFirstLoaded"
+                :icon="resource.isLinked ? ['fal', 'link'] : ['fal', 'unlink']"
+                :title="t('Link this image stack')"
+                @click="linkImageStack()"
+                :class="{ 'medimg-viewer-link-icon-active' : resource.isLinked }"
+                fixed-width
+            />
+            <font-awesome-icon v-if="isFirstLoaded"
+                :icon="['fal', 'reply-all']"
+                :title="t('Reset all adjustments')"
+                @click="displayImage(true)"
+                fixed-width
+            />
+        </span>
         <!-- Metadata -->
         <div v-if="isFirstLoaded" class="medimg-viewer-meta-topleft">
             <div>{{ resource.name }}</div>
@@ -1370,17 +1377,19 @@ export default Vue.extend({
             height: 9px;
             background-color: var(--medimg-viewer-background-emphasize);
         }
-    .medimg-viewer-image-wrapper > .medimg-viewer-link-icon {
+    .medimg-viewer-image-wrapper > .medimg-viewer-tool-icons {
         position: absolute;
         top: 40px;
         right: 10px;
         font-size: 20px;
-        cursor: pointer;
         color: var(--medimg-viewer-text-faint);
     }
-    .medimg-viewer-image-wrapper > .medimg-viewer-link-icon-active {
-        color: var(--medimg-viewer-text-main);
-    }
+        .medimg-viewer-image-wrapper > .medimg-viewer-tool-icons > svg {
+            cursor: pointer;
+        }
+        .medimg-viewer-image-wrapper > .medimg-viewer-link-icon-active {
+            color: var(--medimg-viewer-text-main);
+        }
     .medimg-viewer-image-wrapper > .medimg-viewer-meta-topleft {
         position: absolute;
         left: 10px;

@@ -13,6 +13,7 @@
             "orientation_left": "L",
             "orientation_posterior": "P",
             "orientation_right": "R",
+            "Reset all adjustments": "Palauta alkuperäiset asetukset",
             "Select as reference #{n}": "Valitse referenssiksi #{n}",
             "Slice": "Leike",
             "Unselect reference #{n}": "Poista referenssi #{n}"

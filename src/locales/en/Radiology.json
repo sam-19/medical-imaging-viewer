@@ -13,6 +13,7 @@
             "orientation_left": "L",
             "orientation_posterior": "P",
             "orientation_right": "R",
+            "Reset all adjustments": "Reset all adjustments",
             "Select as reference #{n}": "Select as reference #{n}",
             "Slice": "Slice",
             "Unselect reference #{n}": "Unselect reference #{n}"
