@@ -901,11 +901,17 @@ export default Vue.extend({
             } else if (!e.detail.event.button && this.annotationMenu) {
                 // Hide annotation menu on left mouse click.
                 // This doesn't seem to stop an active tool from triggering a click event, unfortunately.
+                // One solution would be to insert an overlay on top of the image element to catch
+                // clicks when the annotation menu is open. Something to consider in the future...
                 e.detail.event.preventDefault()
                 e.detail.event.stopPropagation()
                 this.annotationMenu = null
             }
         }, true)
+        this.dicomEl.addEventListener('cornerstonetoolsmousedoubleclick', (e: any) => {
+            // For mobile compatibility, handle double click as right mouse click
+            this.handleRightClick(e.detail)
+        })
         // Start loading dot cycle every half second until the image is done loading
         let cyclePos = 1
         this.loadingDotCycle = window.setInterval(() => {
