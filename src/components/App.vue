@@ -220,7 +220,8 @@ export default Vue.extend({
             if (!fsItem) {
                 // Retrieve possible cached item
                 if (this.studiesToLoad) {
-                    fsItem = this.studiesToLoad
+                    fsItem = {...this.studiesToLoad}
+                    this.studiesToLoad = null
                 } else {
                     return
                 }
