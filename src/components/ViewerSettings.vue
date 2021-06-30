@@ -4,8 +4,17 @@
             {{ t('Settings') }}
         </div>
         <!-- TABS -->
-        <!-- First tab depends on scope, and that is the default open tab -->
         <div class="medimg-viewer-settings-modal-tabs">
+            <!-- Main settings tab is always available -->
+            <div :class="[
+                    'medimg-viewer-settings-modal-tab',
+                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'general' }
+                ]"
+                @click="selectTab('general')"
+            >
+                {{ t('General') }}
+            </div>
+            <!-- Specific tabs are only available in each scope -->
             <div v-if="scope === 'eeg'" :class="[
                     'medimg-viewer-settings-modal-tab',
                     { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'eeg' }
@@ -29,15 +38,6 @@
                 @click="selectTab('radiology')"
             >
                 {{ t('Radiology') }}
-            </div>
-            <!-- Main settings tab is always available -->
-            <div :class="[
-                    'medimg-viewer-settings-modal-tab',
-                    { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'general' }
-                ]"
-                @click="selectTab('general')"
-            >
-                {{ t('General') }}
             </div>
             <div class="medimg-viewer-settings-modal-tabend">
                 <label>
@@ -131,7 +131,7 @@ export default Vue.extend({
             eegSignalPolarity: this.$store.state.SETTINGS.eeg.signalPolarity,
             originalPPI: this.$store.state.SETTINGS.screenPPI,
             saveSettings: true,
-            tab: this.scope || 'general',
+            tab: 'general',
         }
     },
     watch: {
