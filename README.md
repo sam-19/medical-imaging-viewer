@@ -7,7 +7,7 @@ This is a Javascript application for viewing medical imaging studies in the brow
 
 The original aim of this application was to provide a way to view radiological imaging studies in [Moodle](https://moodle.org/) and to this end, there is an additional Moodle plugin for linking image resources and adding them as components to Moodle documents.
 
-In addition to the master and 0.1 release branches, there are a couple of experiments for including electrophysiological studies in the dev branch. In addition to these features falling outside the scope of the application, the implementations themselves turned out to be non-viable, but they are included as per the terms of my contract with the university.
+In addition to the master branch, there are a couple of experiments for including electrophysiological studies in the dev branch. In addition to these features falling outside the scope of the application, the implementations themselves turned out to be non-viable, but they are included as per the terms of my contract with the university.
 
 Due to the restrictive schedule of the master project quite a few corners had to be cut while developing this application, leaving a considerable maintenance debt. As a result, active development of this application has been discontinued in favor of a completely rewritten version TBA soon.
 
