@@ -70,7 +70,7 @@ class LocalFileLoader implements FileLoader {
                 reader.readEntries(resolve, reject)
             })
         } catch (error) {
-            throw new Error(error)
+            throw new Error((error as Error).message)
         }
     }
 

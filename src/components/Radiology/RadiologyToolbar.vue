@@ -336,12 +336,9 @@ export default Vue.extend({
                 }
             }
             this.$nextTick(() => {
-                if (!this.$store.state.activeTool) {
-                    this.enableDefaults()
-                }
+                // Refresh button row
+                this.buttonsUpdated++
             })
-            // Refresh button row
-            this.buttonsUpdated++
         },
         disableActiveTools: function () {
             if (this.$store.state.activeTool) {
@@ -360,22 +357,19 @@ export default Vue.extend({
             }
             if (this.$store.state.activeTool) {
                 // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
-                const toolOpts = this.toolOptions
-                type optType = typeof toolOpts; // Typescript gimmics
-                cornerstoneTools.setToolActive(
-                    `${this.$store.state.activeTool}-${this.$store.state.appName}`,
-                    this.toolOptions[`tool:${this.$store.state.activeTool}` as keyof optType].active
-                )
                 this.enableDefaults(true)
             } else {
-                // Enablew all defaults
+                // Enable all defaults
                 this.enableDefaults()
             }
             cornerstoneTools.setToolActive(`StackScrollMouseWheel-${this.$store.state.appName}`, { })
         },
         enableDefaults: function (onlySecondary = false) {
+            // Make sure all tools are disable to start with
             if (!onlySecondary) {
+                // This just doesn't work for some reason, it keeps enabling the Zoom tool
                 cornerstoneTools.setToolActive(`Pan-${this.$store.state.appName}`, this.toolOptions['tool:Pan'].default)
+                this.buttonStates[`tool:Pan`].active = true
             }
             cornerstoneTools.setToolActive(`Wwwc-${this.$store.state.appName}`, this.toolOptions['tool:Wwwc'].default)
             cornerstoneTools.setToolActive(`Zoom-${this.$store.state.appName}`, this.toolOptions['tool:Zoom'].default)
@@ -569,14 +563,19 @@ export default Vue.extend({
         },
         toggleTool: function (toolName: string, group?: keyof ButtonGroups) {
             const toolId = `tool:${toolName}` as keyof ButtonRow
-            this.buttonStates[toolId].active = !this.buttonStates[toolId].active
-            this.$store.commit('set-active-tool', toolName)
-            // Add app name after the tool for containment
-            toolName = `${toolName}-${this.$store.state.appName}`
-            if (this.buttonStates[toolId].active) {
-                cornerstoneTools.setToolActive(toolName, (this.toolOptions as any)[toolId].active)
+            if (!this.buttonStates[toolId].active) {
+                this.$store.commit('set-active-tool', toolName)
+                cornerstoneTools.setToolActive(
+                    `${toolName}-${this.$store.state.appName}`,
+                    (this.toolOptions as any)[toolId].active
+                )
+                this.buttonStates[toolId].active = true
             } else {
-                cornerstoneTools.setToolPassive(toolName)
+                cornerstoneTools.setToolPassive(`${toolName}-${this.$store.state.appName}`)
+                this.$store.commit('set-active-tool', null)
+                this.$nextTick(() => {
+                    this.enableDefaults()
+                })
             }
             // Close possible button group
             if (group) {

@@ -72,6 +72,7 @@
                 { 'medimg-viewer-image-disabled': $store.state.imageResourceLoading }
             ]"
             @contextmenu.prevent
+            @mouseup="resizeImage(true)"
         >
             <div v-if="!mainImageLoaded" class="medimg-viewer-image-loading">
                 {{ t('Loading') }}

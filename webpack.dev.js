@@ -16,11 +16,10 @@ module.exports = merge(common, {
         libraryTarget: 'umd'
     },
     devServer: {
-        contentBase: path.join(__dirname, 'dist'),
         compress: true,
         historyApiFallback: true,
         port: 8080,
-        publicPath: '/',
+        static: path.join(__dirname, 'dist'),
     },
     performance: {
         hints: false
