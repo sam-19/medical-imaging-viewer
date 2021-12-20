@@ -1,0 +1,40 @@
+{
+    "Dicom": {
+        "DicomImageDisplay": {
+            "Angle": "Vinkel",
+            "Compared to reference #{n}": "Jämfört med referensen #{n}",
+            "Delete": "Ta bort",
+            "Length": "Avstånd",
+            "Link this image stack": "Länka denna bildstack",
+            "Loading": "Laddas",
+            "orientation_anterior": "A",
+            "orientation_caudal": "F",
+            "orientation_cranial": "H",
+            "orientation_left": "L",
+            "orientation_posterior": "P",
+            "orientation_right": "R",
+            "Reset all adjustments": "Återställ ursprungliga inställningar",
+            "Select as reference #{n}": "Välj till referens #{n}",
+            "Slice": "Snitt",
+            "Unselect reference #{n}": "Ta bort referens #{n}"
+        },
+        "DicomImageInterface": {
+            "Activate item manually": "Välj avbildningen manuellt"
+        },
+        "DicomImagePlaceholder": {
+            "Drop to display an image resource": "Släpp avbildningen för att visa en bildresurs",
+            "Opening failed, please activate the resource manually": "Öppnandet misslyckades, aktivera avbildningen från sidobalken"
+        }
+    },
+    "RadiologySidebar": {
+        "{n}% used": "{n}% används",
+        "{n} images": "{n} bilder",
+        "1 image": "1 bild",
+        "Cache status": "Buffertminnets utrymme",
+        "Load studies": "Ladda undersökningar",
+        "LOADING STUDIES": "UNDERSÖKNINGAR LADDAS"
+    },
+    "RadiologySidebarItem": {
+        "{n} images": "{n} bilder"
+    }
+}
