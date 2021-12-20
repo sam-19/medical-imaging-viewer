@@ -15,7 +15,7 @@
                 {{ t('General') }}
             </div>
             <!-- Specific tabs are only available in each scope -->
-            <div v-if="scope === 'eeg'" :class="[
+            <div v-if="false && scope === 'eeg'" :class="[
                     'medimg-viewer-settings-modal-tab',
                     { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'eeg' }
                 ]"
@@ -23,7 +23,7 @@
             >
                 {{ t('EEG') }}
             </div>
-            <div v-if="scope === 'ekg'" :class="[
+            <div v-if="false && scope === 'ekg'" :class="[
                     'medimg-viewer-settings-modal-tab',
                     { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'ekg' }
                 ]"
@@ -31,7 +31,7 @@
             >
                 {{ t('EKG') }}
             </div>
-            <div v-if="scope === 'radiology'" :class="[
+            <div v-if="false && scope === 'radiology'" :class="[
                     'medimg-viewer-settings-modal-tab',
                     { 'medimg-viewer-settings-modal-tab-blurred': tab !== 'radiology' }
                 ]"
@@ -48,7 +48,7 @@
         </div>
         <div style="clear:both"></div>
         <!-- SETTINGS -->
-        <div v-if="tab === 'eeg'" class="medimg-viewer-settings-modal-content">
+        <div v-if="false && tab === 'eeg'" class="medimg-viewer-settings-modal-content">
             <div class="medimg-viewer-settings-modal-row">
                 {{ t('EEG') }}
             </div>
@@ -65,12 +65,12 @@
                 </div>
             </div>
         </div>
-        <div v-else-if="tab === 'ekg'" class="medimg-viewer-settings-modal-content">
+        <div v-else-if="false && tab === 'ekg'" class="medimg-viewer-settings-modal-content">
             <div class="medimg-viewer-settings-modal-row">
                 {{ t('EKG') }}
             </div>
         </div>
-        <div v-else-if="tab === 'radiology'" class="medimg-viewer-settings-modal-content">
+        <div v-else-if="false && tab === 'radiology'" class="medimg-viewer-settings-modal-content">
             <div class="medimg-viewer-settings-modal-row">
                 {{ t('Radiology') }}
             </div>
@@ -88,15 +88,16 @@
                     <select v-model="appLocale">
                         <option value="en">{{ t('English') }}</option>
                         <option value="fi">{{ t('Finnish') }}</option>
+                        <option value="se">{{ t('Swedish') }}</option>
                     </select>
                     &nbsp;
                 </div>
             </div>
             <hr />
-            <div class="medimg-viewer-settings-modal-topic">
+            <div v-if="false" class="medimg-viewer-settings-modal-topic">
                 {{ t('Display settings') }}
             </div>
-            <div class="medimg-viewer-settings-modal-row">
+            <div v-if="false" class="medimg-viewer-settings-modal-row">
                 <div class="medimg-viewer-settings-modal-label">
                     {{ t('Screen PPI') }}
                     <font-awesome-icon :icon="['fad', 'question-circle']" style="cursor:help" :title="t('Screen PPI:help')" />
@@ -250,11 +251,11 @@ label {
     }
         .medimg-viewer-settings-modal-label {
             display: inline-block;
-            width: 190px;
+            width: 240px;
         }
         .medimg-viewer-settings-modal-value {
             display: inline-block;
-            width: 383px;
+            width: 333px;
         }
             .medimg-viewer-settings-modal-value input[type=text],
             .medimg-viewer-settings-modal-value input[type=number],

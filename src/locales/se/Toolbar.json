@@ -1,0 +1,25 @@
+{
+    "Radiology": {
+        "Adjust window": "Anpassa fönster",
+        "Automatic layout": "Automatisk layout",
+        "Crosshairs": "Crosshairs",
+        "Custom layout": "Manuell layout",
+        "Flip horizontally": "Vänd horisontellt",
+        "Flip vertically": "Vänd vertikalt",
+        "Invert image": "Invertera bilden",
+        "Layout tools": "Layoutinställningar",
+        "Link image stacks": "Länka bildstackar",
+        "Measurement tools": "Mätningsverktyg",
+        "Measure area": "Mät area",
+        "Measure distance": "Mät avstånd",
+        "Orientation tools": "Orienteringsverktyg",
+        "Pan image": "Flytta bilden",
+        "Reset all adjustments": "Återställ ursprungliga inställningar",
+        "Rotate clockwise": "Rotera medurs",
+        "Rotate counter-clockwise": "Rotera moturs",
+        "Scroll image stack": "Rulla igenom bildstack",
+        "Unlink image stacks": "Koppla loss bildstack",
+        "Zoom": "Zooma"
+    },
+    "Settings": "Inställningar"
+}

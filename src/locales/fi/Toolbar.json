@@ -2,7 +2,7 @@
     "Radiology": {
         "Adjust window": "Säädä ikkunointia",
         "Automatic layout": "Automaattinen asettelu",
-        "Crosshairs": "Crosshairs",
+        "Crosshairs": "Kohdenna",
         "Custom layout": "Manuaalinen asettelu",
         "Flip horizontally": "Käännä vaakasuunnassa",
         "Flip vertically": "Käännä pystysuunnassa",
@@ -19,7 +19,7 @@
         "Rotate counter-clockwise": "Kierrä vastapäivään",
         "Scroll image stack": "Selaa kuvapakkaa",
         "Unlink image stacks": "Poista kytkös",
-        "Zoom": "Suurenna"
+        "Zoom": "Lähennä/loitonna"
     },
     "Settings": "Asetukset"
 }
