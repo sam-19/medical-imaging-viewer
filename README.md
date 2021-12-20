@@ -28,7 +28,7 @@ Development of this sapplication would not have been possible without numerous o
   - WADOImageLoader
 - [Hammer.js](https://hammerjs.github.io/) (as a dependency of Cornerstone.js)
 
-[FontAwesome](https://fontawesome.com/) SVG icons are used extensively in the application. The master branch uses the pro icon set (since I have a personal license for it), but the release uses the free icons.
+[FontAwesome](https://fontawesome.com/) 5 Pro SVG icons are used extensively in the application. Compiling the application from source is currently not possible without a compatible license.
 
 ## License (MIT)
 
