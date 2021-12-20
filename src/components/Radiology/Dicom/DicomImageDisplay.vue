@@ -9,10 +9,10 @@
             :style="getAnnotationMenuStyles()"
             @contextmenu.prevent
         >
-            <div v-if="!isSelectedAnnotation"  class="medimg-viewer-annotation-action" @click="annotationMenu.select()">
+            <div v-if="!isSelectedAnnotation && annotationMenu && annotationMenu.type === 'len'"  class="medimg-viewer-annotation-action" @click="annotationMenu.select()">
                 {{ t('Select as reference #{n}', { n: getNextFreeReferenceNum() }) }}
             </div>
-            <div v-else class="medimg-viewer-annotation-action" @click="annotationMenu.unselect()">
+            <div v-else-if="annotationMenu && annotationMenu.type === 'len'" class="medimg-viewer-annotation-action" @click="annotationMenu.unselect()">
                 {{ t('Unselect reference #{n}', { n: getReferenceNumber() }) }}
             </div>
             <div v-for="(ref, idx) in getReferenceAnnotations()" :key="`medimg-viewer-compare-annotations-${id}-${instanceNum}-${idx}`">
@@ -72,6 +72,7 @@
                 { 'medimg-viewer-image-disabled': $store.state.imageResourceLoading }
             ]"
             @contextmenu.prevent
+            @mouseup="resizeImage(true)"
         >
             <div v-if="!mainImageLoaded" class="medimg-viewer-image-loading">
                 {{ t('Loading') }}
