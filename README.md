@@ -25,7 +25,7 @@ The application can open individual DICOM images or image series (such as CT ima
          -  📄 X_RAY_1.dcm (file name irrelevant)
      -  📁 Multiple image stack (folder name is displayed in the app)
          -  📄 CT_IMG_1.dcm (file name irrelevant)
-         -  📄 CT_IMG_1.dcm (file name irrelevant)
+         -  📄 CT_IMG_2.dcm (file name irrelevant)
          ...
          -  📄 CT_IMG_N.dcm (file name irrelevant)
  -  📁 Visit #2 (folder name is displayed in the app)
