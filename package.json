@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://git.lohi.net.co/medigi/imaging-viewer.git"
+    "url": "https://github.com/sam-19/medical-imaging-viewer.git"
   },
   "keywords": [
     "vue",
