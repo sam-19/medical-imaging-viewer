@@ -5,7 +5,7 @@ Medical Imaging Study Viewer
 
 This is a Javascript application for viewing medical imaging studies in the browser, using [Vue.js](https://vuejs.org/) as interface framework. The development of this application was supported by [University of Eastern Finland](https://www.uef.fi/en) using [Finnish MEDigi project](https://www.medigi.fi/en/home-page.html) funding.
 
-The original aim of this application was to provide a way to view radiological imaging studies in [Moodle](https://moodle.org/) and to this end, there are additional Moodle plugins for [linking image resources](https://github.com/sam-19/medimg-viewer-moodle-atto-editor-plugin) and [displaying them](https://github.com/sam-19/medimg-viewer-moodle-filter) as components to Moodle documents.
+The original aim of this application was to provide a way to view radiological imaging studies in [Moodle](https://moodle.org/) and to this end, there are additional Moodle plugins for [linking image resources](https://github.com/sam-19/medimg-viewer-moodle-atto-editor-plugin) and [displaying them](https://github.com/sam-19/medimg-viewer-moodle-filter) as components in Moodle documents.
 
 In addition to the master branch, there are a couple of experiments for including electrophysiological studies in the dev branch. In addition to these features falling outside the scope of the application, the implementations themselves turned out to be non-viable, but they are included as per the terms of my contract with the university.
 
