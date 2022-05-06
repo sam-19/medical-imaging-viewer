@@ -355,6 +355,8 @@ export default Vue.extend({
             if (this.$store.state.imageResourceLoading) {
                 return // Don't enable tools until images are done loading
             }
+            // This is a workaround to prevent the Zoom tool from becoming the default tool
+            this.disableActiveTools()
             if (this.$store.state.activeTool) {
                 // The active tool needs to be re-set to active state when a new enabled element is added to cornerstone
                 this.enableDefaults(true)
@@ -573,6 +575,7 @@ export default Vue.extend({
             } else {
                 cornerstoneTools.setToolPassive(`${toolName}-${this.$store.state.appName}`)
                 this.$store.commit('set-active-tool', null)
+                this.buttonStates[toolId].active = false
                 this.$nextTick(() => {
                     this.enableDefaults()
                 })
@@ -795,7 +798,7 @@ export default Vue.extend({
             if (mutation.type === 'set-image-resource-loading') {
                 if (mutation.payload) {
                     // This is a failsafe against a bug in cornerstone.js or cornerstoneTools.
-                    // If a tool is active and in use (i.e. the mouse button controlling that tool)
+                    // If a tool is active and in use (i.e. the mouse button controlling that tool
                     // is down) when a new image resource is loaded and displayed, cornerstone will
                     // fail to remove some event listener and the component will not load.
                     this.disableActiveTools()

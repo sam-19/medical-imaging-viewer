@@ -480,7 +480,6 @@ export default Vue.extend({
         // TODO: Allow selecting the tool color?
         cornerstoneTools.toolColors.setToolColor(TOOL_COLORS.YELLOW)
         cornerstoneTools.toolColors.setActiveColor(TOOL_COLORS.YELLOW)
-        localStorage.setItem("debug", "cornerstoneTools")
         // Set up WADO Image Loader
         cornerstoneWADOImageLoader.external.cornerstone = cornerstone
         cornerstoneWADOImageLoader.external.dicomParser = dicomParser
