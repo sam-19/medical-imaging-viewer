@@ -4,7 +4,7 @@ const { merge } = require('webpack-merge')
 const common = require('./webpack.config.js')
 const TerserPlugin = require('terser-webpack-plugin')
 
-const ASSET_PATH = process.env.ASSET_PATH || '/'
+const ASSET_PATH = process.env.ASSET_PATH || '/moodle/filter/filter_medimgviewer/js/'
 
 module.exports = merge(common, {
     mode: 'production',

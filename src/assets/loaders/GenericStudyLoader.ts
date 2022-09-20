@@ -161,7 +161,7 @@ class GenericStudyLoader implements StudyLoader {
                         }
                         config = reader.readAsText(confFile.file as File)
                     }).then(json => {
-                        config = Object.assign(json, config)
+                        config = Object.assign(json as any, config)
                     }).catch(e => {
                         console.error(`Could not load config from ${confFile.path}:`)
                         console.error(e.message)
