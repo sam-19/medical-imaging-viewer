@@ -30,14 +30,14 @@ The application can open individual DICOM images or image series (such as CT ima
          -  📄 CT_IMG_N.dcm (file name irrelevant)
  -  📁 Visit #2 (folder name is displayed in the app)
      ...
-         
+
 ```
 The active visit can be changed from the top left corder dropdown. Once a study has been loaded, additional files and folders dropped onto the file drop area are added as new visits.
 
 ## External libraries and resources
 
 Development of this sapplication would not have been possible without numerous open source Javascript libraries and the tremendous contributions of their developers. The most important external libraries used in this project are:
-- [Vue.js](https://vuejs.org) 
+- [Vue.js](https://vuejs.org)
 - [Cornerstone.js](https://cornerstonejs.org/) and its submodules
   - CornerstoneMath
   - CornerstoneTools
@@ -49,7 +49,7 @@ Development of this sapplication would not have been possible without numerous o
 
 ## License (excluding FontAwesome icons)
 
-Copyright (c) 2021 Sampsa Lohi & University of Eastern Finland
+Copyright (c) 2021-2022 Sampsa Lohi & University of Eastern Finland & University of Eastern Finland
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -2,7 +2,7 @@
  * This class contains all the necessary methods for reading and manipulating DICOM Data Elements according to version 2013c.
  * This class has been preserved here for reference, it is not included in the distribution script due to its large size.
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 import DicomVR from './DicomVR'

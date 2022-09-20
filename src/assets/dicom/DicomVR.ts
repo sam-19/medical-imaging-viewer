@@ -2,7 +2,7 @@
  * This class contains the standard DICOM Value Representations according to the 2017 standard.
  * See http://dicom.nema.org/medical/Dicom/2017c/output/chtml/part05/sect_6.2.html
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 

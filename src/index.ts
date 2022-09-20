@@ -1,6 +1,6 @@
 /** MEDICAL IMAGING STUDY VIEWER ENTRY SCRIPT
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 
@@ -199,10 +199,11 @@ class MedImgViewer {
      * Load the Vue component and display the viewer.
      */
     async show (): Promise<any> {
-        await Promise.all([
-            // @ts-ignore: TSLint doesn't seem to recognize Vue component styles at runtime
-            import(/* webpackChunkName: "viewer" */'./components/App.vue'),
-        ]).then((imports) => {
+        try {
+            const imports = await Promise.all([
+                // @ts-ignore: TSLint doesn't seem to recognize Vue component styles at runtime
+                import(/* webpackChunkName: "viewer" */'./components/App.vue'),
+            ])
             const Viewer = imports[0].default
             this.store = new MedImgStore().setup(Vue)
             this.store.commit(MutationTypes.SET_APP_NAME, this.appName)
@@ -226,10 +227,10 @@ class MedImgViewer {
                 i18n,
             }).$mount(this.containerId)
             return true
-        }).catch((error) => {
+        } catch (error) {
             console.error(error)
             return false
-        })
+        }
     }
 
 }

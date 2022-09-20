@@ -1,7 +1,7 @@
 /** MEDICAL IMAGING STUDY VIEWER LOCAL FILE LOADER
  * Loads drag-n-drop files from the local filesystem.
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 import { FileLoader, FileSystemItem } from '../../types/common'

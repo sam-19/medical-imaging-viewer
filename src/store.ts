@@ -1,7 +1,7 @@
 /**
  * MEDICAL IMAGING STUDY VIEWER VUEX STORE
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 

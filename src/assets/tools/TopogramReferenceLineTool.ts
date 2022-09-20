@@ -2,7 +2,7 @@
  * A replacement for the default reference lines tool specifically for topogram elements.
  * It includes scaling of the reference line (at the time of writing this tool https://github.com/cornerstonejs/cornerstone/pull/476 was not merged).
  * @package    medimg-viewer
- * @copyright  2020-2021 Sampsa Lohi
+ * @copyright  2020-2022 Sampsa Lohi & University of Eastern Finland
  * @license    MIT
  */
 
